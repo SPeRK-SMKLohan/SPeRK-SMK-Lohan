@@ -19,6 +19,10 @@ export const createStudent = (payload) => apiFetch("/api/students", studentBody(
 export const updateStudent = (id, payload) =>
   apiFetch(`/api/students/${encodeURIComponent(id)}`, { ...studentBody(payload), method: "PUT" });
 
+// Tanda kehadiran pantas (satu ketukan) semasa hari pendaftaran.
+export const setStudentStatus = (id, registrationStatus) =>
+  apiFetch(`/api/students/${encodeURIComponent(id)}/status`, studentBody({ registrationStatus }));
+
 export const importStudents = (rows, dryRun) =>
   apiFetch("/api/students/import", {
     method: "POST",

@@ -9,12 +9,35 @@ Status: dalam pembangunan. Gunakan data rekaan sahaja.
 
 - **e-Daftar** — sekolah rendah terdahulu, nama, No. IC, tingkatan, status
   OKU, status daftar (kehadiran hari pendaftaran) dan penempatan semula.
+  Halaman Pendaftaran dioptimumkan sebagai kaunter hari pendaftaran: cari
+  murid, tekan **Tanda daftar** (satu ketukan), dengan pilihan **Batal**
+  pada maklum balas; status dipaparkan serta-merta.
 - **e-Resit Koperasi** — pilih item, kira jumlah, simpan resit, PDF,
-  cetakan dan perkongsian WhatsApp.
-- **Papan Pemuka** — statistik belum daftar / sudah daftar / keahlian
-  koperasi, kad navigasi dan resit terkini.
+  cetakan dan perkongsian WhatsApp. Tunai diprabilih; butang "Resit Baharu
+  (murid sama)" pada resit lama mempercepat pembelian berulang.
+- **Papan Pemuka** — statistik belum daftar / sudah daftar / didaftarkan
+  hari ini / keahlian koperasi, bar kemajuan hari pendaftaran, kad navigasi
+  dan resit terkini.
 - **Import Data** — muat naik senarai murid daripada fail Excel `.xlsx`.
 - **Barangan** dan **Sejarah Resit** — senarai item dan rekod resit.
+
+## Aliran Hari Pendaftaran
+
+1. **Sebelum hari pendaftaran** — Import Data untuk memuat naik senarai
+   murid (semua Tingkatan 1–5). Papan Pemuka memaparkan kemajuan.
+2. **Semasa** — buka **Pendaftaran**: taip nama atau No. IC (`ahmad 140512`
+   juga berfungsi), tekan **Tanda daftar** pada baris murid (atau **Enter**
+   jika hanya satu padanan). Tersalah? Tekan **Batal** pada maklum balas
+   untuk memulihkan status. Murid baharu yang hadir tanpa rekod: cari
+   namanya, kemudian tekan **+ Daftar "..." sebagai murid baharu**.
+3. **Pantau** — angka **Sudah daftar / Belum daftar / Didaftarkan hari ini**
+   dan bar peratus di atas senarai dikemas kini serta-merta dan disegarkan
+   automatik setiap 30 saat (untuk kaunter berbilang). Tekan `/` untuk fokus
+   ke kotak carian.
+4. **Koperasi** — di **Jana Resit**, cari murid, tambah item, pilih
+   pembayaran (Tunai diprabilih) dan simpan; cetak atau kongsi resit.
+5. **Kawalan kaunter** — murid yang memohon penempatan semula tetap dikira
+   **sudah daftar** jika hadir; isi butiran melalui **Butiran**.
 
 ## Struktur
 

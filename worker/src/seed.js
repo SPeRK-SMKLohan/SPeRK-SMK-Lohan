@@ -15,7 +15,14 @@ export async function seedDevData(env, { itemsOnly = false } = {}) {
       : SEED_STUDENTS.map(({ studentId, ...rest }) => ({
           collection: "students",
           id: studentId,
-          data: { ...rest, createdAt: now, updatedAt: now },
+          data: {
+            ...rest,
+            // Jejak kehadiran untuk data demo: yang sudah daftar ditandakan hari ini.
+            registeredAt: rest.registrationStatus === "SUDAH" ? now : null,
+            registeredBy: rest.registrationStatus === "SUDAH" ? "demo@sperk" : null,
+            createdAt: now,
+            updatedAt: now,
+          },
         }))),
     ...SEED_ITEMS.map(({ itemId, ...rest }) => ({
       collection: "items",

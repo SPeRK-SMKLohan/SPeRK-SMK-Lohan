@@ -2,7 +2,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { getDashboard } from "./dashboard.js";
 import { importStudents } from "./features/e-daftar/import.js";
 import {
-  createStudent, getStudent, listStudents, updateStudent,
+  createStudent, getStudent, listStudents, setRegistrationStatus, updateStudent,
 } from "./features/e-daftar/students.js";
 import { listItems } from "./features/e-resit/items.js";
 import { createReceipt, getReceipt, listReceipts } from "./features/e-resit/receipts.js";
@@ -115,6 +115,13 @@ export default {
         }
         if (student && method === "PUT") {
           return json(await updateStudent(env, auth.user, decodeURIComponent(student[1]), request));
+        }
+        // Tanda kehadiran pantas semasa hari pendaftaran (satu ketukan).
+        const studentStatus = pathname.match(/^\/api\/students\/([^/]+)\/status$/);
+        if (studentStatus && method === "POST") {
+          return json(
+            await setRegistrationStatus(env, auth.user, decodeURIComponent(studentStatus[1]), request)
+          );
         }
 
         /* ---------- e-Resit Koperasi ---------- */

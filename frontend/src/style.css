@@ -194,7 +194,7 @@ label.check, label.radio { display: flex; gap: .5rem; align-items: center; margi
 .table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .table .nowrap { white-space: nowrap; }
 /* Jadual lebar (e-Daftar): skrol mendatar lebih baik daripada berlipat sesak. */
-.table.wide { min-width: 880px; }
+.table.wide { min-width: 720px; }
 .table.compact td { padding: .35rem .25rem; font-size: .9rem; }
 .card .table tbody tr:hover { background: var(--surface-hover); }
 
@@ -311,6 +311,78 @@ label.check, label.radio { display: flex; gap: .5rem; align-items: center; margi
 .receipt .table thead th { background: none; color: var(--text); font-size: .8rem; font-weight: 700; border-bottom: 1px solid var(--text); }
 .receipt .table .num { white-space: nowrap; }
 .receipt .table tfoot th { border-top: 1px solid var(--text); border-bottom: none; padding-top: .5rem; }
+
+/* ----- Kaunter hari pendaftaran (e-Daftar) ----- */
+.input-lg { padding: .7rem .85rem; font-size: 1.05rem; }
+.search-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .65rem; }
+.search-row .input-lg { flex: 1; min-width: 260px; }
+.search-row .btn { min-height: 44px; }
+.filter-row { display: flex; gap: .6rem 1.1rem; flex-wrap: wrap; align-items: center; margin-bottom: .5rem; }
+.input-school { min-width: 220px; }
+.chips { display: flex; gap: .35rem; flex-wrap: wrap; }
+.chip {
+  padding: .35rem .75rem; min-height: 36px;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  background: var(--surface); color: var(--text-secondary);
+  font: inherit; font-size: .88rem; cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+.chip:hover { background: var(--surface-muted); }
+.chip.active { background: var(--primary); border-color: var(--primary); color: var(--text-on-primary); font-weight: 600; }
+.count-line { margin: 0; }
+
+/* Bar kemajuan (Papan Pemuka dan e-Daftar) */
+.progress-row { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.progress { flex: 1; min-width: 180px; height: 12px; background: var(--surface-muted); border-radius: 999px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--success); border-radius: 999px; transition: width var(--transition-fast); }
+
+/* Label keadaan dan tanda kecil pada jadual */
+.badge {
+  display: inline-block; padding: .15rem .55rem; border-radius: 999px;
+  font-size: .82rem; font-weight: 600; white-space: nowrap;
+  background: var(--surface-muted); border: 1px solid var(--border); color: var(--text-secondary);
+}
+.badge.ok { background: var(--success-soft); border-color: #C4DECD; color: var(--success); }
+.tag {
+  display: inline-block; margin-left: .25rem; padding: 0 .4rem; border-radius: 4px;
+  font-size: .74rem; font-weight: 600;
+  background: var(--primary-soft); border: 1px solid var(--border-featured); color: var(--primary-hover);
+}
+.tag.oku { background: var(--warning-soft); border-color: #F0E0A8; color: var(--warning); }
+.row-done td:first-child { box-shadow: inset 3px 0 0 var(--success); }
+.row-in-cart td { background: var(--primary-soft); }
+.row-actions { white-space: nowrap; }
+.row-actions .btn { margin-left: .3rem; }
+.table .btn.small { padding: .4rem .7rem; min-height: 36px; }
+.btn.ok { background: var(--success); border-color: var(--success); color: #fff; }
+.btn.ok:hover { background: #3C6749; border-color: #3C6749; }
+
+/* Dialog borang (e-Daftar) */
+.modal {
+  width: min(720px, 94vw); padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  box-shadow: 0 18px 45px rgba(38, 52, 66, .25);
+}
+.modal::backdrop { background: rgba(38, 52, 66, .45); }
+
+/* Maklum balas pantas dengan "Batal" */
+.toast-wrap {
+  position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%);
+  display: grid; gap: .5rem; z-index: 100; width: min(560px, 94vw);
+}
+.toast {
+  display: flex; align-items: center; gap: .75rem; justify-content: space-between;
+  padding: .6rem .85rem; border-radius: 8px; font-size: .92rem;
+  background: var(--text-primary); color: #fff;
+  box-shadow: 0 10px 25px rgba(38, 52, 66, .3);
+}
+.toast.danger { background: var(--danger); }
+.toast-action {
+  padding: .3rem .7rem; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .5);
+  color: #fff; font: inherit; font-weight: 600;
+}
+.toast-action:hover { background: rgba(255, 255, 255, .28); }
 
 /* Cetakan: hanya resit dicetak */
 @media print {

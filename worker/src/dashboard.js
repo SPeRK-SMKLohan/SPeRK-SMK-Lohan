@@ -54,10 +54,20 @@ export async function getDashboard(env) {
 
   const registered = students.filter((s) => s.registrationStatus === "SUDAH").length;
 
+  // Kemajuan hari pendaftaran: murid yang ditandakan hadir hari ini (masa Malaysia).
+  const startMs = start.getTime();
+  const endMs = startMs + DAY_MS;
+  const registeredTodayCount = students.filter((s) => {
+    if (s.registrationStatus !== "SUDAH" || !s.registeredAt) return false;
+    const t = new Date(s.registeredAt).getTime();
+    return t >= startMs && t < endMs;
+  }).length;
+
   return {
     activeStudents: students.length,
     registeredStudents: registered,
     notRegisteredStudents: students.length - registered,
+    registeredTodayCount,
     koperasiStudents: members.size,
     activeItems: activeItems.length,
     todayCount: issuedToday.length,

@@ -4,6 +4,8 @@ import { maskIC } from "../util.js";
 /* ---------- Lapisan data murid yang dikongsi e-Daftar dan e-Resit ---------- */
 
 // Semua medan murid daripada dokumen Firestore, dengan nilai lalai yang selamat.
+// registeredAt/registeredBy dijejak apabila status bertukar kepada SUDAH
+// (untuk kemajuan hari pendaftaran). Rekod lama tiada nilai ini.
 export function studentFromDoc(d) {
   return {
     studentId: d.id,
@@ -13,6 +15,8 @@ export function studentFromDoc(d) {
     tingkatan: Number.isInteger(d.tingkatan) ? d.tingkatan : null,
     oku: typeof d.oku === "boolean" ? d.oku : null,
     registrationStatus: d.registrationStatus === "SUDAH" ? "SUDAH" : "BELUM",
+    registeredAt: d.registeredAt ?? null,
+    registeredBy: d.registeredBy ?? "",
     transferSchool: d.transferSchool ?? "",
     transferReason: d.transferReason ?? "",
     transferNotes: d.transferNotes ?? "",
@@ -29,6 +33,8 @@ export function publicStudent(s) {
     tingkatan: s.tingkatan,
     oku: s.oku,
     registrationStatus: s.registrationStatus,
+    registeredAt: s.registeredAt ?? null,
+    registeredBy: s.registeredBy ?? "",
     transferSchool: s.transferSchool,
     transferReason: s.transferReason,
     transferNotes: s.transferNotes,

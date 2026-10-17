@@ -119,8 +119,14 @@ Sistem menyimpan nama murid, IC, sekolah rendah terdahulu, tingkatan,
 status OKU, status daftar dan maklumat penempatan semula. Fungsi: - Import
 data daripada Excel `.xlsx` melalui halaman Import Data yang berasingan. -
 Tambah murid baharu atau kemas kini rekod sedia ada. - Cari murid
-mengikut nama atau nombor IC. - Tapis mengikut sekolah rendah, tingkatan
-dan status daftar. - Pilih sekolah rendah asal daripada senarai. - Semak
+mengikut nama atau nombor IC (carian berbilang perkataan: `ahmad 140512`). -
+Tapis mengikut sekolah rendah, tingkatan dan status daftar. - **Mod kaunter
+hari pendaftaran:** tanda daftar dengan satu ketukan pada baris murid,
+dengan **Batal** untuk memulihkan, bar kemajuan dan angka **Didaftarkan
+hari ini**, kemas kini automatik setiap 30 saat dan pintasan papan
+kekunci (`/` fokus carian, `Enter` menanda murid tunggal). - Rekod masa
+(`registeredAt`) dan petugas (`registeredBy`) bagi setiap pendaftaran. -
+Pilih sekolah rendah asal daripada senarai. - Semak
 medan wajib yang kosong (nama, IC, sekolah, status OKU). - Kesan
 kemungkinan rekod pendua (No. IC sama). - Paparkan statistik belum
 daftar, sudah daftar dan keahlian koperasi pada papan pemuka. - Paparkan
@@ -309,13 +315,31 @@ pelayar komputer sekolah.
 
 ### 5.2 Hari pendaftaran (e-Daftar)
 
-1.  Buka halaman e-Daftar.
-2.  Cari murid melalui nama atau nombor IC (boleh ditapis mengikut
-    sekolah rendah atau tingkatan).
-3.  Klik **Kemas kini** pada baris murid.
-4.  Tanda **Sudah daftar** atau **Belum daftar**, serta lengkapkan
-    tingkatan, status OKU dan maklumat penempatan semula jika berkenaan.
-5.  Simpan. Status pada papan pemuka dikemas kini secara automatik.
+Halaman Pendaftaran berfungsi sebagai **kaunter**: cari murid, kemudian
+tanda kehadiran dengan satu ketukan.
+
+1.  Buka halaman Pendaftaran. Angka **Sudah daftar / Belum daftar /
+    Didaftarkan hari ini** dan bar peratus dipaparkan di atas sekali, dan
+    disegarkan automatik setiap 30 saat (sesuai untuk kaunter berbilang).
+2.  Taip nama atau No. IC di kotak carian (contoh: `ahmad 140512` — setiap
+    perkataan nama dan digit IC dipadankan). Tekan `/` untuk fokus ke
+    kotak carian pada bila-bila masa. Guna cip **Tingkatan** / **Status
+    daftar** / sekolah rendah untuk menapis.
+3.  Tekan **✓ Tanda daftar** pada baris murid. Jika hanya **satu**
+    padanan, tekan **Enter** untuk tanda terus. Status berubah serta-merta
+    (optimistik) dan diselaraskan dengan pelayan.
+4.  Tersalah tanda? Tekan **Batal** pada maklum balas di bawah skrin untuk
+    memulihkan status asal.
+5.  Untuk pembetulan maklumat (tingkatan, status OKU, penempatan semula),
+    tekan **Butiran** — borang penuh dibuka dalam dialog. Murid baharu yang
+    hadir tanpa rekod: cari namanya, kemudian tekan
+    **+ Daftar "..." sebagai murid baharu** dalam senarai kosong.
+6.  **Batal daftar** (pada baris yang sudah daftar) memerlukan pengesahan
+    kerana ia memadam jejak kehadiran murid.
+
+Setiap pendaftaran merekod **masa** (`registeredAt`) dan **petugas**
+(`registeredBy`) yang menandakannya. Murid yang memohon penempatan semula
+tetap dikira **sudah daftar** jika hadir pada hari pendaftaran.
 
 ### 5.3 Mengeluarkan resit
 
@@ -394,8 +418,23 @@ resit kedua.
 4.  **Cipta:** dokumen baharu disimpan dengan `active: true`. **Kemas
     kini:** hanya medan yang dihantar ditulis (updateMask), jadi tarikh
     cipta dan status aktif kekal.
-5.  Cache senarai murid dikosongkan supaya papan pemuka dan senarai
+5.  Jika status bertukar kepada **SUDAH**, worker merekod `registeredAt`
+    (masa) dan `registeredBy` (e-mel petugas); jika kembali **BELUM**,
+    kedua-dua medan dikosongkan. Status yang kekal SUDAH mengekalkan masa
+    asal.
+6.  Cache senarai murid dikosongkan supaya papan pemuka dan senarai
     menunjukkan data terbaharu.
+
+### Tanda daftar pantas (hari pendaftaran)
+
+Endpoint khas `POST /api/students/:id/status` dengan
+`{"registrationStatus": "SUDAH" | "BELUM"}` — hanya menyentuh status daftar
+dan jejak kehadiran (lebih ringan daripada kemas kini penuh, dan tidak
+memerlukan No. IC penuh). Frontend memaparkan kesan optimistik serta-merta,
+kemudian menggantikan baris dengan respons pelayan; jika gagal, keadaan
+asal dipulihkan dan ralat dipaparkan sebagai maklum balas. Senarai murid
+dan papan pemuka turut memulangkan `registeredTodayCount` (bilangan murid
+yang ditandakan hari ini mengikut waktu Malaysia).
 
 ## 7. Struktur data dicadangkan
 
@@ -409,6 +448,9 @@ resit kedua.
 -   `oku` (`true`/`false` atau `null` jika belum diisi)
 -   `registrationStatus` (`"SUDAH"` atau `"BELUM"`; rekod lama tanpa
     medan ini dianggap `"BELUM"`)
+-   `registeredAt` (masa murid ditandakan sudah daftar; `null` jika belum —
+    rekod lama mungkin tiada medan ini)
+-   `registeredBy` (e-mel petugas yang menandakan; untuk rujukan kaunter)
 -   `transferSchool`, `transferReason`, `transferNotes` (penempatan
     semula; `null` jika tidak berkenaan)
 -   `active`
@@ -476,6 +518,7 @@ resit.
   POST     `/api/students`          Daftar murid baharu (e-Daftar)
   GET      `/api/students/:id`      Dapatkan satu murid (untuk kemas kini)
   PUT      `/api/students/:id`      Kemas kini maklumat murid
+  POST     `/api/students/:id/status`  Tanda daftar pantas (SUDAH/BELUM)
   POST     `/api/students/import`   Import data murid
   GET      `/api/items`             Dapatkan item aktif
   POST     `/api/receipts`          Cipta resit

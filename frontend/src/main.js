@@ -51,8 +51,10 @@ const REDIRECTS = {
 const app = document.querySelector("#app");
 document.title = APP_LONG_NAME;
 
-function currentPath() {
-  return location.hash.replace(/^#/, "") || "/";
+function currentRoute() {
+  const raw = location.hash.replace(/^#/, "") || "/";
+  const [path, query = ""] = raw.split("?");
+  return { path, params: new URLSearchParams(query) };
 }
 
 function layoutHtml(path) {
@@ -81,7 +83,7 @@ function layoutHtml(path) {
 }
 
 function render() {
-  const path = currentPath();
+  const { path, params } = currentRoute();
 
   if (!isLoggedIn() && path !== "/login") {
     location.hash = "/login";
@@ -109,7 +111,7 @@ function render() {
   if (path.startsWith("/resit/")) {
     renderReceiptDetail(view, decodeURIComponent(path.slice("/resit/".length)));
   } else if (routes[path]) {
-    routes[path](view);
+    routes[path](view, params);
   } else {
     view.innerHTML = `<h1>Halaman tidak dijumpai</h1><p><a href="#/">Kembali ke Papan Pemuka</a></p>`;
   }

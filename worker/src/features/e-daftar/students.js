@@ -3,7 +3,7 @@ import { commit, getDoc, runQuery } from "../../firestore.js";
 import {
   clearStudentsCache, getActiveStudents, publicStudent, studentFromDoc,
 } from "../../shared/students.js";
-import { HttpError, ID_RE, clampInt, readJson } from "../../util.js";
+import { HttpError, ID_RE, DAY_MS, clampInt, myDateKey, myDayStart, readJson } from "../../util.js";
 
 /* ---------- e-Daftar: medan murid, pengesahan dan simpan/kemas kini ---------- */
 const TINGKATAN_MAX = 5;
@@ -122,29 +122,52 @@ export async function listStudents(env, url) {
   const tingkatan = url.searchParams.get("tingkatan") || "";
   const status = url.searchParams.get("status") || "";
   const limit = clampInt(url.searchParams.get("limit"), 1, 200, 50);
-  const digits = q.replace(/\D/g, "");
+
+  // Carian berbilang perkataan: setiap perkataan mesti ada dalam nama, manakala
+  // kumpulan digit dipadankan dengan No. IC (contoh: "ahmad 140512").
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const words = tokens.filter((t) => !/^\d+$/.test(t));
+  const digits = tokens.filter((t) => /^\d+$/.test(t)).join("");
 
   const all = await getActiveStudents(env);
-  const matched = all.filter(
-    (s) =>
-      (!school || s.formerPrimarySchool === school) &&
-      (!tingkatan || String(s.tingkatan ?? "") === tingkatan) &&
-      (!status || s.registrationStatus === status) &&
-      (!q ||
-        s.name.toLowerCase().includes(q) ||
-        (digits.length >= 2 && String(s.icNumber).replace(/\D/g, "").includes(digits)))
-  );
+  const matched = all.filter((s) => {
+    if (school && s.formerPrimarySchool !== school) return false;
+    if (tingkatan && String(s.tingkatan ?? "") !== tingkatan) return false;
+    if (status && s.registrationStatus !== status) return false;
+    if (!words.every((w) => s.name.toLowerCase().includes(w))) return false;
+    if (digits.length >= 2 && !String(s.icNumber).replace(/\D/g, "").includes(digits)) return false;
+    return true;
+  });
 
   // Ringkasan status daftar bagi keseluruhan senarai aktif (bukan hanya yang
   // ditapis) — digunakan oleh penunjuk angka pada halaman e-Daftar.
   const registered = all.filter((s) => s.registrationStatus === "SUDAH").length;
 
+  // Kemajuan hari pendaftaran: murid yang ditandakan hari ini (masa Malaysia).
+  const startMs = myDayStart(myDateKey()).getTime();
+  const endMs = startMs + DAY_MS;
+  const registeredToday = all.filter((s) => {
+    if (s.registrationStatus !== "SUDAH" || !s.registeredAt) return false;
+    const t = new Date(s.registeredAt).getTime();
+    return t >= startMs && t < endMs;
+  }).length;
+
   return {
     total: matched.length,
     registeredTotal: registered,
     notRegisteredTotal: all.length - registered,
+    registeredTodayCount: registeredToday,
     students: matched.slice(0, limit).map(publicStudent),
   };
+}
+
+// Jejak kehadiran untuk kemajuan hari pendaftaran: diisi apabila status
+// bertukar kepada SUDAH, dikosongkan apabila dikembalikan kepada BELUM.
+// Jika status kekal SUDAH, masa pendaftaran asal dikekalkan.
+function registrationTrace(oldStatus, newStatus, user, now) {
+  if (newStatus !== "SUDAH") return { registeredAt: null, registeredBy: null };
+  if (oldStatus === "SUDAH") return {};
+  return { registeredAt: now, registeredBy: user?.email ?? "" };
 }
 
 // Mencari murid lain yang mempunyai digit IC sama (untuk mengelak pendua).
@@ -175,15 +198,16 @@ export async function createStudent(env, user, request) {
 
   const now = new Date();
   const id = crypto.randomUUID(); // ID rawak: nombor IC tidak muncul dalam ID atau URL
-  await commit(env, [
-    {
-      collection: "students",
-      id,
-      data: { ...parsed.student, active: true, createdAt: now, updatedAt: now },
-    },
-  ]);
+  const data = {
+    ...parsed.student,
+    active: true,
+    createdAt: now,
+    updatedAt: now,
+    ...registrationTrace(null, parsed.student.registrationStatus, user, now),
+  };
+  await commit(env, [{ collection: "students", id, data }]);
   clearStudentsCache();
-  return { student: publicStudent(studentFromDoc({ id, ...parsed.student })) };
+  return { student: publicStudent(studentFromDoc({ id, ...data })) };
 }
 
 export async function updateStudent(env, user, id, request) {
@@ -199,9 +223,38 @@ export async function updateStudent(env, user, id, request) {
 
   // Hanya medan yang dihantar yang ditulis (updateMask), jadi createdAt dan
   // active tidak terjejas.
-  await commit(env, [
-    { collection: "students", id, data: { ...parsed.student, updatedAt: new Date() }, mask: true },
-  ]);
+  const now = new Date();
+  const data = {
+    ...parsed.student,
+    updatedAt: now,
+    ...registrationTrace(existing.registrationStatus, parsed.student.registrationStatus, user, now),
+  };
+  await commit(env, [{ collection: "students", id, data, mask: true }]);
   clearStudentsCache();
-  return { student: publicStudent(studentFromDoc({ id, ...parsed.student })) };
+  return { student: publicStudent(studentFromDoc({ id, ...existing, ...data })) };
+}
+
+// Tanda kehadiran pantas (satu ketukan) semasa hari pendaftaran. Hanya medan
+// status daftar dan jejaknya diubah; medan lain tidak disentuh.
+export async function setRegistrationStatus(env, user, id, request) {
+  if (!ID_RE.test(id)) throw new HttpError(404, "Murid tidak dijumpai.");
+  const body = await readJson(request);
+
+  const status = parseRegistrationStatus(body?.registrationStatus);
+  if (status === undefined) {
+    throw new HttpError(400, "Status daftar tidak dikenali (guna SUDAH atau BELUM).");
+  }
+
+  const existing = await getDoc(env, "students", id);
+  if (!existing) throw new HttpError(404, "Murid tidak dijumpai.");
+
+  const now = new Date();
+  const data = {
+    registrationStatus: status,
+    updatedAt: now,
+    ...registrationTrace(existing.registrationStatus, status, user, now),
+  };
+  await commit(env, [{ collection: "students", id, data, mask: true }]);
+  clearStudentsCache();
+  return { student: publicStudent(studentFromDoc({ ...existing, ...data })) };
 }

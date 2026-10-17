@@ -30,6 +30,7 @@ export async function renderReceiptDetail(root, id) {
     <div class="toolbar no-print">
       <a class="btn" href="#/sejarah">← Sejarah</a>
       <a class="btn" href="#/jana-resit">Resit Baharu</a>
+      ${r.studentId ? `<a class="btn" href="#/jana-resit?student=${esc(encodeURIComponent(r.studentId))}">Resit Baharu (murid sama)</a>` : ""}
       <button class="btn" id="print" type="button">Cetak</button>
       <button class="btn" id="pdf" type="button">Muat turun PDF</button>
     </div>

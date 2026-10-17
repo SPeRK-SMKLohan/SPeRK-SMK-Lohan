@@ -1,14 +1,14 @@
 // Senarai murid datang daripada e-Daftar: kedua-dua ciri berkongsi satu pangkalan data.
-import { searchStudents } from "../e-daftar/api.js";
+import { searchStudents, getStudent } from "../e-daftar/api.js";
 import { createReceipt, getItems } from "./api.js";
 import { paymentMethods } from "./constants.js";
 import { formatRM, grandTotal } from "../../shared/money.js";
-import { esc } from "../../shared/dom.js";
+import { esc, maskIC } from "../../shared/dom.js";
 import { makeId } from "../../shared/id.js";
 
-export async function renderNewReceipt(root) {
+export async function renderNewReceipt(root, params = new URLSearchParams()) {
   let student = null;
-  let paymentMethod = "";
+  let paymentMethod = "CASH"; // Tunai ialah kaedah paling kerap di kaunter koperasi.
   let bankRef = "";
   let confirmed = false;
   let lines = []; // { itemId, quantity }
@@ -70,6 +70,12 @@ export async function renderNewReceipt(root) {
     let seq = 0;
     let timer;
 
+    const choose = (s) => {
+      student = s;
+      renderStudentBox();
+      renderSummary();
+    };
+
     input.addEventListener("input", () => {
       clearTimeout(timer);
       const value = input.value.trim();
@@ -87,21 +93,27 @@ export async function renderNewReceipt(root) {
           results.innerHTML = found.map((s) => `
             <button type="button" class="result" data-id="${esc(s.studentId)}">
               <strong>${esc(s.name)}</strong>
-              <span class="muted">${esc(s.icMasked)} · ${esc(s.formerPrimarySchool)}</span>
+              <span class="muted">${esc(s.icMasked)}${s.tingkatan ? ` · Tingkatan ${esc(s.tingkatan)}` : ""} · ${esc(s.formerPrimarySchool)}</span>
             </button>`).join("") || `<p class="muted">Tiada padanan.</p>`;
         } catch (err) {
           if (mine !== seq) return;
           results.innerHTML = `<p class="error">${esc(err.message)}</p>`;
         }
-      }, 300);
+      }, 250);
+    });
+
+    // Enter memilih padanan pertama — lebih pantas di kaunter.
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (found.length) choose(found[0]);
     });
 
     results.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-id]");
       if (!btn) return;
-      student = found.find((s) => s.studentId === btn.dataset.id) ?? null;
-      renderStudentBox();
-      renderSummary();
+      const picked = found.find((s) => s.studentId === btn.dataset.id);
+      if (picked) choose(picked);
     });
 
     input.focus();
@@ -112,15 +124,18 @@ export async function renderNewReceipt(root) {
     itemsBox.innerHTML = `
       <div class="table-wrap"><table class="table">
         <thead><tr><th>Item</th><th class="num">Harga</th><th class="num">Kuantiti</th><th></th></tr></thead>
-        <tbody>${items.map((i) => `
-          <tr data-item="${esc(i.itemId)}">
-            <td>${esc(i.name)}</td>
+        <tbody>${items.map((i) => {
+          const line = lines.find((l) => l.itemId === i.itemId);
+          return `
+          <tr data-item="${esc(i.itemId)}"${line ? ' class="row-in-cart"' : ""}>
+            <td>${esc(i.name)}${line ? ` <span class="badge">${line.quantity} dalam resit</span>` : ""}</td>
             <td class="num">${formatRM(i.priceSen)}</td>
             <td class="num">${i.fixedQuantity
               ? `<span class="fixed-qty">${i.fixedQuantity}</span>`
               : `<input class="input qty" type="number" min="1" max="99" value="1">`}</td>
-            <td><button class="btn small add" type="button">Tambah</button></td>
-          </tr>`).join("")}
+            <td><button class="btn small add" type="button">${line ? "Tambah lagi" : "Tambah"}</button></td>
+          </tr>`;
+        }).join("")}
         </tbody>
       </table></div>`;
   }
@@ -146,8 +161,7 @@ export async function renderNewReceipt(root) {
     } else {
       lines.push({ itemId: item.itemId, quantity });
     }
-    const qtyInput = row.querySelector(".qty");
-    if (qtyInput) qtyInput.value = 1;
+    renderItemsBox(); // tanda "dalam resit" pada baris item
     renderSummary();
   });
 
@@ -155,7 +169,7 @@ export async function renderNewReceipt(root) {
   paymentBox.innerHTML = `
     ${paymentMethods.map((p) => `
       <label class="radio">
-        <input type="radio" name="pay" value="${esc(p.value)}"> ${esc(p.label)}
+        <input type="radio" name="pay" value="${esc(p.value)}"${p.value === paymentMethod ? " checked" : ""}> ${esc(p.label)}
       </label>`).join("")}
     <label id="bankref-label" class="bankref hidden">No. Rujukan pindahan
       <input id="bankref" class="input" type="text" autocomplete="off" maxlength="60"
@@ -280,6 +294,25 @@ export async function renderNewReceipt(root) {
 
   renderStudentBox();
   renderSummary();
+
+  // Pratanda murid daripada pautan "Resit baharu (murid sama)" pada resit lama.
+  const preselectId = params.get?.("student");
+  if (preselectId) {
+    try {
+      const { student: s } = await getStudent(preselectId);
+      student = {
+        studentId: s.studentId,
+        name: s.name,
+        icMasked: maskIC(s.icNumber),
+        formerPrimarySchool: s.formerPrimarySchool,
+        tingkatan: s.tingkatan,
+      };
+      renderStudentBox();
+      renderSummary();
+    } catch {
+      // Abaikan: kaunter boleh cari murid secara manual.
+    }
+  }
 
   try {
     const data = await getItems();

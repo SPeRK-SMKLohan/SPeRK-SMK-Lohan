@@ -31,13 +31,32 @@ export async function renderDashboard(root) {
       <p id="seed-msg" class="muted"></p>
     </section>` : "";
 
+  const pct = d.activeStudents ? Math.round((d.registeredStudents / d.activeStudents) * 100) : 0;
+
   box.innerHTML = `
     <div class="cards">
       <div class="card stat"><span>Belum daftar</span><strong>${d.notRegisteredStudents}</strong></div>
       <div class="card stat"><span>Sudah daftar</span><strong>${d.registeredStudents}</strong></div>
+      <div class="card stat"><span>Didaftarkan hari ini</span><strong>${d.registeredTodayCount ?? 0}</strong></div>
       <div class="card stat"><span>Keahlian koperasi</span><strong>${d.koperasiStudents}</strong></div>
     </div>
-    <p class="muted">Jumlah murid aktif: <strong>${d.activeStudents}</strong> orang.</p>
+
+    <section class="card">
+      <h2>Kemajuan Hari Pendaftaran</h2>
+      <div class="progress-row">
+        <div class="progress" role="img" aria-label="Kemajuan pendaftaran">
+          <div class="progress-bar" style="width:${pct}%"></div>
+        </div>
+        <span class="muted">${pct}% sudah daftar · ${d.registeredStudents} daripada ${d.activeStudents} murid aktif</span>
+      </div>
+      ${d.activeStudents === 0 ? `
+        <p class="notice">Belum ada data murid. <a href="#/import">Import senarai murid</a> dahulu
+          sebelum hari pendaftaran.</p>` : ""}
+      <div class="toolbar" style="margin:.6rem 0 0">
+        <a class="btn primary" href="#/pendaftaran">Tandakan kehadiran murid</a>
+        <a class="btn" href="#/jana-resit">Jana resit koperasi</a>
+      </div>
+    </section>
 
     <div class="nav-cards">
       <a class="nav-card" href="#/pendaftaran">
