@@ -6,6 +6,12 @@ export const schools = [
   "SK Napong", "SK Narawang", "SK Perancangan", "SK Poring", "SK Sagiban",
 ];
 
+export const paymentMethods = [
+  { value: "QR", label: "QR" },
+  { value: "BANK_TRANSFER", label: "Pindahan Bank" },
+  { value: "CASH", label: "Tunai" },
+];
+
 export const items = [
   { itemId: "i1", name: "Lencana & Tanda Nama", priceSen: 300, active: true },
   { itemId: "i2", name: "Baju PJK", priceSen: 2500, active: true, sizes: ["S", "M", "L", "XL"] },
@@ -18,9 +24,16 @@ export const items = [
   { itemId: "i9", name: "Buku Tulis Pendek", priceSen: 150, active: true },
 ];
 
-// IC sebagai teks supaya sifar di hadapan tidak hilang.
+// IC disimpan sebagai teks supaya sifar di hadapan tidak hilang.
+// Murid Contoh Tujuh ada dua rekod untuk menguji nama yang sama.
 export const students = [
   { studentId: "s1", name: "Murid Contoh Satu", icNumber: "000000-00-0001", formerPrimarySchool: "SK Lohan", active: true },
   { studentId: "s2", name: "Murid Contoh Dua", icNumber: "000000-00-0002", formerPrimarySchool: "SK Poring", active: true },
   { studentId: "s3", name: "Murid Contoh Tiga", icNumber: "000000-00-0003", formerPrimarySchool: "SK Bongkud", active: true },
+  { studentId: "s4", name: "Murid Contoh Empat", icNumber: "000000-00-0004", formerPrimarySchool: "SK Kirokot", active: true },
+  { studentId: "s5", name: "Murid Contoh Lima", icNumber: "000000-00-0005", formerPrimarySchool: "SK Langsat", active: true },
+  { studentId: "s6", name: "Murid Contoh Enam", icNumber: "000000-00-0006", formerPrimarySchool: "SK Nalapak", active: true },
+  { studentId: "s7", name: "Murid Contoh Tujuh", icNumber: "000000-00-0007", formerPrimarySchool: "SK Napong", active: true },
+  { studentId: "s8", name: "Murid Contoh Tujuh", icNumber: "000000-00-0008", formerPrimarySchool: "SK Sagiban", active: true },
+  { studentId: "s9", name: "Murid Tidak Aktif", icNumber: "000000-00-0009", formerPrimarySchool: "SK Lohan", active: false },
 ];
