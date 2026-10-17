@@ -1,4 +1,4 @@
-name = "sprek-smk-lohan-api"
+name = "sperk-smk-lohan-api"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 

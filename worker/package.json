@@ -1,5 +1,5 @@
 {
-  "name": "sprek-api",
+  "name": "sperk-api",
   "version": "1.0.0",
   "description": "API SPeRK SMK Lohan (e-Daftar dan e-Resit Koperasi)",
   "main": "index.js",

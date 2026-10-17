@@ -106,8 +106,8 @@ aplikasi SPeRK, berkongsi satu pangkalan data murid:
 -   `worker/src/shared/students.js` — lapisan data murid yang dikongsi
 -   `worker/src/dashboard.js` — statistik papan pemuka (kedua-dua ciri)
 
-Nama teknikal: Worker Cloudflare `sprek-smk-lohan-api` dan repositori
-`sprek-smk-lohan`. Projek Firebase dikekalkan sebagai
+Nama teknikal: Worker Cloudflare `sperk-smk-lohan-api` dan repositori
+`sperk-smk-lohan`. Projek Firebase dikekalkan sebagai
 `resit-koperasi-lohan` kerana penukaran nama projek memerlukan migrasi
 data.
 
