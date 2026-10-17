@@ -108,7 +108,9 @@ export default {
           return json(await getReceipt(env, decodeURIComponent(one[1])));
         }
         if (pathname === "/api/dev/seed" && method === "POST" && env.ENABLE_SEED === "true") {
-          return json(await seedDevData(env));
+          // ?items=1 -> kemas kini senarai barangan sahaja (murid sedia ada tidak disentuh).
+          const itemsOnly = new URL(request.url).searchParams.get("items") === "1";
+          return json(await seedDevData(env, { itemsOnly }));
         }
       } catch (err) {
         if (err instanceof HttpError) return json({ error: err.message }, err.status);

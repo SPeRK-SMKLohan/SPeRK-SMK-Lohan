@@ -11,14 +11,17 @@ export const SEED_STUDENTS = [
   { studentId: "s9", name: "Murid Tidak Aktif", icNumber: "000000-00-0009", formerPrimarySchool: "SK Lohan", active: false },
 ];
 
+// Harga daripada "Senarai Harga Barangan Koperasi dan Yuran" (pihak sekolah).
+// fixedQuantity: kuantiti dikunci (pengguna tidak boleh ubah).
+// Susunan item mengikut Bil. dalam Senarai Harga rasmi sekolah.
 export const SEED_ITEMS = [
-  { itemId: "i1", name: "Lencana & Tanda Nama", priceSen: 300, active: true, sortOrder: 1 },
-  { itemId: "i2", name: "Baju PJK", priceSen: 2500, active: true, sortOrder: 2, sizes: ["S", "M", "L", "XL"] },
-  { itemId: "i3", name: "Tali Leher Sekolah", priceSen: 800, active: true, sortOrder: 3 },
-  { itemId: "i4", name: "Fail Murid", priceSen: 500, active: true, sortOrder: 4 },
-  { itemId: "i5", name: "Buku PAJSK", priceSen: 400, active: true, sortOrder: 5 },
-  { itemId: "i6", name: "Buku Peraturan Sekolah", priceSen: 300, active: true, sortOrder: 6 },
-  { itemId: "i7", name: "Keahlian Koperasi", priceSen: 1000, active: true, sortOrder: 7 },
-  { itemId: "i8", name: "Buku Tulis Panjang", priceSen: 200, active: true, sortOrder: 8 },
-  { itemId: "i9", name: "Buku Tulis Pendek", priceSen: 150, active: true, sortOrder: 9 },
+  { itemId: "i1", name: "Lencana Sekolah + Tanda Nama (3 Set)", priceSen: 1200, active: true, sortOrder: 1, fixedQuantity: 1 },
+  { itemId: "i2", name: "Baju PJK (Lengan Pendek)", priceSen: 4000, active: true, sortOrder: 2 },
+  { itemId: "i10", name: "Baju PJK (Lengan Panjang)", priceSen: 4300, active: true, sortOrder: 3 },
+  { itemId: "i3", name: "Tali Leher Sekolah", priceSen: 1550, active: true, sortOrder: 4 },
+  { itemId: "i4", name: "Fail murid", priceSen: 350, active: true, sortOrder: 5 },
+  { itemId: "i5", name: "Buku PAJSK (Kegunaan T1-T5)", priceSen: 700, active: true, sortOrder: 6 },
+  { itemId: "i6", name: "Buku Peraturan Sekolah", priceSen: 550, active: true, sortOrder: 7 },
+  { itemId: "i7", name: "Keahlian Koperasi (sekali sepanjang tempoh persekolahan)", priceSen: 500, active: true, sortOrder: 8, fixedQuantity: 1 },
+  { itemId: "i8", name: "Buku Tulis SMK Lohan (4 buku panjang + 8 buku pendek)", priceSen: 2400, active: true, sortOrder: 9 },
 ];

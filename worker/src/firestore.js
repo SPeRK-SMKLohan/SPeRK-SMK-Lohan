@@ -151,10 +151,14 @@ export async function beginTransaction(env) {
 // writes: [{ collection, id, data, mustNotExist }]
 export async function commit(env, writes, transaction) {
   const body = {
-    writes: writes.map((w) => ({
-      update: { name: docPath(env, w.collection, w.id), fields: toFields(w.data) },
-      ...(w.mustNotExist ? { currentDocument: { exists: false } } : {}),
-    })),
+    writes: writes.map((w) =>
+      w.delete
+        ? { delete: docPath(env, w.collection, w.id) }
+        : {
+            update: { name: docPath(env, w.collection, w.id), fields: toFields(w.data) },
+            ...(w.mustNotExist ? { currentDocument: { exists: false } } : {}),
+          }
+    ),
   };
   if (transaction) body.transaction = transaction;
   return fsRequest(env, ":commit", { body });

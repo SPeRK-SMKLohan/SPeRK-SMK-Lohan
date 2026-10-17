@@ -96,15 +96,30 @@ dan laporkan hasil import.
 
 ### 4.2 Senarai item dan jenis bayaran
 
-Senarai awal tanpa PIBG: 1. Lencana & Tanda Nama 2. Baju PJK 3. Tali
-Leher Sekolah 4. Fail Murid 5. Buku PAJSK 6. Buku Peraturan Sekolah 7.
-Keahlian Koperasi 8. Buku Tulis Panjang 9. Buku Tulis Pendek
+Senarai dan harga terkini daripada pihak sekolah (tanpa PIBG):
 
-Senarai dan harga akhir perlu diluluskan oleh sekolah. Pengguna boleh
-memilih beberapa item dalam satu resit dan menetapkan kuantiti. Baju PJK
-boleh mempunyai pilihan saiz jika diperlukan. Harga yang digunakan pada
+  1. Lencana Sekolah + Tanda Nama (3 Set)              RM12.00   (kuantiti tetap 1)
+  2. Baju PJK (Lengan Pendek)                          RM40.00
+     Baju PJK (Lengan Panjang)                         RM43.00
+  3. Tali Leher Sekolah                                RM15.50
+  4. Fail murid                                        RM3.50
+  5. Buku PAJSK (Kegunaan T1-T5)                       RM7.00
+  6. Buku Peraturan Sekolah                            RM5.50
+  7. Keahlian Koperasi (sekali sepanjang tempoh persekolahan)  RM5.00   (kuantiti tetap 1)
+  8. Buku Tulis SMK Lohan (4 buku panjang + 8 buku pendek)     RM24.00
+
+Pengguna boleh memilih beberapa item dalam satu resit dan menetapkan
+kuantiti. Baju PJK disenaraikan sebagai dua item berasingan (Lengan
+Pendek RM40.00 dan Lengan Panjang RM43.00) supaya pengguna terus melihat
+kedua-dua pilihan. Item tertentu dikunci pada kuantiti tetap (contoh:
+Lencana/Tanda Nama dan Keahlian Koperasi = 1). Harga yang digunakan pada
 resit mesti disimpan sebagai snapshot supaya perubahan harga baharu
 tidak mengubah resit lama.
+
+Senarai item dalam pangkalan data boleh dikemas kini tanpa menyentuh
+data murid dengan memanggil `POST /api/dev/seed?items=1` (memerlukan
+`ENABLE_SEED=true`). Panggilan tanpa `?items=1` akan menulis semula
+murid contoh dan item sekali gus.
 
 ### 4.3 Pengiraan jumlah automatik
 
@@ -114,11 +129,11 @@ Formula:
 
 Jumlah keseluruhan ialah jumlah semua item. Contoh rekaan:
 
-  Item                   Kuantiti   Harga seunit       Jumlah
-  -------------------- ---------- -------------- ------------
-  Fail Murid                    1         RM5.00       RM5.00
-  Buku Tulis Panjang            2         RM2.00       RM4.00
-  **Jumlah**                                       **RM9.00**
+  Item                        Kuantiti   Harga seunit       Jumlah
+  ------------------------- ---------- -------------- ------------
+  Baju PJK (Lengan Panjang)          1        RM43.00       RM43.00
+  Buku Tulis SMK Lohan (1 set)       2        RM24.00       RM48.00
+  **Jumlah**                                              **RM91.00**
 
 Harga contoh bukan harga rasmi. Frontend boleh memaparkan jumlah
 sementara, tetapi backend mesti mengambil harga sah dan mengira semula
@@ -127,10 +142,12 @@ sen; contohnya RM5.50 disimpan sebagai `550`.
 
 ### 4.4 Kaedah pembayaran
 
-Pilihan: - QR - Pindahan bank (Bank Transfer) - Tunai (Cash)
+Pilihan: - Pindahan bank (Bank Transfer) - Tunai (Cash)
 
-Kaedah yang dipilih dipaparkan pada resit. Pemilihan kaedah sahaja tidak
-mengesahkan wang diterima secara automatik; petugas perlu mengikut
+Tiada pilihan QR. Pindahan bank memerlukan **no. rujukan** yang diisi
+oleh petugas; no. rujukan disimpan bersama resit dan dipaparkan pada
+resit. Kaedah yang dipilih dipaparkan pada resit. Pemilihan kaedah sahaja
+tidak mengesahkan wang diterima secara automatik; petugas perlu mengikut
 prosedur pengesahan koperasi.
 
 ### 4.5 Penjanaan nombor dan resit
@@ -145,11 +162,22 @@ dibatalkan atau nombor yang tertinggal perlu dipersetujui. - Permintaan
 ulangan selepas gangguan rangkaian tidak boleh mencipta transaksi
 pendua.
 
-Resit dicadangkan mengandungi: - Nama sekolah dan logo jika diluluskan -
-Nombor resit dan tarikh/masa - Nama murid - IC hanya jika sekolah
-mengesahkan ia perlu dipaparkan - Senarai item, kuantiti, harga seunit
-dan jumlah item - Jumlah keseluruhan - Kaedah pembayaran - Catatan atau
-pengesahan jika diperlukan
+Resit mengandungi: - Logo dan nama koperasi (Koperasi SMK Lohan Ranau
+Berhad), alamat (Peti Surat 197, 89308, Ranau, Sabah) dan no. telefon
+(088-875241) pada kepala resit - Nombor resit dan tarikh/masa - Nama
+murid - IC hanya jika sekolah mengesahkan ia perlu dipaparkan - Senarai
+item, kuantiti, harga seunit dan jumlah item -
+Jumlah keseluruhan - Kaedah pembayaran - No. rujukan (bagi pindahan bank)
+
+Reka bentuk resit (paparan web dan PDF) menggunakan fon Times New Roman
+pada nama koperasi dan kepala resit sahaja; semua teks dan nombor lain
+menggunakan Helvetica. Lajur jadual disusun seimbang dan susunan item
+mengikut senarai harga rasmi sekolah, walaupun item ditambah tidak
+mengikut turutan.
+
+Antara muka web selain resit mengikut Design System sekolah: Urbanist
+untuk tajuk, Inter untuk teks, warna utama biru (#355C7D), dan permukaan
+rata tanpa bayang-bayang yang berlebihan.
 
 Tiada medan kelas dalam skop semasa.
 
@@ -170,11 +198,12 @@ integrasi WhatsApp API tidak termasuk dalam skop asas.
 
 Contoh mesej:
 
-> Resit Bayaran Koperasi SMK Lohan, Ranau\
+> Resit Bayaran Koperasi Koperasi SMK Lohan Ranau Berhad\
 > Nombor Resit: 2027-000001\
 > Nama Murid: Contoh Murid\
-> Jumlah Bayaran: RM9.00\
-> Kaedah Pembayaran: Tunai\
+> Jumlah Bayaran: RM43.00\
+> Kaedah Pembayaran: Pindahan Bank\
+> No. Rujukan: MBB2027010112345\
 > Terima kasih.
 
 Jangan masukkan nombor IC dalam mesej WhatsApp secara lalai.
@@ -210,9 +239,10 @@ pelayar komputer sekolah.
 1.  Buka halaman Jana Resit.
 2.  Cari murid melalui nama atau IC.
 3.  Pilih murid yang betul.
-4.  Pilih item dan masukkan kuantiti atau saiz.
+4.  Pilih item (Baju PJK ada dua pilihan: Lengan Pendek / Lengan Panjang)
+    serta masukkan kuantiti.
 5.  Semak jumlah.
-6.  Pilih QR, pindahan bank atau tunai.
+6.  Pilih pindahan bank atau tunai. Bagi pindahan bank, isi no. rujukan.
 7.  Sahkan pembayaran mengikut prosedur koperasi.
 8.  Hantar permintaan untuk menyimpan resit.
 9.  Backend mengesahkan data, mengira jumlah, memperuntukkan nombor unik
@@ -285,7 +315,8 @@ Tiada medan kelas.
 -   `name`
 -   `priceSen`
 -   `active`
--   `sizes` (pilihan)
+-   `sortOrder` (susunan mengikut Senarai Harga rasmi sekolah)
+-   `fixedQuantity` (pilihan; contoh 1 untuk item yang dikunci)
 -   `createdAt`
 -   `updatedAt`
 
@@ -299,21 +330,21 @@ Tiada medan kelas.
 -   `formerPrimarySchoolSnapshot` jika diperlukan
 -   `totalSen`
 -   `paymentMethod`
+-   `bankRef` (bagi pindahan bank)
 -   `status`
+-   `items` (tatasusunan baris resit, lihat di bawah)
 -   `createdAt`
 -   `createdByAccountId`
 -   `requestId`
 
-### `receiptItems`
+### Baris resit (`items` dalam dokumen resit)
 
--   `receiptItemId`
--   `receiptId`
 -   `itemId`
 -   `itemNameSnapshot`
 -   `quantity`
 -   `unitPriceSen`
 -   `subtotalSen`
--   `size` jika berkenaan
+-   `variant` (hanya pada resit lama yang menggunakan pilihan jenis)
 
 ### Pembilang resit
 

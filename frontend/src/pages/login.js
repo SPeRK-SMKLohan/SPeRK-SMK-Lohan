@@ -5,6 +5,7 @@ export function renderLogin(root) {
   root.innerHTML = `
     <div class="login-wrap">
       <form id="login-form" class="card login-card">
+        <img class="login-logo" src="/logo.svg" alt="Logo SMK Lohan" />
         <h1>Log Masuk</h1>
         <p class="muted">Sistem Resit Koperasi SMK Lohan, Ranau</p>
         <label>E-mel

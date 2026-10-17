@@ -7,8 +7,9 @@ import { makeId } from "../utils/id.js";
 export async function renderNewReceipt(root) {
   let student = null;
   let paymentMethod = "";
+  let bankRef = "";
   let confirmed = false;
-  let lines = []; // { itemId, size, quantity }
+  let lines = []; // { itemId, quantity }
   let items = [];
   let errorMsg = "";
   let saving = false;
@@ -33,7 +34,10 @@ export async function renderNewReceipt(root) {
   const summaryBox = root.querySelector("#summary-box");
 
   const itemOf = (id) => items.find((i) => i.itemId === id);
-  const keyOf = (l) => `${l.itemId}|${l.size}`;
+  const keyOf = (l) => l.itemId;
+
+  // Harga seunit diambil daripada senarai barangan rasmi.
+  const unitPrice = (item) => item?.priceSen ?? 0;
 
   /* ----- 1. Murid ----- */
   function renderStudentBox() {
@@ -105,15 +109,14 @@ export async function renderNewReceipt(root) {
   function renderItemsBox() {
     itemsBox.innerHTML = `
       <div class="table-wrap"><table class="table">
-        <thead><tr><th>Item</th><th class="num">Harga</th><th>Saiz</th><th>Kuantiti</th><th></th></tr></thead>
+        <thead><tr><th>Item</th><th class="num">Harga</th><th class="num">Kuantiti</th><th></th></tr></thead>
         <tbody>${items.map((i) => `
           <tr data-item="${esc(i.itemId)}">
             <td>${esc(i.name)}</td>
             <td class="num">${formatRM(i.priceSen)}</td>
-            <td>${i.sizes
-              ? `<select class="input size">${i.sizes.map((s) => `<option>${esc(s)}</option>`).join("")}</select>`
-              : "-"}</td>
-            <td><input class="input qty" type="number" min="1" max="99" value="1"></td>
+            <td class="num">${i.fixedQuantity
+              ? `<span class="fixed-qty">${i.fixedQuantity}</span>`
+              : `<input class="input qty" type="number" min="1" max="99" value="1">`}</td>
             <td><button class="btn small add" type="button">Tambah</button></td>
           </tr>`).join("")}
         </tbody>
@@ -124,33 +127,52 @@ export async function renderNewReceipt(root) {
     const btn = e.target.closest(".add");
     if (!btn) return;
     const row = btn.closest("tr");
-    const qtyInput = row.querySelector(".qty");
-    const quantity = parseInt(qtyInput.value, 10);
+    const item = itemOf(row.dataset.item);
+    if (!item) return;
+
+    const quantity = item.fixedQuantity ?? parseInt(row.querySelector(".qty")?.value ?? "1", 10);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
       errorMsg = "Kuantiti mesti antara 1 dan 99.";
       renderSummary();
       return;
     }
     errorMsg = "";
-    const itemId = row.dataset.item;
-    const size = row.querySelector(".size")?.value ?? "";
-    const existing = lines.find((l) => l.itemId === itemId && l.size === size);
-    if (existing) existing.quantity = Math.min(99, existing.quantity + quantity);
-    else lines.push({ itemId, size, quantity });
-    qtyInput.value = 1;
+
+    const existing = lines.find((l) => keyOf(l) === item.itemId);
+    if (existing) {
+      existing.quantity = item.fixedQuantity ?? Math.min(99, existing.quantity + quantity);
+    } else {
+      lines.push({ itemId: item.itemId, quantity });
+    }
+    const qtyInput = row.querySelector(".qty");
+    if (qtyInput) qtyInput.value = 1;
     renderSummary();
   });
 
   /* ----- 3. Pembayaran ----- */
-  paymentBox.innerHTML = paymentMethods.map((p) => `
-    <label class="radio">
-      <input type="radio" name="pay" value="${esc(p.value)}"> ${esc(p.label)}
-    </label>`).join("");
+  paymentBox.innerHTML = `
+    ${paymentMethods.map((p) => `
+      <label class="radio">
+        <input type="radio" name="pay" value="${esc(p.value)}"> ${esc(p.label)}
+      </label>`).join("")}
+    <label id="bankref-label" class="bankref hidden">No. Rujukan pindahan
+      <input id="bankref" class="input" type="text" autocomplete="off" maxlength="60"
+             placeholder="Contoh: MBB2026010112345">
+    </label>`;
+
+  const bankRefLabel = paymentBox.querySelector("#bankref-label");
+  const bankRefInput = paymentBox.querySelector("#bankref");
+
   paymentBox.addEventListener("change", (e) => {
     if (e.target.name === "pay") {
       paymentMethod = e.target.value;
+      bankRefLabel.classList.toggle("hidden", paymentMethod !== "BANK_TRANSFER");
       renderSummary();
     }
+  });
+  bankRefInput.addEventListener("input", () => {
+    bankRef = bankRefInput.value;
+    renderSummary();
   });
 
   /* ----- Ringkasan ----- */
@@ -158,10 +180,11 @@ export async function renderNewReceipt(root) {
     // Jumlah di sini hanya sementara. Pelayan mengira semula daripada harga sebenar.
     const total = grandTotal(lines.map((l) => ({
       quantity: l.quantity,
-      unitPriceSen: itemOf(l.itemId)?.priceSen ?? 0,
+      unitPriceSen: unitPrice(itemOf(l.itemId)),
     })));
     const payLabel = paymentMethods.find((p) => p.value === paymentMethod)?.label;
-    const ready = student && lines.length > 0 && paymentMethod && confirmed && !saving;
+    const needsRef = paymentMethod === "BANK_TRANSFER" && bankRef.trim().length === 0;
+    const ready = student && lines.length > 0 && paymentMethod && confirmed && !saving && !needsRef;
 
     summaryBox.innerHTML = `
       <p><strong>Murid:</strong> ${student ? esc(student.name) : "<em>Belum dipilih</em>"}</p>
@@ -169,19 +192,23 @@ export async function renderNewReceipt(root) {
         <table class="table compact">
           <tbody>${lines.map((l) => {
             const item = itemOf(l.itemId);
+            const price = unitPrice(item);
             return `
               <tr>
-                <td>${esc(item.name)}${l.size ? ` (${esc(l.size)})` : ""}<br>
-                  <span class="muted">${formatRM(item.priceSen)} setiap satu</span></td>
-                <td><input class="input line-qty" type="number" min="1" max="99"
-                     value="${l.quantity}" data-key="${esc(keyOf(l))}"></td>
-                <td class="num">${formatRM(l.quantity * item.priceSen)}</td>
+                <td>${esc(item.name)}<br>
+                  <span class="muted">${formatRM(price)} setiap satu</span></td>
+                <td>${item.fixedQuantity
+                  ? `<span class="fixed-qty">${item.fixedQuantity}</span>`
+                  : `<input class="input line-qty" type="number" min="1" max="99"
+                       value="${l.quantity}" data-key="${esc(keyOf(l))}">`}</td>
+                <td class="num">${formatRM(l.quantity * price)}</td>
                 <td><button class="btn small remove" type="button" data-key="${esc(keyOf(l))}" title="Buang">✕</button></td>
               </tr>`;
           }).join("")}</tbody>
         </table>` : `<p class="muted">Belum ada barangan.</p>`}
       <p class="total">Jumlah: <strong>${formatRM(total)}</strong></p>
       <p><strong>Bayaran:</strong> ${payLabel ? esc(payLabel) : "<em>Belum dipilih</em>"}</p>
+      ${paymentMethod === "BANK_TRANSFER" ? `<p><strong>No. Rujukan:</strong> ${bankRef.trim() ? esc(bankRef.trim()) : "<em>Belum diisi</em>"}</p>` : ""}
       <label class="check">
         <input type="checkbox" id="confirm" ${confirmed ? "checked" : ""}>
         Pembayaran telah disahkan mengikut prosedur koperasi
@@ -227,14 +254,14 @@ export async function renderNewReceipt(root) {
     errorMsg = "";
     renderSummary();
     try {
-      // Hanya ID dan kuantiti dihantar. Pelayan menentukan harga dan jumlah.
+      // Hanya ID barangan dan kuantiti dihantar. Pelayan menentukan harga dan jumlah.
       const { receipt } = await createReceipt({
         requestId,
         studentId: student.studentId,
         paymentMethod,
+        bankRef: paymentMethod === "BANK_TRANSFER" ? bankRef.trim() : undefined,
         lines: lines.map((l) => ({
           itemId: l.itemId,
-          size: l.size || undefined,
           quantity: l.quantity,
         })),
       });

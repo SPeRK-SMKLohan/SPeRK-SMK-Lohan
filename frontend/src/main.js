@@ -34,11 +34,15 @@ function currentPath() {
 function layoutHtml(path) {
   const active = (p) =>
     path === p || (p === "/sejarah" && path.startsWith("/resit/")) ? "active" : "";
+  const navLink = ([p, label]) => {
+    const state = active(p);
+    return `<a href="#${p}" class="${state}"${state ? ' aria-current="page"' : ""}>${label}</a>`;
+  };
   return `
     ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: data rekaan sahaja</div>` : ""}
     <header class="topbar no-print">
-      <div class="brand">Koperasi SMK Lohan</div>
-      <nav>${NAV.map(([p, label]) => `<a href="#${p}" class="${active(p)}">${label}</a>`).join("")}</nav>
+      <div class="brand"><img class="brand-logo" src="/logo.svg" alt="" /> Koperasi SMK Lohan</div>
+      <nav>${NAV.map(navLink).join("")}</nav>
       <span class="who">${esc(currentEmail())}</span>
       <button id="logout" class="btn small" type="button">Log Keluar</button>
     </header>

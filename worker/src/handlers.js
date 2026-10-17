@@ -6,7 +6,7 @@ import {
   myDateKey, myDayStart, myYear, parseDateKey,
 } from "./util.js";
 
-const PAYMENT_METHODS = ["QR", "BANK_TRANSFER", "CASH"];
+const PAYMENT_METHODS = ["BANK_TRANSFER", "CASH"];
 const DAY_MS = 86400000;
 
 const fieldFilter = (field, op, value) => ({
@@ -77,7 +77,8 @@ export async function listItems(env) {
       name: d.name,
       priceSen: d.priceSen,
       active: d.active === true,
-      sizes: d.sizes ?? null,
+      // Jika ditetapkan, kuantiti item ini dikunci (contoh: 1).
+      fixedQuantity: d.fixedQuantity ?? null,
     }));
   return { items };
 }
@@ -101,6 +102,7 @@ function publicReceipt(d) {
     year: d.year,
     studentId: d.studentId,
     formerPrimarySchoolSnapshot: d.formerPrimarySchoolSnapshot,
+    bankRef: d.bankRef ?? null,
     items: d.items,
   };
 }
@@ -116,24 +118,27 @@ function validateBody(body) {
     throw new HttpError(400, "Sila pilih sekurang-kurangnya satu item.");
   }
 
+  // Pindahan bank WAJIB ada no. rujukan. Tunai tidak menyimpan rujukan.
+  let bankRef;
+  if (paymentMethod === "BANK_TRANSFER") {
+    if (typeof body.bankRef !== "string") throw new HttpError(400, "No. rujukan diperlukan untuk pindahan bank.");
+    bankRef = body.bankRef.replace(/\s+/g, " ").trim();
+    if (bankRef.length < 2 || bankRef.length > 60) throw new HttpError(400, "No. rujukan tidak sah.");
+  }
+
   const seen = new Set();
   const cleanLines = lines.map((l) => {
     if (!l || typeof l.itemId !== "string" || !ID_RE.test(l.itemId)) throw new HttpError(400, "Item tidak sah.");
     if (!Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 99) {
       throw new HttpError(400, "Kuantiti mesti antara 1 dan 99.");
     }
-    if (l.size !== undefined && (typeof l.size !== "string" || l.size.length > 10)) {
-      throw new HttpError(400, "Saiz tidak sah.");
-    }
-    const key = `${l.itemId}|${l.size ?? ""}`;
-    if (seen.has(key)) throw new HttpError(400, "Item pendua dalam resit.");
-    seen.add(key);
-    return { itemId: l.itemId, quantity: l.quantity, size: l.size };
+    if (seen.has(l.itemId)) throw new HttpError(400, "Item pendua dalam resit.");
+    seen.add(l.itemId);
+    return { itemId: l.itemId, quantity: l.quantity };
   });
 
-  return { requestId, studentId, paymentMethod, lines: cleaned(cleanLines) };
+  return { requestId, studentId, paymentMethod, bankRef, lines: cleanLines };
 }
-const cleaned = (x) => x;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -142,7 +147,7 @@ export async function createReceipt(env, user, request) {
   if (text.length > 20_000) throw new HttpError(413, "Permintaan terlalu besar.");
   let body;
   try { body = JSON.parse(text); } catch { throw new HttpError(400, "Permintaan tidak sah."); }
-  const { requestId, studentId, paymentMethod, lines } = validateBody(body);
+  const { requestId, studentId, paymentMethod, bankRef, lines } = validateBody(body);
 
   // Permintaan ulangan: pulangkan resit yang sama, jangan cipta yang baharu.
   const already = await getDoc(env, "receipts", requestId);
@@ -159,25 +164,33 @@ export async function createReceipt(env, user, request) {
   if (!student || student.active !== true) throw new HttpError(400, "Murid tidak sah.");
 
   // Harga diambil daripada pangkalan data. Harga daripada pelayar tidak digunakan.
-  const receiptItems = lines.map((l) => {
-    const item = found.get(`items/${l.itemId}`);
-    if (!item || item.active !== true) throw new HttpError(400, "Item tidak sah.");
+  const receiptItems = lines
+    .map((l) => {
+      const item = found.get(`items/${l.itemId}`);
+      if (!item || item.active !== true) throw new HttpError(400, "Item tidak sah.");
 
-    if (Array.isArray(item.sizes) && item.sizes.length) {
-      if (!item.sizes.includes(l.size)) throw new HttpError(400, `Sila pilih saiz untuk ${item.name}.`);
-    } else if (l.size) {
-      throw new HttpError(400, `${item.name} tidak mempunyai pilihan saiz.`);
-    }
+      // Kuantiti item tertentu dikunci (contoh: Lencana/Tanda Nama, Keahlian Koperasi).
+      if (item.fixedQuantity != null && l.quantity !== item.fixedQuantity) {
+        throw new HttpError(400, `Kuantiti ${item.name} mesti ${item.fixedQuantity}.`);
+      }
 
-    return {
-      itemId: l.itemId,
-      itemNameSnapshot: item.name,
-      quantity: l.quantity,
-      unitPriceSen: item.priceSen,
-      subtotalSen: l.quantity * item.priceSen,
-      size: l.size || undefined,
-    };
-  });
+      const unitPriceSen = item.priceSen;
+
+      return {
+        sortOrder: item.sortOrder ?? 999,
+        line: {
+          itemId: l.itemId,
+          itemNameSnapshot: item.name,
+          quantity: l.quantity,
+          unitPriceSen,
+          subtotalSen: l.quantity * unitPriceSen,
+        },
+      };
+    })
+    // Susunan item pada resit mengikut senarai harga rasmi sekolah, walaupun
+    // pengguna menambah item tidak mengikut turutan.
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((entry) => entry.line);
   const totalSen = receiptItems.reduce((sum, i) => sum + i.subtotalSen, 0);
 
   const now = new Date();
@@ -204,6 +217,7 @@ export async function createReceipt(env, user, request) {
         items: receiptItems,
         totalSen,
         paymentMethod,
+        bankRef: bankRef || undefined,
         status: "ISSUED",
         createdAt: now,
         createdByAccountId: user.sub,
@@ -314,23 +328,34 @@ export async function getDashboard(env) {
 }
 
 /* ---------- Seed data rekaan (hanya jika ENABLE_SEED=true) ---------- */
-export async function seedDevData(env) {
+// Item daripada senarai lama yang dibuang apabila seed dijalankan semula.
+const LEGACY_ITEM_IDS = ["i9"];
+
+export async function seedDevData(env, { itemsOnly = false } = {}) {
   const now = new Date();
+  const seedIds = new Set(SEED_ITEMS.map((i) => i.itemId));
   const writes = [
-    ...SEED_STUDENTS.map(({ studentId, ...rest }) => ({
-      collection: "students",
-      id: studentId,
-      data: { ...rest, createdAt: now, updatedAt: now },
-    })),
+    ...(itemsOnly
+      ? []
+      : SEED_STUDENTS.map(({ studentId, ...rest }) => ({
+          collection: "students",
+          id: studentId,
+          data: { ...rest, createdAt: now, updatedAt: now },
+        }))),
     ...SEED_ITEMS.map(({ itemId, ...rest }) => ({
       collection: "items",
       id: itemId,
       data: { ...rest, createdAt: now, updatedAt: now },
     })),
+    ...LEGACY_ITEM_IDS.filter((id) => !seedIds.has(id)).map((id) => ({
+      collection: "items",
+      id,
+      delete: true,
+    })),
   ];
   await commit(env, writes);
-  clearStudentsCache();
-  return { students: SEED_STUDENTS.length, items: SEED_ITEMS.length };
+  if (!itemsOnly) clearStudentsCache();
+  return { students: itemsOnly ? 0 : SEED_STUDENTS.length, items: SEED_ITEMS.length };
 }
 
 /* ---------- Import murid daripada Excel ---------- */

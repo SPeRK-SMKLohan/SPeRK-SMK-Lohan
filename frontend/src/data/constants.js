@@ -5,7 +5,6 @@ export const schools = [
 ];
 
 export const paymentMethods = [
-  { value: "QR", label: "QR" },
   { value: "BANK_TRANSFER", label: "Pindahan Bank" },
   { value: "CASH", label: "Tunai" },
 ];
