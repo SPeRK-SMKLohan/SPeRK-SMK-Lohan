@@ -1,0 +1,13 @@
+# Salin fail ini kepada .dev.vars dan isi nilai sebenar.
+# .dev.vars TIDAK boleh dicommit (lihat .gitignore).
+
+# Senarai e-mel yang dibenarkan, dipisahkan dengan koma.
+# Jika kosong, semua akaun ditolak.
+ALLOWED_EMAILS=contoh@sekolah.edu.my
+
+# Benarkan endpoint data rekaan (/api/dev/seed). Tetapkan "true" hanya semasa pembangunan.
+ENABLE_SEED=true
+
+# Kandungan penuh fail akaun perkhidmatan Firebase (JSON dalam satu baris).
+# Firebase Console > Project settings > Service accounts > Generate new private key.
+FIREBASE_SERVICE_ACCOUNT=

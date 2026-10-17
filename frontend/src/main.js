@@ -35,7 +35,7 @@ function layoutHtml(path) {
   const active = (p) =>
     path === p || (p === "/sejarah" && path.startsWith("/resit/")) ? "active" : "";
   return `
-    <div class="devbar no-print">Mod pembangunan: data rekaan sahaja</div>
+    ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: data rekaan sahaja</div>` : ""}
     <header class="topbar no-print">
       <div class="brand">Koperasi SMK Lohan</div>
       <nav>${NAV.map(([p, label]) => `<a href="#${p}" class="${active(p)}">${label}</a>`).join("")}</nav>

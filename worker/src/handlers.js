@@ -354,7 +354,9 @@ function checkStudentRow(r) {
   if (digits.length !== 12) return { reason: "No. IC mesti 12 digit." };
   const month = Number(digits.slice(2, 4));
   const day = Number(digits.slice(4, 6));
-  if (month < 1 || month > 12 || day < 1 || day > 31) {
+  // Bilangan hari maksimum setiap bulan (Februari dibenarkan 29 kerana tahun IC tidak lengkap).
+  const maxDay = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] ?? 0;
+  if (day < 1 || day > maxDay) {
     return { reason: "No. IC tidak sah (tarikh lahir tidak betul)." };
   }
 

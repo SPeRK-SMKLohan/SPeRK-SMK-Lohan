@@ -17,8 +17,8 @@ export async function apiFetch(path, options = {}) {
 
   const data = await res.json().catch(() => ({}));
 
-  // Sesi tidak sah atau tamat: log keluar dan kembali ke halaman log masuk.
-  if (res.status === 401) {
+  // Sesi tidak sah, tamat, atau akaun tidak dibenarkan: log keluar dan kembali ke halaman log masuk.
+  if (res.status === 401 || res.status === 403) {
     await signOutUser();
     location.hash = "/login";
   }

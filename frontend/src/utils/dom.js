@@ -12,19 +12,8 @@ export function maskIC(ic) {
   return String(ic).replace(/\d(?=.*\d{4}$)/g, "*");
 }
 
-export function normalizeIC(value) {
-  return String(value).replace(/\D/g, "");
-}
-
 export function formatDateTime(iso) {
   return new Date(iso).toLocaleString("ms-MY", { dateStyle: "medium", timeStyle: "short" });
-}
-
-// Tarikh tempatan dalam bentuk YYYY-MM-DD
-export function localDateKey(iso) {
-  const d = new Date(iso);
-  const p = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 export function paymentLabel(value) {
