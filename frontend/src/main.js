@@ -1,5 +1,6 @@
 import "./style.css";
-import { isLoggedIn, logout } from "./state.js";
+import { initAuth, isLoggedIn, signOutUser, currentEmail } from "./auth.js";
+import { esc } from "./utils/dom.js";
 import { renderLogin } from "./pages/login.js";
 import { renderDashboard } from "./pages/dashboard.js";
 import { renderStudents } from "./pages/students.js";
@@ -38,6 +39,7 @@ function layoutHtml(path) {
     <header class="topbar no-print">
       <div class="brand">Koperasi SMK Lohan</div>
       <nav>${NAV.map(([p, label]) => `<a href="#${p}" class="${active(p)}">${label}</a>`).join("")}</nav>
+      <span class="who">${esc(currentEmail())}</span>
       <button id="logout" class="btn small" type="button">Log Keluar</button>
     </header>
     <main id="view" class="container"></main>`;
@@ -72,12 +74,16 @@ function render() {
     view.innerHTML = `<h1>Halaman tidak dijumpai</h1><p><a href="#/">Kembali ke Dashboard</a></p>`;
   }
 
-  app.querySelector("#logout").addEventListener("click", () => {
-    logout();
+  app.querySelector("#logout").addEventListener("click", async () => {
+    await signOutUser();
     location.hash = "/login";
   });
   window.scrollTo(0, 0);
 }
 
-window.addEventListener("hashchange", render);
-render();
+// Tunggu Firebase memulihkan sesi dahulu, kemudian mulakan aplikasi.
+app.innerHTML = `<p class="muted" style="padding:1rem">Memuatkan...</p>`;
+initAuth().then(() => {
+  window.addEventListener("hashchange", render);
+  render();
+});

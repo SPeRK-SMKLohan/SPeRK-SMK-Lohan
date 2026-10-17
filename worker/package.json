@@ -12,5 +12,8 @@
   "type": "commonjs",
   "devDependencies": {
     "wrangler": "^4.151.1"
+  },
+  "dependencies": {
+    "jose": "^6.2.12"
   }
 }

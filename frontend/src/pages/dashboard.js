@@ -1,3 +1,4 @@
+import { apiFetch } from "../api.js";
 import { db } from "../state.js";
 import { formatRM } from "../utils/money.js";
 import { esc, formatDateTime, localDateKey, paymentLabel } from "../utils/dom.js";
@@ -37,4 +38,14 @@ export function renderDashboard(root) {
           </tbody>
         </table></div>` : `<p class="muted">Belum ada resit.</p>`}
     </section>`;
+
+      // Semakan sambungan (sementara, untuk ujian Fasa 3)
+  const status = document.createElement("section");
+  status.className = "card";
+  status.innerHTML = `<h2>Status sambungan</h2><p class="muted" id="api-status">Menyemak...</p>`;
+  root.appendChild(status);
+  const statusText = status.querySelector("#api-status");
+  apiFetch("/api/me")
+    .then((me) => { statusText.textContent = `Pelayan API berfungsi. Akaun disahkan: ${me.email}`; })
+    .catch((err) => { statusText.textContent = `Ralat sambungan: ${err.message}`; });
 }

@@ -1,4 +1,5 @@
-import { login } from "../state.js";
+import { signIn, signOutUser, loginErrorMessage } from "../auth.js";
+import { apiFetch } from "../api.js";
 
 export function renderLogin(root) {
   root.innerHTML = `
@@ -14,20 +15,50 @@ export function renderLogin(root) {
         </label>
         <p id="login-error" class="error"></p>
         <button class="btn primary block" type="submit">Log Masuk</button>
-        <p class="notice">Log masuk palsu untuk ujian. Mana-mana e-mel dan kata laluan diterima.
-        Log masuk sebenar (Firebase) ditambah pada Fasa 3.</p>
       </form>
     </div>`;
 
-  root.querySelector("#login-form").addEventListener("submit", (e) => {
+  const form = root.querySelector("#login-form");
+  const errorEl = root.querySelector("#login-error");
+  const button = form.querySelector("button[type=submit]");
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    errorEl.textContent = "";
+
     const email = root.querySelector("#email").value.trim();
     const password = root.querySelector("#password").value;
     if (!email || !password) {
-      root.querySelector("#login-error").textContent = "Sila isi e-mel dan kata laluan.";
+      errorEl.textContent = "Sila isi e-mel dan kata laluan.";
       return;
     }
-    login();
-    location.hash = "/";
+
+    button.disabled = true;
+    button.textContent = "Sedang log masuk...";
+
+    try {
+      await signIn(email, password);
+
+      // Pastikan pelayan juga membenarkan akaun ini.
+      try {
+        await apiFetch("/api/me");
+      } catch (err) {
+        await signOutUser();
+        throw new Error(
+          err.status === 403
+            ? "Akaun ini tidak dibenarkan menggunakan sistem."
+            : err.status
+              ? "Pengesahan akaun gagal. Sila cuba lagi."
+              : err.message
+        );
+      }
+
+      location.hash = "/";
+    } catch (err) {
+      errorEl.textContent = err.code ? loginErrorMessage(err) : err.message;
+    } finally {
+      button.disabled = false;
+      button.textContent = "Log Masuk";
+    }
   });
 }

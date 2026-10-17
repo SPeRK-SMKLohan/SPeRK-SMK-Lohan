@@ -1,18 +1,6 @@
 import { students, items, paymentMethods } from "./data/mock-data.js";
 import { normalizeIC } from "./utils/dom.js";
 
-/* ---------- Log masuk PALSU (diganti dengan Firebase pada Fasa 3) ---------- */
-const LOGIN_KEY = "mock_logged_in";
-export function isLoggedIn() {
-  try { return sessionStorage.getItem(LOGIN_KEY) === "1"; } catch { return false; }
-}
-export function login() {
-  try { sessionStorage.setItem(LOGIN_KEY, "1"); } catch { /* abaikan */ }
-}
-export function logout() {
-  try { sessionStorage.removeItem(LOGIN_KEY); } catch { /* abaikan */ }
-}
-
 /* ---------- Pangkalan data PALSU (diganti dengan Firestore) ---------- */
 const RECEIPTS_KEY = "mock_receipts";
 
