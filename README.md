@@ -37,8 +37,8 @@ kod kongsi dalam `shared/`.
 
 - Worker API: `sprek-smk-lohan-api` —
   https://sprek-smk-lohan-api.smk-lohan.workers.dev
-- Frontend (fail statik): `sprek-smk-lohan-web` —
-  https://sprek-smk-lohan-web.smk-lohan.workers.dev
+- Frontend (fail statik): `sperk` —
+  https://sperk.smk-lohan.workers.dev
 - Repositori: `sprek-smk-lohan`
 - Projek Firebase: `resit-koperasi-lohan` (dikekalkan; penukaran nama
   memerlukan migrasi data)
