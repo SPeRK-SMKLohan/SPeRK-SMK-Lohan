@@ -1,3 +1,4 @@
+import { SCHOOLS } from "./schools.js";
 import { batchGet, beginTransaction, commit, getDoc, runQuery, toValue } from "./firestore.js";
 import { SEED_ITEMS, SEED_STUDENTS } from "./seed-data.js";
 import {
@@ -330,4 +331,161 @@ export async function seedDevData(env) {
   await commit(env, writes);
   clearStudentsCache();
   return { students: SEED_STUDENTS.length, items: SEED_ITEMS.length };
+}
+
+/* ---------- Import murid daripada Excel ---------- */
+const MAX_IMPORT_ROWS = 2000;
+const COMMIT_CHUNK = 400; // had Firestore: 500 penulisan setiap commit
+const SCHOOL_LOOKUP = new Map(SCHOOLS.map((s) => [s.toLowerCase(), s]));
+
+const cleanText = (v, max) =>
+  typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max + 1) : "";
+
+// Pengesahan satu baris. Mengembalikan { reason } jika tidak sah, atau { digits, data }.
+function checkStudentRow(r) {
+  const name = cleanText(r.name, 100);
+  if (name.length < 2) return { reason: "Nama kosong atau terlalu pendek." };
+  if (name.length > 100) return { reason: "Nama terlalu panjang (maksimum 100 aksara)." };
+
+  const icRaw = cleanText(r.icNumber, 30);
+  if (!icRaw) return { reason: "No. IC kosong." };
+  if (!/^[\d\s-]+$/.test(icRaw)) return { reason: "No. IC hanya boleh mengandungi digit dan tanda sempang." };
+  const digits = icRaw.replace(/\D/g, "");
+  if (digits.length !== 12) return { reason: "No. IC mesti 12 digit." };
+  const month = Number(digits.slice(2, 4));
+  const day = Number(digits.slice(4, 6));
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return { reason: "No. IC tidak sah (tarikh lahir tidak betul)." };
+  }
+
+  const schoolRaw = cleanText(r.school, 100);
+  if (!schoolRaw) return { reason: "Sekolah rendah asal kosong." };
+  const school = SCHOOL_LOOKUP.get(schoolRaw.toLowerCase());
+  if (!school) return { reason: "Sekolah rendah asal tiada dalam senarai." };
+
+  return {
+    digits,
+    data: {
+      name,
+      school,
+      icNumber: `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`,
+    },
+  };
+}
+
+async function classifyStudentRows(env, rows) {
+  // Semua murid (termasuk tidak aktif), hanya medan IC, untuk mengesan pendua.
+  const existingDocs = await runQuery(env, {
+    from: [{ collectionId: "students" }],
+    select: { fields: [{ fieldPath: "icNumber" }] },
+  });
+  const existingIC = new Set(existingDocs.map((d) => String(d.icNumber ?? "").replace(/\D/g, "")));
+
+  const seen = new Map(); // digit IC -> nombor baris pertama
+  const valid = [];
+  const problems = [];
+  const counts = { invalid: 0, duplicateInFile: 0, duplicateExisting: 0 };
+
+  for (const r of rows) {
+    const res = checkStudentRow(r);
+    if (res.reason) {
+      counts.invalid++;
+      problems.push({ row: r.row, status: "invalid", reason: res.reason });
+      continue;
+    }
+    if (seen.has(res.digits)) {
+      counts.duplicateInFile++;
+      problems.push({
+        row: r.row,
+        status: "duplicate_in_file",
+        reason: `No. IC sama dengan baris ${seen.get(res.digits)}.`,
+      });
+      continue;
+    }
+    seen.set(res.digits, r.row);
+    if (existingIC.has(res.digits)) {
+      counts.duplicateExisting++;
+      problems.push({ row: r.row, status: "duplicate_existing", reason: "Murid dengan IC ini sudah wujud." });
+      continue;
+    }
+    valid.push(res.data);
+  }
+  return { valid, problems, counts };
+}
+
+export async function importStudents(env, user, request) {
+  const text = await request.text();
+  if (text.length > 1_000_000) throw new HttpError(413, "Permintaan terlalu besar.");
+  let body;
+  try { body = JSON.parse(text); } catch { throw new HttpError(400, "Permintaan tidak sah."); }
+  if (!body || typeof body.dryRun !== "boolean" || !Array.isArray(body.rows)) {
+    throw new HttpError(400, "Permintaan tidak sah.");
+  }
+  if (body.rows.length === 0) throw new HttpError(400, "Tiada data untuk diimport.");
+  if (body.rows.length > MAX_IMPORT_ROWS) {
+    throw new HttpError(400, `Maksimum ${MAX_IMPORT_ROWS} baris setiap import.`);
+  }
+
+  const rows = body.rows.map((r, i) => ({
+    row: Number.isInteger(r?.row) ? r.row : i + 2,
+    name: r?.name,
+    icNumber: typeof r?.icNumber === "number" ? String(r.icNumber) : r?.icNumber,
+    school: r?.school,
+  }));
+
+  // Pelayan mengesahkan semula setiap baris, walaupun sudah dipratonton.
+  const { valid, problems, counts } = await classifyStudentRows(env, rows);
+  const summary = { total: rows.length, valid: valid.length, ...counts };
+  const shownProblems = problems.slice(0, 200);
+
+  if (body.dryRun || valid.length === 0) {
+    return { dryRun: body.dryRun, summary, problems: shownProblems, imported: 0 };
+  }
+
+  const now = new Date();
+  const writes = valid.map((s) => ({
+    collection: "students",
+    id: crypto.randomUUID(), // ID rawak: nombor IC tidak muncul dalam ID atau URL
+    data: {
+      name: s.name,
+      icNumber: s.icNumber,
+      formerPrimarySchool: s.school,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    },
+  }));
+
+  let imported = 0;
+  try {
+    for (let i = 0; i < writes.length; i += COMMIT_CHUNK) {
+      const chunk = writes.slice(i, i + COMMIT_CHUNK);
+      await commit(env, chunk);
+      imported += chunk.length;
+    }
+  } catch (err) {
+    console.error(err);
+    clearStudentsCache();
+    throw new HttpError(
+      500,
+      imported
+        ? `Import terhenti selepas ${imported} murid. Import fail yang sama semula; murid yang sudah masuk akan dikesan sebagai pendua.`
+        : "Import gagal. Tiada rekod disimpan. Sila cuba lagi."
+    );
+  }
+
+  clearStudentsCache();
+
+  // Rekod ringkas import (tidak menghentikan import jika gagal).
+  try {
+    await commit(env, [{
+      collection: "imports",
+      id: crypto.randomUUID(),
+      data: { createdAt: now, createdByAccountId: user.sub, imported, skipped: problems.length },
+    }]);
+  } catch (err) {
+    console.error("Rekod import gagal disimpan", err);
+  }
+
+  return { dryRun: false, summary, problems: shownProblems, imported };
 }

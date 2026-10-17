@@ -1,11 +1,11 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import {
-  createReceipt, getDashboard, getReceipt, listItems,
+  createReceipt, getDashboard, getReceipt, importStudents, listItems,
   listReceipts, listStudents, seedDevData,
 } from "./handlers.js";
 import { HttpError } from "./util.js";
-// Kunci awam Google untuk mengesahkan token Firebase.
 
+// Kunci awam Google untuk mengesahkan token Firebase.
 const JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
@@ -86,6 +86,9 @@ export default {
         }
         if (pathname === "/api/dashboard" && method === "GET") {
           return json(await getDashboard(env));
+        }
+        if (pathname === "/api/students/import" && method === "POST") {
+          return json(await importStudents(env, auth.user, request));
         }
         if (pathname === "/api/students" && method === "GET") {
           return json(await listStudents(env, url));

@@ -17,3 +17,10 @@ export const createReceipt = (payload) =>
 export const listReceipts = (params) => apiFetch(`/api/receipts?${new URLSearchParams(params)}`);
 
 export const getReceipt = (id) => apiFetch(`/api/receipts/${encodeURIComponent(id)}`);
+
+export const importStudents = (rows, dryRun) =>
+  apiFetch("/api/students/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dryRun, rows }),
+  });

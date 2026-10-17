@@ -81,6 +81,13 @@ label.check, label.radio { display: flex; gap: .5rem; align-items: center; margi
 .receipt-meta span { color: var(--muted); }
 .receipt-thanks { text-align: center; margin: 1.25rem 0 0; }
 
+/* Import Excel */
+.import-summary { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0; }
+.pill { padding: .25rem .65rem; border-radius: 999px; font-size: .85rem; background: #eef4fb; border: 1px solid #cfe0f2; }
+.pill.ok { background: #e7f6ec; border-color: #b7e1c4; color: #17603a; }
+.pill.bad { background: #fdecea; border-color: #f5c2be; color: #8a1c14; }
+.pill.warn { background: #fff3cd; border-color: #ffe08a; color: #664d03; }
+
 /* Cetakan: hanya resit dicetak */
 @media print {
   .no-print { display: none !important; }
