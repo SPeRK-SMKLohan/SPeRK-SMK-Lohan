@@ -1,31 +1,55 @@
 import "./style.css";
-import { initAuth, isLoggedIn, signOutUser, currentEmail } from "./auth.js";
-import { esc } from "./utils/dom.js";
+import { initAuth, isLoggedIn, signOutUser, currentEmail } from "./shared/auth.js";
+import { esc } from "./shared/dom.js";
+import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
 import { renderDashboard } from "./pages/dashboard.js";
-import { renderStudents } from "./pages/students.js";
-import { renderItems } from "./pages/items.js";
-import { renderNewReceipt } from "./pages/new-receipt.js";
-import { renderHistory } from "./pages/history.js";
-import { renderReceiptDetail } from "./pages/receipt-detail.js";
+import { renderEDaftar } from "./features/e-daftar/page.js";
+import { renderImportData } from "./features/e-daftar/import-page.js";
+import { renderNewReceipt } from "./features/e-resit/page.js";
+import { renderItems } from "./features/e-resit/items-page.js";
+import { renderHistory } from "./features/e-resit/history-page.js";
+import { renderReceiptDetail } from "./features/e-resit/receipt-page.js";
 
-const NAV = [
-  ["/", "Dashboard"],
-  ["/murid", "Murid"],
-  ["/barangan", "Barangan"],
-  ["/jana-resit", "Jana Resit"],
-  ["/sejarah", "Sejarah Resit"],
+/* SPeRK: dua ciri berkongsi satu pangkalan data murid.
+   Navigasi dikelompokkan mengikut ciri. */
+const NAV_GROUPS = [
+  { label: null, links: [["/", "Papan Pemuka"]] },
+  {
+    label: "e-Daftar",
+    links: [
+      ["/pendaftaran", "Pendaftaran"],
+      ["/import", "Import Data"],
+    ],
+  },
+  {
+    label: "e-Resit Koperasi",
+    links: [
+      ["/jana-resit", "Jana Resit"],
+      ["/barangan", "Barangan"],
+      ["/sejarah", "Sejarah Resit"],
+    ],
+  },
 ];
 
 const routes = {
   "/": renderDashboard,
-  "/murid": renderStudents,
-  "/barangan": renderItems,
+  "/pendaftaran": renderEDaftar,
+  "/import": renderImportData,
   "/jana-resit": renderNewReceipt,
+  "/barangan": renderItems,
   "/sejarah": renderHistory,
 };
 
+// Alamat lama: nama halaman sebelum disusun semula.
+const REDIRECTS = {
+  "/murid": "/pendaftaran",
+  "/e-daftar": "/pendaftaran",
+  "/e-resit": "/jana-resit",
+};
+
 const app = document.querySelector("#app");
+document.title = APP_LONG_NAME;
 
 function currentPath() {
   return location.hash.replace(/^#/, "") || "/";
@@ -38,13 +62,20 @@ function layoutHtml(path) {
     const state = active(p);
     return `<a href="#${p}" class="${state}"${state ? ' aria-current="page"' : ""}>${label}</a>`;
   };
+  const navGroup = ({ label, links }) => `
+      <div class="nav-group">
+        ${label ? `<span class="nav-group-label">${label}</span>` : ""}
+        <div class="nav-group-links">${links.map(navLink).join("")}</div>
+      </div>`;
   return `
     ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: data rekaan sahaja</div>` : ""}
     <header class="topbar no-print">
-      <div class="brand"><img class="brand-logo" src="/logo.svg" alt="" /> Koperasi SMK Lohan</div>
-      <nav>${NAV.map(navLink).join("")}</nav>
-      <span class="who">${esc(currentEmail())}</span>
-      <button id="logout" class="btn small" type="button">Log Keluar</button>
+      <div class="topbar-main">
+        <div class="brand"><img class="brand-logo" src="/logo.svg" alt="" /> ${APP_NAME} SMK Lohan</div>
+        <span class="who">${esc(currentEmail())}</span>
+        <button id="logout" class="btn small" type="button">Log Keluar</button>
+      </div>
+      <nav class="nav">${NAV_GROUPS.map(navGroup).join("")}</nav>
     </header>
     <main id="view" class="container"></main>`;
 }
@@ -58,6 +89,11 @@ function render() {
   }
   if (isLoggedIn() && path === "/login") {
     location.hash = "/";
+    return;
+  }
+
+  if (isLoggedIn() && REDIRECTS[path]) {
+    location.replace(`#${REDIRECTS[path]}`);
     return;
   }
 
@@ -75,7 +111,7 @@ function render() {
   } else if (routes[path]) {
     routes[path](view);
   } else {
-    view.innerHTML = `<h1>Halaman tidak dijumpai</h1><p><a href="#/">Kembali ke Dashboard</a></p>`;
+    view.innerHTML = `<h1>Halaman tidak dijumpai</h1><p><a href="#/">Kembali ke Papan Pemuka</a></p>`;
   }
 
   app.querySelector("#logout").addEventListener("click", async () => {

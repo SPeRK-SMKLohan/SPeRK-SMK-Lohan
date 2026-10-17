@@ -1,7 +1,7 @@
-import { getReceipt } from "../services.js";
-import { receiptHtml, whatsappText } from "../components/receipt-view.js";
-import { downloadReceiptPdf } from "../utils/pdf.js";
-import { esc } from "../utils/dom.js";
+import { getReceipt } from "./api.js";
+import { receiptHtml, whatsappText } from "./receipt-view.js";
+import { downloadReceiptPdf } from "./pdf.js";
+import { esc } from "../../shared/dom.js";
 
 // Mengembalikan "" (tiada nombor), nombor antarabangsa tanpa +, atau null jika tidak sah.
 function whatsappNumber(input) {

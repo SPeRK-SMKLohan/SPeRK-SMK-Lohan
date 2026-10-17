@@ -1,24 +1,44 @@
 # Dokumentasi Ciri-ciri dan Aliran Kerja
 
-## Sistem Resit Bayaran Koperasi SMK Lohan, Ranau
+## Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK) SMK Lohan, Ranau
 
 **Status:** Draf perancangan untuk semakan pihak sekolah.
 
 ## 1. Pengenalan
 
-Sistem Resit Bayaran Koperasi SMK Lohan, Ranau ialah aplikasi web untuk
-merekod pembayaran koperasi, menjana resit digital dan mencari semula
-rekod transaksi. Beberapa petugas boleh mengakses rekod yang sama
-melalui komputer berbeza.
+SPeRK (Sistem Pengurusan Pelajar dan Resit Koperasi) SMK Lohan, Ranau
+ialah aplikasi web dengan dua modul utama:
 
-Skop utama ialah pengurusan maklumat murid, senarai item, pengiraan
-bayaran, penjanaan resit, PDF/cetakan, perkongsian WhatsApp dan sejarah
-resit.
+1. **e-Daftar** — pendaftaran murid: sekolah rendah terdahulu, nama, No.
+   IC, status OKU, status daftar (kehadiran hari pendaftaran) dan
+   permohonan penempatan semula.
+2. **e-Resit Koperasi** — merekod pembayaran koperasi, menjana resit
+   digital dan mencari semula rekod transaksi.
+
+Kedua-dua modul menggunakan pangkalan data murid yang sama. Beberapa
+petugas boleh mengakses rekod yang sama melalui komputer berbeza.
+
+Modul e-Resit meliputi pengurusan senarai item, pengiraan bayaran,
+penjanaan resit, PDF/cetakan, perkongsian WhatsApp dan sejarah resit.
+Data murid tidak terhad kepada murid Tingkatan 1.
 
 ## 2. Perubahan keperluan terkini
 
-Maklumat murid yang digunakan: - Nama murid - Nombor kad pengenalan
-(IC) - Sekolah rendah asal
+Maklumat murid yang digunakan (medan e-Daftar):
+
+-   Sekolah (SK Terdahulu)
+-   Nama murid
+-   Nombor kad pengenalan (IC)
+-   Status OKU (Ya/Tidak)
+-   Status daftar: belum daftar / sudah daftar (merujuk kepada kehadiran
+    pada hari pendaftaran, ditanda oleh guru)
+-   Mohon penempatan semula: nama sekolah dipohon dan sebab, serta
+    catatan (jika berkenaan)
+-   Tingkatan (1 hingga 5, pilihan — murid tidak terhad kepada Tingkatan
+    1)
+
+Murid yang hadir pada hari pendaftaran tetap dikira **sudah daftar**,
+walaupun memohon penempatan semula.
 
 **Kelas tidak diperlukan. Item PIBG dikeluarkan daripada senarai.**
 
@@ -69,15 +89,56 @@ Worker perlu mengesahkan token pengguna, mengesahkan data dan mengira
 jumlah di bahagian backend. Kelayakan pelayan atau kunci rahsia tidak
 boleh diletakkan dalam kod frontend atau repositori GitHub.
 
+### 3.1 Susunan kod (dua ciri berasingan)
+
+e-Daftar dan e-Resit Koperasi ialah dua ciri berasingan dalam satu
+aplikasi SPeRK, berkongsi satu pangkalan data murid:
+
+-   `frontend/src/pages/` — halaman peringkat sistem (log masuk, papan
+    pemuka)
+-   `frontend/src/features/e-daftar/` — pendaftaran murid dan import data
+-   `frontend/src/features/e-resit/` — jana resit, barangan, sejarah
+    resit dan PDF
+-   `frontend/src/shared/` — kod kongsi (API, pengesahan, wang, identiti
+    koperasi)
+-   `worker/src/features/e-daftar/` — API murid dan import
+-   `worker/src/features/e-resit/` — API barangan dan resit
+-   `worker/src/shared/students.js` — lapisan data murid yang dikongsi
+-   `worker/src/dashboard.js` — statistik papan pemuka (kedua-dua ciri)
+
+Nama teknikal: Worker Cloudflare `sprek-smk-lohan-api` dan repositori
+`sprek-smk-lohan`. Projek Firebase dikekalkan sebagai
+`resit-koperasi-lohan` kerana penukaran nama projek memerlukan migrasi
+data.
+
 ## 4. Ciri-ciri sistem
 
-### 4.1 Pengurusan maklumat murid
+### 4.1 Pengurusan maklumat murid (e-Daftar)
 
-Sistem menyimpan nama murid, IC dan sekolah rendah asal. Fungsi: -
-Import data daripada Excel `.xlsx`. - Cari murid mengikut nama atau
-nombor IC. - Pilih sekolah rendah asal daripada senarai. - Semak medan
-wajib yang kosong. - Kesan kemungkinan rekod pendua. - Paparkan maklumat
-murid sebelum resit dikeluarkan.
+Sistem menyimpan nama murid, IC, sekolah rendah terdahulu, tingkatan,
+status OKU, status daftar dan maklumat penempatan semula. Fungsi: - Import
+data daripada Excel `.xlsx` melalui halaman Import Data yang berasingan. -
+Tambah murid baharu atau kemas kini rekod sedia ada. - Cari murid
+mengikut nama atau nombor IC. - Tapis mengikut sekolah rendah, tingkatan
+dan status daftar. - Pilih sekolah rendah asal daripada senarai. - Semak
+medan wajib yang kosong (nama, IC, sekolah, status OKU). - Kesan
+kemungkinan rekod pendua (No. IC sama). - Paparkan statistik belum
+daftar, sudah daftar dan keahlian koperasi pada papan pemuka. - Paparkan
+maklumat murid sebelum resit dikeluarkan.
+
+Lajur fail Excel (lajur bertanda pilihan boleh dikosongkan):
+
+   Lajur                          Wajib
+   ------------------------------ --------
+   Nama Murid                     Ya
+   No. IC                         Ya
+   Sekolah Rendah Asal            Ya
+   Tingkatan (1-5)                Tidak
+   Status OKU (Ya/Tidak)          Tidak
+   Status Daftar                  Tidak
+   Sekolah Dipohon                Tidak
+   Sebab Penempatan Semula        Tidak
+   Catatan                        Tidak
 
 Contoh format Excel:
 
@@ -219,24 +280,46 @@ pembetulan atau pembatalan mesti mengikut polisi yang dipersetujui.
 
 ### 4.9 Antara muka
 
-Halaman yang dicadangkan: 1. Log Masuk 2. Dashboard 3. Murid 4. Barangan
-5. Jana Resit 6. Sejarah Resit
+Halaman sistem: 1. Log Masuk 2. Papan Pemuka 3. e-Daftar (Pendaftaran) 4.
+Import Data 5. Jana Resit (e-Resit Koperasi) 6. Barangan 7. Sejarah Resit
+8. Butiran Resit
+
+Navigasi dikelompokkan mengikut ciri:
+
+-   **Papan Pemuka**
+-   **e-Daftar** — Pendaftaran, Import Data
+-   **e-Resit Koperasi** — Jana Resit, Barangan, Sejarah Resit
+
+Papan pemuka memaparkan statistik murid (belum daftar, sudah daftar,
+keahlian koperasi) dan kad navigasi ke e-Daftar serta e-Resit Koperasi.
 
 Antara muka hendaklah ringkas, responsif dan boleh digunakan melalui
 pelayar komputer sekolah.
 
 ## 5. Aliran kerja petugas
 
-### 5.1 Persediaan awal
+### 5.1 Persediaan awal (sebelum hari pendaftaran)
 
 1.  Petugas log masuk.
-2.  Import fail Excel yang telah disahkan.
-3.  Semak senarai item dan harga yang diluluskan.
-4.  Pastikan rekod yang diperlukan tersedia.
+2.  Buka halaman Import Data dan muat naik fail Excel yang telah
+    disahkan.
+3.  Semak ringkasan import (sah, tidak sah, pendua) dan sahkan.
+4.  Buka e-Daftar untuk memastikan senarai murid lengkap.
+5.  Semak senarai item dan harga yang diluluskan pada halaman Barangan.
 
-### 5.2 Mengeluarkan resit
+### 5.2 Hari pendaftaran (e-Daftar)
 
-1.  Buka halaman Jana Resit.
+1.  Buka halaman e-Daftar.
+2.  Cari murid melalui nama atau nombor IC (boleh ditapis mengikut
+    sekolah rendah atau tingkatan).
+3.  Klik **Kemas kini** pada baris murid.
+4.  Tanda **Sudah daftar** atau **Belum daftar**, serta lengkapkan
+    tingkatan, status OKU dan maklumat penempatan semula jika berkenaan.
+5.  Simpan. Status pada papan pemuka dikemas kini secara automatik.
+
+### 5.3 Mengeluarkan resit
+
+1.  Buka halaman Jana Resit (e-Resit Koperasi).
 2.  Cari murid melalui nama atau IC.
 3.  Pilih murid yang betul.
 4.  Pilih item (Baju PJK ada dua pilihan: Lengan Pendek / Lengan Panjang)
@@ -250,14 +333,17 @@ pelayar komputer sekolah.
 10. Selepas penyimpanan berjaya, sistem memaparkan resit.
 11. Muat turun PDF, cetak atau kongsi melalui WhatsApp.
 
-### 5.3 Mencari resit lama
+Apabila resit mengandungi item **Keahlian Koperasi**, murid tersebut
+dikira sebagai ahli koperasi pada papan pemuka.
+
+### 5.4 Mencari resit lama
 
 1.  Buka Sejarah Resit.
 2.  Cari menggunakan nombor resit atau maklumat yang dibenarkan.
 3.  Pilih rekod.
 4.  Semak dan cetak atau muat turun semula.
 
-### 5.4 Gangguan rangkaian
+### 5.5 Gangguan rangkaian
 
 Jika sambungan terputus, sistem tidak boleh memaparkan transaksi sebagai
 berjaya sebelum backend mengesahkannya. Permintaan ulangan perlu
@@ -288,12 +374,28 @@ resit kedua.
 
 ### Import Excel
 
-1.  Pilih fail `.xlsx`.
-2.  Semak lajur dan data.
+1.  Pilih fail `.xlsx` pada halaman Import Data.
+2.  Semak lajur wajib (Nama Murid, No. IC, Sekolah Rendah Asal) dan lajur
+    pilihan (Tingkatan, Status OKU, Status Daftar, Sekolah Dipohon, Sebab
+    Penempatan Semula, Catatan).
 3.  Paparkan rekod sah, tidak sah dan pendua.
 4.  Pengguna mengesahkan import.
 5.  Hantar melalui backend yang dilindungi.
 6.  Paparkan ringkasan kejayaan dan kegagalan.
+
+### Simpan / kemas kini murid (e-Daftar)
+
+1.  Frontend menghantar medan e-Daftar (nama, IC, sekolah, tingkatan,
+    status OKU, status daftar, penempatan semula).
+2.  Worker mengesahkan pengguna, membersihkan teks, menyemak No. IC (12
+    digit dan tarikh lahir yang munasabah), sekolah dalam senarai dan
+    status OKU.
+3.  Worker menyemak pendua No. IC (digit sahaja).
+4.  **Cipta:** dokumen baharu disimpan dengan `active: true`. **Kemas
+    kini:** hanya medan yang dihantar ditulis (updateMask), jadi tarikh
+    cipta dan status aktif kekal.
+5.  Cache senarai murid dikosongkan supaya papan pemuka dan senarai
+    menunjukkan data terbaharu.
 
 ## 7. Struktur data dicadangkan
 
@@ -303,11 +405,17 @@ resit kedua.
 -   `name`
 -   `icNumber` (teks)
 -   `formerPrimarySchool`
+-   `tingkatan` (1-5 atau `null`)
+-   `oku` (`true`/`false` atau `null` jika belum diisi)
+-   `registrationStatus` (`"SUDAH"` atau `"BELUM"`; rekod lama tanpa
+    medan ini dianggap `"BELUM"`)
+-   `transferSchool`, `transferReason`, `transferNotes` (penempatan
+    semula; `null` jika tidak berkenaan)
 -   `active`
 -   `createdAt`
 -   `updatedAt`
 
-Tiada medan kelas.
+Tiada medan kelas; `tingkatan` hanya menandakan tahun persekolahan.
 
 ### `items`
 
@@ -317,6 +425,8 @@ Tiada medan kelas.
 -   `active`
 -   `sortOrder` (susunan mengikut Senarai Harga rasmi sekolah)
 -   `fixedQuantity` (pilihan; contoh 1 untuk item yang dikunci)
+-   `koperasiMembership` (pilihan; `true` pada item Keahlian Koperasi —
+    digunakan untuk statistik keahlian koperasi pada papan pemuka)
 -   `createdAt`
 -   `updatedAt`
 
@@ -354,15 +464,30 @@ yang sama.
 
 ## 8. API Worker dicadangkan
 
+Endpoint dikelompokkan mengikut ciri. Endpoint murid digunakan oleh
+kedua-dua ciri kerana pangkalan data murid dikongsi: e-Daftar menyimpan
+dan mengemas kini murid, manakala e-Resit Koperasi mencari murid untuk
+resit.
+
   Kaedah   Endpoint                 Fungsi
   -------- ------------------------ ---------------------------
-  GET      `/api/students`          Cari murid
+  GET      `/api/dashboard`         Statistik murid dan ringkasan resit
+  GET      `/api/students`          Cari murid (q, school, tingkatan, status)
+  POST     `/api/students`          Daftar murid baharu (e-Daftar)
+  GET      `/api/students/:id`      Dapatkan satu murid (untuk kemas kini)
+  PUT      `/api/students/:id`      Kemas kini maklumat murid
   POST     `/api/students/import`   Import data murid
   GET      `/api/items`             Dapatkan item aktif
   POST     `/api/receipts`          Cipta resit
   GET      `/api/receipts`          Cari sejarah resit
   GET      `/api/receipts/:id`      Dapatkan butiran resit
   GET      `/api/health`            Semak status perkhidmatan
+
+Statistik papan pemuka: `notRegisteredStudents`, `registeredStudents`
+(mengikut `registrationStatus`), `koperasiStudents` (murid yang mempunyai
+resit berstatus `ISSUED` yang mengandungi item bertanda
+`koperasiMembership`), `activeStudents`, `todayCount` dan
+`todayTotalSen`.
 
 Semua endpoint yang dilindungi mesti mengesahkan token dan kebenaran
 pengguna. Endpoint pengurusan harga atau pembatalan hanya ditambah jika
@@ -452,12 +577,16 @@ diperlukan, gunakan akaun berasingan untuk setiap petugas.
 
 ## 11. Senarai ujian penerimaan
 
--   [ ] Fail Excel yang betul boleh diimport.
+-   [ ] Fail Excel yang betul boleh diimport (lajur wajib dan pilihan).
 -   [ ] Data wajib kosong atau tidak sah ditangani.
 -   [ ] Rekod pendua dikenal pasti.
 -   [ ] Carian nama dan IC berfungsi.
 -   [ ] Sekolah rendah asal boleh dipilih.
--   [ ] Tiada medan kelas atau item PIBG.
+-   [ ] Murid baharu boleh didaftarkan melalui e-Daftar.
+-   [ ] Status daftar, status OKU dan penempatan semula boleh dikemas
+    kini dan bertahan selepas muat semula halaman.
+-   [ ] Statistik papan pemuka (belum daftar, sudah daftar, keahlian
+    koperasi) tepat.
 -   [ ] Pengiraan jumlah tepat.
 -   [ ] Backend menolak harga atau kuantiti tidak sah.
 -   [ ] Nombor resit unik ketika permintaan serentak.
@@ -474,19 +603,26 @@ diperlukan, gunakan akaun berasingan untuk setiap petugas.
 1.  Senarai item dan harga akhir tanpa PIBG.
 2.  Format Excel dan medan murid.
 3.  Senarai sekolah rendah asal yang lengkap.
-4.  Sama ada IC perlu dicetak pada resit.
-5.  Format nombor resit dan tahun permulaan.
-6.  Susun atur resit dan logo.
-7.  Kebenaran menggunakan satu akaun bersama.
-8.  Prosedur pembetulan atau pembatalan resit.
-9.  Pemilik akaun GitHub, Firebase dan Cloudflare.
-10. Tempoh penyimpanan data, sandaran dan akses.
+4.  Senarai sekolah menengah untuk dropdown "nama sekolah dipohon"
+    (buat masa ini medan teks bebas).
+5.  Senarai sebab penempatan semula untuk dropdown (buat masa ini medan
+    teks bebas).
+6.  Sama ada IC perlu dicetak pada resit.
+7.  Format nombor resit dan tahun permulaan.
+8.  Susun atur resit dan logo.
+9.  Kebenaran menggunakan satu akaun bersama.
+10. Prosedur pembetulan atau pembatalan resit.
+11. Pemilik akaun GitHub, Firebase dan Cloudflare.
+12. Tempoh penyimpanan data, sandaran dan akses.
 
 ## 13. Rumusan
 
-Sistem ini ialah aplikasi web ringkas untuk merekod bayaran koperasi,
-menjana resit dan menyimpan sejarah transaksi. Keperluan terkini ialah
-**Nama Murid, IC dan Sekolah Rendah Asal**, tanpa kelas dan tanpa PIBG.
+SPeRK (Sistem Pengurusan Pelajar dan Resit Koperasi) SMK Lohan ialah
+aplikasi web untuk pendaftaran murid (e-Daftar) dan bayaran koperasi
+(e-Resit Koperasi), berkongsi satu pangkalan data murid. Keperluan
+terkini: **Sekolah (SK Terdahulu), Nama Murid, No. IC, Status OKU,
+Status Daftar dan Penempatan Semula**, tanpa kelas dan tanpa PIBG; data
+murid tidak terhad kepada Tingkatan 1.
 
 Pembangunan dimulakan dengan frontend dan data rekaan. Firebase,
 Firestore dan Cloudflare Workers disambungkan secara berperingkat. Data

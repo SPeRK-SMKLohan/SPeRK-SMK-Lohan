@@ -1,5 +1,5 @@
-import { signIn, signOutUser, loginErrorMessage } from "../auth.js";
-import { apiFetch } from "../api.js";
+import { signIn, signOutUser, loginErrorMessage } from "../shared/auth.js";
+import { apiFetch } from "../shared/api.js";
 
 export function renderLogin(root) {
   root.innerHTML = `
@@ -7,7 +7,7 @@ export function renderLogin(root) {
       <form id="login-form" class="card login-card">
         <img class="login-logo" src="/logo.svg" alt="Logo SMK Lohan" />
         <h1>Log Masuk</h1>
-        <p class="muted">Sistem Resit Koperasi SMK Lohan, Ranau</p>
+        <p class="muted">Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK)<br>SMK Lohan, Ranau</p>
         <label>E-mel
           <input id="email" class="input" type="email" autocomplete="username">
         </label>

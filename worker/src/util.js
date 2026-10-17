@@ -7,6 +7,18 @@ export class HttpError extends Error {
 
 export const ID_RE = /^[A-Za-z0-9_-]{1,100}$/;
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const DAY_MS = 86400000;
+
+// Membaca badan permintaan JSON (had 20 KB untuk borang).
+export async function readJson(request) {
+  const text = await request.text();
+  if (text.length > 20_000) throw new HttpError(413, "Permintaan terlalu besar.");
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new HttpError(400, "Permintaan tidak sah.");
+  }
+}
 
 // 000000-00-0001 -> ******-**-0001
 export function maskIC(ic) {

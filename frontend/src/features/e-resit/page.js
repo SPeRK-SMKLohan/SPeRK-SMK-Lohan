@@ -1,8 +1,10 @@
-import { getItems, searchStudents, createReceipt } from "../services.js";
-import { paymentMethods } from "../data/constants.js";
-import { formatRM, grandTotal } from "../utils/money.js";
-import { esc } from "../utils/dom.js";
-import { makeId } from "../utils/id.js";
+// Senarai murid datang daripada e-Daftar: kedua-dua ciri berkongsi satu pangkalan data.
+import { searchStudents } from "../e-daftar/api.js";
+import { createReceipt, getItems } from "./api.js";
+import { paymentMethods } from "./constants.js";
+import { formatRM, grandTotal } from "../../shared/money.js";
+import { esc } from "../../shared/dom.js";
+import { makeId } from "../../shared/id.js";
 
 export async function renderNewReceipt(root) {
   let student = null;
@@ -16,7 +18,7 @@ export async function renderNewReceipt(root) {
   const requestId = makeId(); // satu ID untuk resit ini; mengelakkan resit pendua
 
   root.innerHTML = `
-    <h1>Jana Resit</h1>
+    <h1>e-Resit Koperasi</h1>
     <div class="receipt-layout">
       <div>
         <section class="card"><h2>1. Murid</h2><div id="student-box"></div></section>

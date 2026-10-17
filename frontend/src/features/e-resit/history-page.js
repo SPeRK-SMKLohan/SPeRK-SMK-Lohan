@@ -1,6 +1,7 @@
-import { listReceipts } from "../services.js";
-import { formatRM } from "../utils/money.js";
-import { esc, formatDateTime, paymentLabel } from "../utils/dom.js";
+import { listReceipts } from "./api.js";
+import { paymentLabel } from "./constants.js";
+import { formatRM } from "../../shared/money.js";
+import { esc, formatDateTime } from "../../shared/dom.js";
 
 export function renderHistory(root) {
   root.innerHTML = `

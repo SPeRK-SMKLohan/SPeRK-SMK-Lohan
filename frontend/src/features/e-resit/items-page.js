@@ -1,6 +1,6 @@
-import { getItems } from "../services.js";
-import { formatRM } from "../utils/money.js";
-import { esc } from "../utils/dom.js";
+import { getItems } from "./api.js";
+import { formatRM } from "../../shared/money.js";
+import { esc } from "../../shared/dom.js";
 
 export async function renderItems(root) {
   root.innerHTML = `

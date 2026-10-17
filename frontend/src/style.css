@@ -97,28 +97,37 @@ h3 { font-size: 1rem; font-weight: 700; margin: 0 0 .4rem; }
 .topbar {
   background: var(--primary);
   color: var(--text-on-primary);
-  display: flex; align-items: center; gap: 1rem;
-  padding: .6rem 1.25rem; flex-wrap: wrap;
+  padding: .55rem 1.25rem .65rem;
 }
+.topbar-main { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .brand {
-  display: flex; align-items: center; gap: .5rem;
+  display: flex; align-items: center; gap: .5rem; flex: 1;
   font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem;
 }
 .brand-logo { width: 30px; height: 30px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; }
 .who { font-size: .85rem; color: var(--primary-soft); }
-.topbar nav { display: flex; gap: .2rem; flex: 1; flex-wrap: wrap; }
-.topbar nav a {
+.topbar .btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .35); color: #fff; }
+.topbar .btn:hover { background: rgba(255, 255, 255, .2); }
+
+/* Navigasi dikelompokkan mengikut ciri: e-Daftar dan e-Resit Koperasi. */
+.nav { display: flex; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-top: .5rem; }
+.nav-group { display: flex; flex-direction: column; gap: .15rem; }
+.nav-group-label {
+  font-family: var(--font-heading); font-size: .68rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(255, 255, 255, .62); padding-left: .7rem;
+}
+.nav-group-links { display: flex; gap: .2rem; flex-wrap: wrap; }
+.nav a {
   color: rgba(255, 255, 255, .86); text-decoration: none;
   padding: .4rem .7rem; border-radius: 6px;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
-.topbar nav a:hover { background: rgba(255, 255, 255, .12); color: #fff; }
-.topbar nav a.active { background: rgba(255, 255, 255, .22); color: #fff; }
-.topbar .btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .35); color: #fff; }
-.topbar .btn:hover { background: rgba(255, 255, 255, .2); }
-/* Skrin sempit: navigasi turun ke barisnya sendiri supaya tidak berpecah di tengah. */
-@media (max-width: 900px) {
-  .topbar nav { order: 3; flex-basis: 100%; }
+.nav a:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.nav a.active { background: rgba(255, 255, 255, .22); color: #fff; }
+@media (max-width: 700px) {
+  .nav { gap: .9rem 1rem; }
+  .nav-group-label { font-size: .64rem; }
 }
 .container { max-width: 1080px; margin: 1.25rem auto; padding: 0 1.25rem; }
 
@@ -167,7 +176,7 @@ input.qty, input.line-qty { width: 4.5rem; }
 .btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
 .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
 .btn.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
-.btn.small { padding: .3rem .6rem; font-size: .85rem; }
+.btn.small { padding: .3rem .6rem; font-size: .85rem; white-space: nowrap; }
 .btn.block { display: block; width: 100%; margin-top: .75rem; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .toolbar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: .85rem; }
@@ -183,8 +192,41 @@ label.check, label.radio { display: flex; gap: .5rem; align-items: center; margi
 .table thead th { background: var(--surface-featured); font-size: .82rem; color: var(--text-secondary); font-weight: 600; }
 .table tbody tr:last-child td { border-bottom: none; }
 .table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table .nowrap { white-space: nowrap; }
+/* Jadual lebar (e-Daftar): skrol mendatar lebih baik daripada berlipat sesak. */
+.table.wide { min-width: 880px; }
 .table.compact td { padding: .35rem .25rem; font-size: .9rem; }
 .card .table tbody tr:hover { background: var(--surface-hover); }
+
+/* Papan pemuka: kad navigasi ke modul utama */
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: .85rem;
+  margin: 0 0 .85rem;
+}
+.nav-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: .85rem 1rem;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.nav-card:hover { border-color: var(--border-featured); background: var(--surface-featured); color: inherit; }
+.nav-card strong { display: block; font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--primary); }
+.nav-card span { display: block; margin-top: .15rem; color: var(--text-secondary); font-size: .88rem; }
+
+/* Borang e-Daftar */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .7rem .9rem; }
+.form-grid > .full { grid-column: 1 / -1; }
+.form-grid label { display: block; font-size: .9rem; color: var(--text-secondary); }
+.form-grid .input { width: 100%; }
+.form-grid label.inline { display: flex; gap: .5rem; align-items: center; }
+.radio-group { border: 1px solid var(--border); border-radius: var(--radius-control); padding: .45rem .7rem .3rem; margin: 0; }
+.radio-group legend { font-size: .9rem; color: var(--text-secondary); padding: 0 .25rem; }
 
 /* Ringkasan metrik: satu panel dengan pemisah, bukan kad terapung */
 .cards {

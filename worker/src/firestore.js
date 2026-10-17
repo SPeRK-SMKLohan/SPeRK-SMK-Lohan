@@ -1,6 +1,12 @@
 import { SignJWT, importPKCS8 } from "jose";
 import { HttpError } from "./util.js";
 
+// Penapis medan untuk pertanyaan Firestore:
+// fieldFilter("active", "EQUAL", toValue(true))
+export const fieldFilter = (field, op, value) => ({
+  fieldFilter: { field: { fieldPath: field }, op, value },
+});
+
 let cachedAccount = null; // { raw, value }
 let cachedKey = null;
 let cachedToken = null; // { value, expiresAt }
@@ -148,7 +154,8 @@ export async function beginTransaction(env) {
   return data.transaction;
 }
 
-// writes: [{ collection, id, data, mustNotExist }]
+// writes: [{ collection, id, data, mustNotExist, mask }]
+// mask = true: hanya medan di dalam data yang ditulis; medan lain tidak diubah.
 export async function commit(env, writes, transaction) {
   const body = {
     writes: writes.map((w) =>
@@ -156,6 +163,9 @@ export async function commit(env, writes, transaction) {
         ? { delete: docPath(env, w.collection, w.id) }
         : {
             update: { name: docPath(env, w.collection, w.id), fields: toFields(w.data) },
+            ...(w.mask
+              ? { updateMask: { fieldPaths: Object.keys(w.data).filter((k) => w.data[k] !== undefined) } }
+              : {}),
             ...(w.mustNotExist ? { currentDocument: { exists: false } } : {}),
           }
     ),

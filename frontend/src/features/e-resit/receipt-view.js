@@ -1,6 +1,8 @@
-import { RECEIPT_TITLE, KOPERASI_NAME, KOPERASI_ADDRESS, KOPERASI_TEL, LOGO_URL } from "../config.js";
-import { formatRM, formatAmount } from "../utils/money.js";
-import { esc, formatDateTime, paymentLabel } from "../utils/dom.js";
+import { RECEIPT_TITLE } from "./config.js";
+import { KOPERASI_NAME, KOPERASI_ADDRESS, KOPERASI_TEL, LOGO_URL } from "../../shared/koperasi.js";
+import { formatRM, formatAmount } from "../../shared/money.js";
+import { esc, formatDateTime } from "../../shared/dom.js";
+import { paymentLabel } from "./constants.js";
 
 export function receiptHtml(r) {
   const rows = r.items.map((i) => {

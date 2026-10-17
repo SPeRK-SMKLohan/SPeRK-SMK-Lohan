@@ -1,12 +1,16 @@
-import { getDashboard } from "../services.js";
-import { apiFetch } from "../api.js";
-import { formatRM } from "../utils/money.js";
-import { esc, formatDateTime, paymentLabel } from "../utils/dom.js";
+import { apiFetch } from "../shared/api.js";
+import { formatRM } from "../shared/money.js";
+import { esc, formatDateTime } from "../shared/dom.js";
+import { APP_LONG_NAME } from "../shared/config.js";
+import { paymentLabel } from "../features/e-resit/constants.js";
+
+// Papan pemuka menggabungkan statistik e-Daftar dan e-Resit Koperasi.
+const getDashboard = () => apiFetch("/api/dashboard");
 
 export async function renderDashboard(root) {
   root.innerHTML = `
-    <h1>Dashboard</h1>
-    <p><a class="btn primary" href="#/jana-resit">+ Jana Resit Baharu</a></p>
+    <h1>Papan Pemuka</h1>
+    <p class="muted">${esc(APP_LONG_NAME)}</p>
     <div id="dash"><p class="muted">Memuatkan...</p></div>`;
   const box = root.querySelector("#dash");
 
@@ -29,13 +33,27 @@ export async function renderDashboard(root) {
 
   box.innerHTML = `
     <div class="cards">
-      <div class="card stat"><span>Murid aktif</span><strong>${d.activeStudents}</strong></div>
-      <div class="card stat"><span>Barangan aktif</span><strong>${d.activeItems}</strong></div>
-      <div class="card stat"><span>Resit hari ini</span><strong>${d.todayCount}</strong></div>
-      <div class="card stat"><span>Jumlah hari ini</span><strong>${formatRM(d.todayTotalSen)}</strong></div>
+      <div class="card stat"><span>Belum daftar</span><strong>${d.notRegisteredStudents}</strong></div>
+      <div class="card stat"><span>Sudah daftar</span><strong>${d.registeredStudents}</strong></div>
+      <div class="card stat"><span>Keahlian koperasi</span><strong>${d.koperasiStudents}</strong></div>
     </div>
+    <p class="muted">Jumlah murid aktif: <strong>${d.activeStudents}</strong> orang.</p>
+
+    <div class="nav-cards">
+      <a class="nav-card" href="#/pendaftaran">
+        <strong>e-Daftar</strong>
+        <span>Sekolah terdahulu, status OKU, status daftar dan permohonan penempatan semula murid.</span>
+      </a>
+      <a class="nav-card" href="#/jana-resit">
+        <strong>e-Resit Koperasi</strong>
+        <span>Menjana resit bayaran barangan koperasi untuk murid.</span>
+      </a>
+    </div>
+
     <section class="card">
-      <h2>Resit terkini</h2>
+      <h2>Resit Koperasi</h2>
+      <p class="muted">Resit diterbitkan hari ini: <strong>${d.todayCount}</strong>
+        · Jumlah: <strong>${formatRM(d.todayTotalSen)}</strong></p>
       ${d.recent.length ? `
         <div class="table-wrap"><table class="table">
           <thead><tr><th>No. Resit</th><th>Tarikh</th><th>Murid</th><th class="num">Jumlah</th><th>Bayaran</th></tr></thead>

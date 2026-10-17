@@ -1,7 +1,7 @@
 {
-  "name": "worker",
+  "name": "sprek-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "API SPeRK SMK Lohan (e-Daftar dan e-Resit Koperasi)",
   "main": "index.js",
   "scripts": {
     "dev": "wrangler dev"

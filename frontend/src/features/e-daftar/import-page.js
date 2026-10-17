@@ -1,7 +1,6 @@
-import { schools } from "../data/constants.js";
-import { searchStudents, importStudents } from "../services.js";
-import { parseStudentsFile, downloadStudentTemplate } from "../utils/excel.js";
-import { esc, maskIC } from "../utils/dom.js";
+import { importStudents } from "./api.js";
+import { parseStudentsFile, downloadStudentTemplate } from "./excel.js";
+import { esc, maskIC } from "../../shared/dom.js";
 
 const STATUS_LABEL = {
   invalid: "Tidak sah",
@@ -9,75 +8,32 @@ const STATUS_LABEL = {
   duplicate_existing: "Sudah wujud",
 };
 
-export function renderStudents(root) {
+export function renderImportData(root) {
   root.innerHTML = `
-    <h1>Murid</h1>
+    <h1>Import Data</h1>
+    <p class="muted">Muat naik senarai murid daripada fail Excel (.xlsx). Gunakan halaman ini
+      sebelum hari pendaftaran untuk menyediakan senarai murid dalam sistem.</p>
 
     <section class="card">
-      <h2>Import dari Excel</h2>
-      <p class="muted">Fail .xlsx dengan lajur <strong>Nama Murid</strong>, <strong>No. IC</strong> dan
-        <strong>Sekolah Rendah Asal</strong>. Murid yang sudah wujud (IC sama) dilangkau, tidak diganti.</p>
+      <h2>Fail murid</h2>
+      <p class="muted">Lajur wajib: <strong>Nama Murid</strong>, <strong>No. IC</strong> dan
+        <strong>Sekolah Rendah Asal</strong>. Lajur pilihan: <strong>Tingkatan</strong>,
+        <strong>Status OKU</strong>, <strong>Status Daftar</strong>, <strong>Sekolah Dipohon</strong>,
+        <strong>Sebab Penempatan Semula</strong> dan <strong>Catatan</strong>.</p>
+      <p class="muted">Murid yang sudah wujud (IC sama) dilangkau, tidak diganti.</p>
       <div class="toolbar">
         <input id="file" class="input" type="file" accept=".xlsx">
         <button id="template" class="btn small" type="button">Muat turun templat</button>
       </div>
       <div id="import-box"></div>
-    </section>
+      <p class="muted">Selepas import, buka <a href="#/pendaftaran">e-Daftar</a> untuk menanda status
+        daftar murid pada hari pendaftaran.</p>
+    </section>`;
 
-    <p class="notice">No. IC dipaparkan separa.</p>
-    <div class="toolbar">
-      <input id="q" class="input" type="search" placeholder="Cari nama atau no. IC">
-      <select id="school" class="input">
-        <option value="">Semua sekolah rendah</option>
-        ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
-      </select>
-    </div>
-    <p id="count" class="muted"></p>
-    <div class="table-wrap"><table class="table">
-      <thead><tr><th>Nama Murid</th><th>No. IC</th><th>Sekolah Rendah Asal</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table></div>`;
-
-  const q = root.querySelector("#q");
-  const school = root.querySelector("#school");
-  const countEl = root.querySelector("#count");
-  const rowsEl = root.querySelector("#rows");
   const fileInput = root.querySelector("#file");
   const importBox = root.querySelector("#import-box");
   let pendingRows = null;
-  let seq = 0;
-  let timer;
 
-  /* ----- Senarai murid ----- */
-  async function update() {
-    const mine = ++seq;
-    countEl.textContent = "Memuatkan...";
-    try {
-      const { students, total } = await searchStudents(q.value.trim(), { school: school.value, limit: 100 });
-      if (mine !== seq) return;
-      countEl.textContent = total > students.length
-        ? `Menunjukkan ${students.length} daripada ${total} murid`
-        : `${total} murid`;
-      rowsEl.innerHTML = students.map((s) => `
-        <tr>
-          <td>${esc(s.name)}</td>
-          <td>${esc(s.icMasked)}</td>
-          <td>${esc(s.formerPrimarySchool)}</td>
-        </tr>`).join("") || `<tr><td colspan="3" class="muted">Tiada padanan.</td></tr>`;
-    } catch (err) {
-      if (mine !== seq) return;
-      countEl.textContent = "";
-      rowsEl.innerHTML = `<tr><td colspan="3" class="error">${esc(err.message)}</td></tr>`;
-    }
-  }
-
-  q.addEventListener("input", () => {
-    clearTimeout(timer);
-    timer = setTimeout(update, 300);
-  });
-  school.addEventListener("change", update);
-
-  /* ----- Import Excel ----- */
   const pill = (cls, label) => `<span class="pill ${cls}">${esc(label)}</span>`;
 
   function resetImport() {
@@ -135,7 +91,6 @@ export function renderStudents(root) {
         renderDone(done);
         pendingRows = null;
         fileInput.value = "";
-        update();
       } catch (err) {
         msg.textContent = err.message;
         confirmBtn.disabled = false;
@@ -149,7 +104,8 @@ export function renderStudents(root) {
     importBox.innerHTML = `
       <p class="notice"><strong>Import selesai.</strong> ${done.imported} murid ditambah.
       ${s.invalid + s.duplicateInFile + s.duplicateExisting} baris dilangkau
-      (${s.invalid} tidak sah, ${s.duplicateInFile + s.duplicateExisting} pendua).</p>`;
+      (${s.invalid} tidak sah, ${s.duplicateInFile + s.duplicateExisting} pendua).
+      Buka <a href="#/pendaftaran">e-Daftar</a> untuk menyemak senarai murid.</p>`;
   }
 
   fileInput.addEventListener("change", async () => {
@@ -174,6 +130,4 @@ export function renderStudents(root) {
       importBox.innerHTML = `<p class="error">Templat gagal dijana. Sila cuba lagi.</p>`;
     });
   });
-
-  update();
 }

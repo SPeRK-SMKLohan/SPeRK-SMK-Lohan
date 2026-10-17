@@ -1,6 +1,8 @@
-import { RECEIPT_TITLE, KOPERASI_NAME, KOPERASI_ADDRESS, KOPERASI_TEL, LOGO_URL } from "../config.js";
-import { formatAmount } from "./money.js";
-import { formatDateTime, paymentLabel } from "./dom.js";
+import { RECEIPT_TITLE } from "./config.js";
+import { KOPERASI_NAME, KOPERASI_ADDRESS, KOPERASI_TEL, LOGO_URL } from "../../shared/koperasi.js";
+import { formatAmount } from "../../shared/money.js";
+import { formatDateTime } from "../../shared/dom.js";
+import { paymentLabel } from "./constants.js";
 
 // Fon asas PDF hanya menyokong aksara Latin. Aksara lain digantikan dengan "?".
 const safe = (v) =>

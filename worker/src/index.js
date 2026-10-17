@@ -1,9 +1,19 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { getDashboard } from "./dashboard.js";
+import { importStudents } from "./features/e-daftar/import.js";
 import {
-  createReceipt, getDashboard, getReceipt, importStudents, listItems,
-  listReceipts, listStudents, seedDevData,
-} from "./handlers.js";
+  createStudent, getStudent, listStudents, updateStudent,
+} from "./features/e-daftar/students.js";
+import { listItems } from "./features/e-resit/items.js";
+import { createReceipt, getReceipt, listReceipts } from "./features/e-resit/receipts.js";
+import { seedDevData } from "./seed.js";
 import { HttpError } from "./util.js";
+
+/* SPeRK (Sistem Pengurusan Pelajar dan Resit Koperasi) SMK Lohan.
+   Dua ciri berkongsi satu pangkalan data Firestore:
+   - e-Daftar         : senarai murid (/api/students)
+   - e-Resit Koperasi : barangan dan resit (/api/items, /api/receipts)
+   Papan pemuka (/api/dashboard) menggabungkan statistik kedua-duanya. */
 
 // Kunci awam Google untuk mengesahkan token Firebase.
 const JWKS = createRemoteJWKSet(
@@ -20,7 +30,7 @@ function corsHeaders(request, env) {
   if (origin && splitList(env.ALLOWED_ORIGINS).includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
     headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type";
-    headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
+    headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, OPTIONS";
     headers["Access-Control-Max-Age"] = "86400";
   }
   return headers;
@@ -81,18 +91,33 @@ export default {
       const method = request.method;
 
       try {
+        /* ---------- Kongsi (kedua-dua ciri) ---------- */
         if (pathname === "/api/me" && method === "GET") {
           return json({ uid: auth.user.sub, email: auth.user.email });
         }
         if (pathname === "/api/dashboard" && method === "GET") {
           return json(await getDashboard(env));
         }
+
+        /* ---------- e-Daftar (pangkalan data murid) ---------- */
         if (pathname === "/api/students/import" && method === "POST") {
           return json(await importStudents(env, auth.user, request));
         }
         if (pathname === "/api/students" && method === "GET") {
           return json(await listStudents(env, url));
         }
+        if (pathname === "/api/students" && method === "POST") {
+          return json(await createStudent(env, auth.user, request), 201);
+        }
+        const student = pathname.match(/^\/api\/students\/([^/]+)$/);
+        if (student && method === "GET") {
+          return json(await getStudent(env, decodeURIComponent(student[1])));
+        }
+        if (student && method === "PUT") {
+          return json(await updateStudent(env, auth.user, decodeURIComponent(student[1]), request));
+        }
+
+        /* ---------- e-Resit Koperasi ---------- */
         if (pathname === "/api/items" && method === "GET") {
           return json(await listItems(env));
         }
@@ -107,6 +132,8 @@ export default {
         if (one && method === "GET") {
           return json(await getReceipt(env, decodeURIComponent(one[1])));
         }
+
+        /* ---------- Alat pembangunan ---------- */
         if (pathname === "/api/dev/seed" && method === "POST" && env.ENABLE_SEED === "true") {
           // ?items=1 -> kemas kini senarai barangan sahaja (murid sedia ada tidak disentuh).
           const itemsOnly = new URL(request.url).searchParams.get("items") === "1";

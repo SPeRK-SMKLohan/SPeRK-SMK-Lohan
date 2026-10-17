@@ -1,5 +1,3 @@
-import { paymentMethods } from "../data/constants.js";
-
 // Mengelakkan teks daripada dianggap HTML. Gunakan untuk semua data dinamik.
 export function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({
@@ -14,8 +12,4 @@ export function maskIC(ic) {
 
 export function formatDateTime(iso) {
   return new Date(iso).toLocaleString("ms-MY", { dateStyle: "medium", timeStyle: "short" });
-}
-
-export function paymentLabel(value) {
-  return paymentMethods.find((p) => p.value === value)?.label ?? value;
 }
