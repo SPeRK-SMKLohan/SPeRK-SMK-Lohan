@@ -220,10 +220,19 @@ export function renderEDaftar(root) {
       return;
     }
     const query = qEl.value.trim();
-    rowsEl.innerHTML = `<tr><td colspan="5" class="muted">
-      Tiada padanan ${query ? `untuk “${esc(query)}”` : ""}.
-      ${query ? `<button class="btn primary small" type="button" data-action="new-from-search">+ Daftar “${esc(query)}” sebagai murid baharu</button>` : ""}
-    </td></tr>`;
+    const hasFilter = Boolean(filters.tingkatan || filters.status || schoolEl.value);
+    let message;
+    if (query) {
+      message = `Tiada padanan untuk “${esc(query)}”.
+        <button class="btn primary small" type="button" data-action="new-from-search">+ Daftar “${esc(query)}” sebagai murid baharu</button>`;
+    } else if (hasFilter) {
+      message = `Tiada murid yang sepadan dengan penapis ini. Klik <strong>Semua ting.</strong> dan
+        <strong>Semua status</strong> untuk melihat senarai penuh.`;
+    } else {
+      message = `Belum ada data murid. <a href="#/import">Import senarai murid</a> dahulu
+        (Papan Pemuka &rsaquo; e-Daftar &rsaquo; Import Data).`;
+    }
+    rowsEl.innerHTML = `<tr><td colspan="5" class="muted">${message}</td></tr>`;
   }
 
   function renderHint() {
