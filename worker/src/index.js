@@ -1,6 +1,11 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
-
+import {
+  createReceipt, getDashboard, getReceipt, listItems,
+  listReceipts, listStudents, seedDevData,
+} from "./handlers.js";
+import { HttpError } from "./util.js";
 // Kunci awam Google untuk mengesahkan token Firebase.
+
 const JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
@@ -55,7 +60,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const cors = corsHeaders(request, env);
-    const json = (body, status = 200) => Response.json(body, { status, headers: cors });
+    const json = (body, status = 200) =>
+      Response.json(body, { status, headers: { ...cors, "Cache-Control": "no-store" } });
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -71,8 +77,40 @@ export default {
       const auth = await authenticate(request, env);
       if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-      if (url.pathname === "/api/me" && request.method === "GET") {
-        return json({ uid: auth.user.sub, email: auth.user.email });
+      const { pathname } = url;
+      const method = request.method;
+
+      try {
+        if (pathname === "/api/me" && method === "GET") {
+          return json({ uid: auth.user.sub, email: auth.user.email });
+        }
+        if (pathname === "/api/dashboard" && method === "GET") {
+          return json(await getDashboard(env));
+        }
+        if (pathname === "/api/students" && method === "GET") {
+          return json(await listStudents(env, url));
+        }
+        if (pathname === "/api/items" && method === "GET") {
+          return json(await listItems(env));
+        }
+        if (pathname === "/api/receipts" && method === "GET") {
+          return json(await listReceipts(env, url));
+        }
+        if (pathname === "/api/receipts" && method === "POST") {
+          const { receipt, duplicate } = await createReceipt(env, auth.user, request);
+          return json({ receipt, duplicate }, duplicate ? 200 : 201);
+        }
+        const one = pathname.match(/^\/api\/receipts\/([^/]+)$/);
+        if (one && method === "GET") {
+          return json(await getReceipt(env, decodeURIComponent(one[1])));
+        }
+        if (pathname === "/api/dev/seed" && method === "POST" && env.ENABLE_SEED === "true") {
+          return json(await seedDevData(env));
+        }
+      } catch (err) {
+        if (err instanceof HttpError) return json({ error: err.message }, err.status);
+        console.error(err);
+        return json({ error: "Ralat pelayan. Sila cuba lagi." }, 500);
       }
     }
 

@@ -1,14 +1,8 @@
-import { SCHOOL_NAME, RECEIPT_TITLE, SHOW_IC_ON_RECEIPT } from "../config.js";
+import { SCHOOL_NAME, RECEIPT_TITLE } from "../config.js";
 import { formatRM } from "../utils/money.js";
 import { esc, formatDateTime, paymentLabel } from "../utils/dom.js";
-import { db } from "../state.js";
 
 export function receiptHtml(r) {
-  const student = db.students.find((s) => s.studentId === r.studentId);
-  const icRow = SHOW_IC_ON_RECEIPT && student
-    ? `<div><span>No. IC</span><strong>${esc(student.icNumber)}</strong></div>`
-    : "";
-
   const rows = r.items.map((i) => `
     <tr>
       <td>${esc(i.itemNameSnapshot)}${i.size ? ` (${esc(i.size)})` : ""}</td>
@@ -27,7 +21,6 @@ export function receiptHtml(r) {
         <div><span>No. Resit</span><strong>${esc(r.receiptNo)}</strong></div>
         <div><span>Tarikh</span><strong>${esc(formatDateTime(r.createdAt))}</strong></div>
         <div><span>Nama Murid</span><strong>${esc(r.studentNameSnapshot)}</strong></div>
-        ${icRow}
       </div>
       <table class="table">
         <thead>
@@ -44,7 +37,6 @@ export function receiptHtml(r) {
       <p class="receipt-thanks">Terima kasih.</p>
     </article>`;
 }
-
 // Tiada nombor IC dalam mesej WhatsApp.
 export function whatsappText(r) {
   return [

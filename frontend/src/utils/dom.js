@@ -1,4 +1,4 @@
-import { paymentMethods } from "../data/mock-data.js";
+import { paymentMethods } from "../data/constants.js";
 
 // Mengelakkan teks daripada dianggap HTML. Gunakan untuk semua data dinamik.
 export function esc(value) {

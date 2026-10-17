@@ -1,10 +1,18 @@
-import { getReceipt } from "../state.js";
+import { getReceipt } from "../services.js";
 import { receiptHtml, whatsappText } from "../components/receipt-view.js";
+import { esc } from "../utils/dom.js";
 
-export function renderReceiptDetail(root, id) {
-  const r = getReceipt(id);
-  if (!r) {
-    root.innerHTML = `<h1>Resit tidak dijumpai</h1><p><a href="#/sejarah">Kembali ke Sejarah Resit</a></p>`;
+export async function renderReceiptDetail(root, id) {
+  root.innerHTML = `<p class="muted">Memuatkan...</p>`;
+
+  let r;
+  try {
+    ({ receipt: r } = await getReceipt(id));
+  } catch (err) {
+    root.innerHTML = `
+      <h1>Resit tidak dapat dibuka</h1>
+      <p class="error">${esc(err.message)}</p>
+      <p><a href="#/sejarah">Kembali ke Sejarah Resit</a></p>`;
     return;
   }
 

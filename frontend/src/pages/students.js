@@ -1,11 +1,11 @@
-import { schools } from "../data/mock-data.js";
-import { searchStudents } from "../state.js";
-import { esc, maskIC } from "../utils/dom.js";
+import { schools } from "../data/constants.js";
+import { searchStudents } from "../services.js";
+import { esc } from "../utils/dom.js";
 
 export function renderStudents(root) {
   root.innerHTML = `
     <h1>Murid</h1>
-    <p class="notice">Data rekaan. Import Excel ditambah pada Fasa 5. No. IC dipaparkan separa.</p>
+    <p class="notice">No. IC dipaparkan separa. Import Excel ditambah pada Fasa 5.</p>
     <div class="toolbar">
       <input id="q" class="input" type="search" placeholder="Cari nama atau no. IC">
       <select id="school" class="input">
@@ -21,19 +21,37 @@ export function renderStudents(root) {
 
   const q = root.querySelector("#q");
   const school = root.querySelector("#school");
+  const countEl = root.querySelector("#count");
+  const rowsEl = root.querySelector("#rows");
+  let seq = 0;
+  let timer;
 
-  function update() {
-    const list = searchStudents(q.value, { school: school.value });
-    root.querySelector("#count").textContent = `${list.length} murid`;
-    root.querySelector("#rows").innerHTML = list.map((s) => `
-      <tr>
-        <td>${esc(s.name)}</td>
-        <td>${esc(maskIC(s.icNumber))}</td>
-        <td>${esc(s.formerPrimarySchool)}</td>
-      </tr>`).join("") || `<tr><td colspan="3" class="muted">Tiada padanan.</td></tr>`;
+  async function update() {
+    const mine = ++seq;
+    countEl.textContent = "Memuatkan...";
+    try {
+      const { students, total } = await searchStudents(q.value.trim(), { school: school.value, limit: 100 });
+      if (mine !== seq) return;
+      countEl.textContent = total > students.length
+        ? `Menunjukkan ${students.length} daripada ${total} murid`
+        : `${total} murid`;
+      rowsEl.innerHTML = students.map((s) => `
+        <tr>
+          <td>${esc(s.name)}</td>
+          <td>${esc(s.icMasked)}</td>
+          <td>${esc(s.formerPrimarySchool)}</td>
+        </tr>`).join("") || `<tr><td colspan="3" class="muted">Tiada padanan.</td></tr>`;
+    } catch (err) {
+      if (mine !== seq) return;
+      countEl.textContent = "";
+      rowsEl.innerHTML = `<tr><td colspan="3" class="error">${esc(err.message)}</td></tr>`;
+    }
   }
 
-  q.addEventListener("input", update);
+  q.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(update, 300);
+  });
   school.addEventListener("change", update);
   update();
 }

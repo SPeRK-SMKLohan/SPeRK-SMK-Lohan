@@ -1,6 +1,6 @@
-import { db } from "../state.js";
+import { listReceipts } from "../services.js";
 import { formatRM } from "../utils/money.js";
-import { esc, formatDateTime, localDateKey, paymentLabel } from "../utils/dom.js";
+import { esc, formatDateTime, paymentLabel } from "../utils/dom.js";
 
 export function renderHistory(root) {
   root.innerHTML = `
@@ -17,35 +17,44 @@ export function renderHistory(root) {
     </table></div>`;
 
   const $ = (sel) => root.querySelector(sel);
+  let seq = 0;
+  let timer;
 
-  function update() {
-    const q = $("#q").value.trim().toLowerCase();
-    const from = $("#from").value;
-    const to = $("#to").value;
-
-    const list = db.receipts
-      .filter((r) => {
-        const day = localDateKey(r.createdAt);
-        return (
-          (!q || r.receiptNo.toLowerCase().includes(q) || r.studentNameSnapshot.toLowerCase().includes(q)) &&
-          (!from || day >= from) &&
-          (!to || day <= to)
-        );
-      })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-    $("#count").textContent = `${list.length} resit`;
-    $("#rows").innerHTML = list.map((r) => `
-      <tr>
-        <td>${esc(r.receiptNo)}</td>
-        <td>${esc(formatDateTime(r.createdAt))}</td>
-        <td>${esc(r.studentNameSnapshot)}</td>
-        <td class="num">${formatRM(r.totalSen)}</td>
-        <td>${esc(paymentLabel(r.paymentMethod))}</td>
-        <td><a href="#/resit/${esc(r.receiptId)}">Lihat</a></td>
-      </tr>`).join("") || `<tr><td colspan="6" class="muted">Tiada resit.</td></tr>`;
+  async function update() {
+    const mine = ++seq;
+    $("#count").textContent = "Memuatkan...";
+    try {
+      const { receipts, truncated } = await listReceipts({
+        q: $("#q").value.trim(),
+        from: $("#from").value,
+        to: $("#to").value,
+        limit: 100,
+      });
+      if (mine !== seq) return;
+      $("#count").textContent = truncated
+        ? `Menunjukkan ${receipts.length} resit terkini. Gunakan carian atau tarikh untuk mengecilkan senarai.`
+        : `${receipts.length} resit`;
+      $("#rows").innerHTML = receipts.map((r) => `
+        <tr>
+          <td>${esc(r.receiptNo)}</td>
+          <td>${esc(formatDateTime(r.createdAt))}</td>
+          <td>${esc(r.studentNameSnapshot)}</td>
+          <td class="num">${formatRM(r.totalSen)}</td>
+          <td>${esc(paymentLabel(r.paymentMethod))}</td>
+          <td><a href="#/resit/${esc(r.receiptId)}">Lihat</a></td>
+        </tr>`).join("") || `<tr><td colspan="6" class="muted">Tiada resit.</td></tr>`;
+    } catch (err) {
+      if (mine !== seq) return;
+      $("#count").textContent = "";
+      $("#rows").innerHTML = `<tr><td colspan="6" class="error">${esc(err.message)}</td></tr>`;
+    }
   }
 
-  root.querySelectorAll("input").forEach((el) => el.addEventListener("input", update));
+  $("#q").addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(update, 300);
+  });
+  $("#from").addEventListener("change", update);
+  $("#to").addEventListener("change", update);
   update();
 }
