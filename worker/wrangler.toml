@@ -5,4 +5,4 @@ compatibility_date = "2026-10-01"
 [vars]
 # Projek Firebase dikekalkan (penukaran nama projek memerlukan migrasi data).
 FIREBASE_PROJECT_ID = "resit-koperasi-lohan"
-ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173,https://sprek-smk-lohan-web.smk-lohan.workers.dev"

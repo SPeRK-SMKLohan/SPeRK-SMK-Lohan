@@ -63,8 +63,8 @@ murid individu.
   Antara muka             HTML, CSS, JavaScript,  Paparan sistem dan
                           Vite                    aliran pengguna
 
-  Hosting frontend        Cloudflare Pages        Menyediakan aplikasi
-                                                  web
+  Hosting frontend        Cloudflare Workers      Menyediakan aplikasi
+                          (fail statik)           web
 
   Pengesahan              Firebase Authentication Log masuk akaun yang
                                                   dibenarkan
@@ -567,9 +567,10 @@ diperlukan, gunakan akaun berasingan untuk setiap petugas.
 
 ### Fasa 7 --- Deploy dan penyelenggaraan
 
--   Sambungkan GitHub dengan Cloudflare Pages.
--   Deploy Worker.
--   Tetapkan rahsia dan URL produksi.
+-   Deploy frontend sebagai fail statik (Cloudflare Workers).
+-   Deploy Worker API.
+-   Tetapkan rahsia dan URL produksi (`ALLOWED_ORIGINS`,
+    `VITE_API_BASE_URL`).
 -   Uji versi langsung dengan pengguna yang dibenarkan.
 -   Dokumentasikan sandaran dan penyelenggaraan.
 

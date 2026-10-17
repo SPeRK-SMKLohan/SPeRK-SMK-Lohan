@@ -35,7 +35,10 @@ kod kongsi dalam `shared/`.
 
 ## Nama teknikal
 
-- Worker Cloudflare: `sprek-smk-lohan-api`
+- Worker API: `sprek-smk-lohan-api` —
+  https://sprek-smk-lohan-api.smk-lohan.workers.dev
+- Frontend (fail statik): `sprek-smk-lohan-web` —
+  https://sprek-smk-lohan-web.smk-lohan.workers.dev
 - Repositori: `sprek-smk-lohan`
 - Projek Firebase: `resit-koperasi-lohan` (dikekalkan; penukaran nama
   memerlukan migrasi data)
@@ -57,6 +60,28 @@ cd worker
 npm install
 npm run dev
 ```
+
+## Deploy
+
+Worker API (folder `worker/`):
+
+```
+npx wrangler deploy
+npx wrangler secret put FIREBASE_SERVICE_ACCOUNT   # JSON akaun perkhidmatan
+npx wrangler secret put ALLOWED_EMAILS             # e-mel yang dibenarkan
+```
+
+Frontend (folder `frontend/`, fail statik sahaja — lihat
+`frontend/wrangler.toml`):
+
+```
+npm run build
+npx wrangler deploy
+```
+
+Selepas deploy, pastikan domain frontend ada dalam `ALLOWED_ORIGINS`
+(`worker/wrangler.toml`) dan `VITE_API_BASE_URL` menunjuk ke URL worker
+API. Jangan tetapkan `ENABLE_SEED` di produksi.
 
 ## Peraturan penting
 

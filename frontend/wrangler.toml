@@ -1,0 +1,8 @@
+# Frontend SPeRK: fail statik sahaja (SPA, penghalaan berasaskan hash).
+# Deploy: npm run build && npx wrangler deploy
+name = "sprek-smk-lohan-web"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
