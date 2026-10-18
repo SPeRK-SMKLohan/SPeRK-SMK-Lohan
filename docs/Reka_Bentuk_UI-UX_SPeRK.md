@@ -9,7 +9,7 @@
 | Skrin | 9 (7 aliran utama + log masuk + ralat 404) |
 | Platform | Aplikasi web (penghalaan hash), desktop-first, menyokong tablet |
 | Alat reka bentuk baharu | Google Stitch AI — https://stitch.withgoogle.com |
-| Versi dokumen | 1.0 · 18 Oktober 2026 |
+| Versi dokumen | 1.1 · 18 Oktober 2026 (tema “Warm Slate” dilaksanakan) |
 
 ---
 
@@ -27,6 +27,11 @@
 > **Ringkasan keputusan reka bentuk:** tema visual baharu sepenuhnya dibenarkan
 > (warna, fon, bentuk, kedalaman). Yang kekal: logo sekolah, nama SPeRK, bahasa Melayu,
 > semua fungsi, dan **halaman resit yang mesti kekal gaya dokumen rasmi** (lihat 4.1).
+
+> **Status pelaksanaan (18 Oktober 2026):** tema **Warm Slate** daripada eksport Google
+> Stitch telah dilaksanakan sepenuhnya pada frontend — lihat 2.2 dan 2.3 yang dikemas kini.
+> Spesifikasi skrin dalam 2.5 kekal sebagai rujukan **struktur, kandungan dan interaksi**;
+> butiran gaya visual kini mengikut sistem reka bentuk baharu dalam 2.3.
 
 ---
 
@@ -126,65 +131,84 @@ Fail: `frontend/src/main.js`, `frontend/src/style.css`
 
 1. **Devbar** (mod pembangunan sahaja, tersembunyi di produksi, `.no-print`):
    `Mod pembangunan: disambung ke pangkalan data sebenar`.
-2. **Topbar** (biru `#355C7D` semasa, `.no-print`):
-   - Logo bulat putih 30 px + nama **`SPeRK SMK Lohan`** (fon tajuk, tebal 800).
-   - E-mel pengguna (kecil, `--primary-soft`).
-   - Butang **`Log Keluar`** (gaya lutsinar putih).
-   - **Navigasi berkumpulan** — label kumpulan huruf besar kecil (0.68 rem, letter-spacing
-     0.08 em, putih 62%), pautan aktif berlatar putih 22%.
-3. **Kandungan** — `main.container` selebar **maks 1080 px**, margin 1.25 rem auto.
-4. **Tiada footer, tiada breadcrumb** (kecuali teks rujukan dalam mesej kosong e-Daftar).
+2. **Header** (`.topbar`, `position: sticky`, `.no-print`; tinggi 80 px, latar legap
+   `rgba(249,249,249,.92)` + kesan kabur, bayang bawah halus):
+   - Logo bulat putih 44 px (`.brand-badge`) + nama **`SPeRK SMK Lohan`**
+     (fon tajuk, 22 px, tebal 600, `.brand-name`).
+   - **Navigasi**: pautan `Papan Pemuka` + dua menu lungsur (`e-Daftar`, `e-Resit Koperasi`;
+     `.nav-drop`). Menu terbuka melalui hover/fokus dan **klik** (sokongan sentuh);
+     pautan aktif ialah pil gelap `#1E2A3A`.
+   - Kanan: e-mel pengguna (`.who`) + butang **`Log Keluar`** (latar kelabu lembut, teks
+     terracotta; hover terracotta penuh dengan teks putih).
+   - Pada skrin sempit, navigasi melipat ke baris kedua secara automatik (tiada sidebar).
+3. **Kandungan** — `main.page` selebar **maks 1120 px**, padding `40px 24px 64px`.
+4. **Footer** (`.footer`, `.no-print`): latar `#F3F3F4`, dua teks — hak cipta
+   (`© {tahun} SMK Lohan, Ranau, Sabah. Hak Cipta Terpelihara.`) dan nama penuh sistem.
 
-Cetakan: `.no-print` (devbar, topbar, semua toolbar, kad WhatsApp, toast) disembunyikan;
-hanya kad resit dicetak.
+Cetakan: `.no-print` (devbar, header, footer, semua toolbar, kad WhatsApp, toast)
+disembunyikan; hanya kad resit dicetak.
 
-### 2.3 Sistem reka bentuk semasa (rujukan sahaja — diganti oleh tema baharu)
+### 2.3 Sistem reka bentuk — tema “Warm Slate” (dilaksanakan)
+
+Tema daripada eksport Google Stitch (18 Oktober 2026), dilaksanakan sepenuhnya dalam
+`frontend/src/style.css`. Semua nama kelas lama dikekalkan supaya JS tidak berubah
+(kecuali kelas rangka lama `.topbar-main` / `.nav-group*` / `.container` yang diganti).
 
 **Token warna** (`:root` dalam `style.css`):
 
 | Token | Nilai | Guna |
 |---|---|---|
-| `--primary` | `#355C7D` | Topbar, butang utama, pautan, chip aktif |
-| `--primary-hover` | `#294963` | Hover butang utama |
-| `--primary-soft` | `#EAF1F8` | Latar notis, baris dalam bakul, hover keputusan carian |
-| `--success` | `#477A59` | Lencana "Sudah daftar", bar kemajuan, butang `ok` |
-| `--warning` | `#795A13` | Devbar, tag OKU |
-| `--danger` | `#B94040` | Ralat, toast ralat, butang bahaya |
-| `--background` | `#F5F7FA` | Latar halaman |
-| `--surface` | `#FFFFFF` | Kad, jadual, input |
-| `--surface-muted` | `#EDF1F5` | Hover butang neutral, rel kemajuan |
-| `--surface-featured` | `#F3F7FB` | Kepala jadual |
-| `--text-primary` | `#263442` | Teks utama |
-| `--text-secondary` | `#667381` | Teks sekunder (`.muted`) |
-| `--border` / `--border-strong` | `#E0E6EC` / `#C5CFD9` | Sempadan kad / input |
+| `--primary` | `#1E2A3A` | Butang utama, pil navigasi aktif, bar kemajuan, bulatan langkah |
+| `--primary-deep` | `#091525` | Hover butang utama, warna tajuk |
+| `--accent` | `#8C322A` | Pautan, teks “Log Keluar”/“Batal daftar”, toast amaran |
+| `--accent-soft` | `#FFDAD5` / teks `#76221B` | Lencana “Sudah daftar” (terracotta lembut) |
+| `--green` / `--green-soft` | `#205B3E` / `#E8F3EC` | **Kejayaan sahaja**: pil “sah”, notis import selesai, lencana “n dalam resit” |
+| `--indigo-soft` | `#D7E3F9` / teks `#101C2C` | Tag tingkatan (T1), lencana “Pindahan Bank” |
+| `--gold-soft` | `#FFDEA6` / teks `#271900` | Tag OKU |
+| `--amber-soft` | `#FEF7E6` / teks `#8C6505` | Devbar, lencana “Pendua” |
+| `--danger-soft` | `#FFDAD6` / teks `#93000A` | Lencana “Tidak sah”, butang buang |
+| `--background` | `#F9F9F9` | Latar halaman |
+| `--surface` / `--surface-low` | `#FFFFFF` / `#F3F3F4` | Kad & header / footer, kepala jadual, latar input |
+| `--surface-mid` … `--surface-highest` | `#EEEEEE` … `#E2E2E2` | Butang neutral, hover menu, rel kemajuan |
+| `--text-primary` / `--text-secondary` | `#1A1C1C` / `#44474C` | Teks utama / sekunder (`.muted`) |
+| `--border` / `--border-strong` | `#E8E8E8` / `#C5C6CC` | Garis baris jadual / sempadan tegas |
 
-**Tipografi:** tajuk **Urbanist** (100–900, dihoskan sendiri), teks/UI **Inter**
-(dihoskan sendiri dari `/fonts/`). `h1` 1.6 rem/800 · `h2` 1.1 rem/700 · `h3` 1 rem/700 ·
-body 16 px/1.55. Nombor statistik guna Urbanist 800, digit tabular.
+**Tipografi:** tajuk **Plus Jakarta Sans** (100–900) dan teks/UI **Inter** — kedua-duanya
+dihoskan sendiri dari `/fonts/` (Urbanist dibuang). `h1` 28 px/600 · `h2` 18 px/600 ·
+body 14 px/1.45 · label huruf besar kecil 11 px/600 · nilai statistik 32 px/600 ·
+amaun wang guna `--font-mono` (Consolas dsb.) dengan digit tabular.
 
-**Bentuk & gerakan:** radius `8 px` (kad, dialog, toast), `6 px` (kawalan/input/butang),
-`999 px` (chip, pil, lencana, bar kemajuan). Peralihan `150 ms ease`.
-Fokus: outline 3 px `#355C7D` offset 2 px. `prefers-reduced-motion` mematikan semua peralihan.
+**Bentuk, bayang & gerakan:** radius `8 px` (kawalan/butang/input), `12 px` (kad & dialog;
+16 px untuk dialog dan kad log masuk), `999 px` (pil/lencana/bar kemajuan). Bayang satu
+lapis halus untuk kad (`--shadow-card`), bayang lebih tinggi untuk hover kad navigasi
+(`--shadow-raise`), dan bayang besar untuk dialog (`--shadow-modal`).
+Fokus: outline 2 px `#8C322A` offset 2 px. `prefers-reduced-motion` mematikan semua peralihan.
 
 **Plat guna semula yang sedia ada:**
 
 | Komponen | Kelas | Ciri penting |
 |---|---|---|
-| Kad | `.card` | Latar putih, sempadan 1 px, radius 8 px, padding 1 rem 1.15 rem |
-| Panel metrik | `.cards` + `.card.stat` | **Satu panel dengan pemisah menegak**, bukan kad terapung; nombor besar 1.5 rem |
-| Kad navigasi | `.nav-cards` / `.nav-card` | Grid auto-fit minmax(260 px), tajuk biru, hover lembut |
-| Butang | `.btn` (+ `.primary`, `.danger`, `.ok`, `.small`, `.block`) | Sasaran ketuk baris jadual ≥ 36 px; kaunter ≥ 44 px |
-| Input | `.input` (+ `.input-lg`, `.input-school`) | Radius 6 px; fokus tukar warna sempadan |
+| Kad | `.card` | Latar putih, radius 12 px, bayang halus, padding 20/24 px |
+| Panel metrik | `.cards` + `.card.stat` | **Satu jalur panel** dengan sel berselang latar; nombor 32 px |
+| Kad metrik terapung | `.cards-float` | Varian e-Daftar kaunter: 4 kad berasingan (ikut mock Stitch) |
+| Kad navigasi | `.nav-cards` / `.nav-card` | Grid auto-fit, hover naik sedikit + bayang lebih tinggi |
+| Butang | `.btn` (+ `.primary`, `.ok`, `.danger`, `.wa`, `.small`, `.block`) | Semua sasaran ketuk ≥ 40 px (44 px lalai) |
+| Input | `.input` (+ `.input-lg`, `.input-school`); `.stepper` | Latar abu `#F3F3F4`, fokus putih + cincin gelap; stepper −/＋ untuk kuantiti |
 | Barisan alat | `.toolbar`, `.search-row`, `.filter-row` | Flex wrap |
-| Chip penapis | `.chips` / `.chip` | Pil 36 px; aktif = biru penuh |
-| Jadual | `.table-wrap`, `.table` (+ `.wide` min 720 px, `.compact`, `.num` tabular, `.nowrap`) | Skrol mendatar lebih baik daripada mampat |
-| Lencana status | `.badge` (+ `.badge.ok`) | Pil kecil; "✓ Sudah daftar" hijau |
-| Tag kecil | `.tag` (+ `.tag.oku`) | "T1" biru, "OKU" kuning lembut |
-| Pil ringkasan | `.pill` (+ `.ok`, `.bad`, `.warn`) | Import: dibaca/sah/tidak sah/pendua |
-| Bar kemajuan | `.progress` / `.progress-bar` | 12 px, hujung bulat, hijau |
-| Dialog | `.modal` (dialog natif) | Lebar min(720 px, 94 vw), backdrop 45% |
-| Toast | `.toast-wrap`, `.toast`, `.toast-action` | Bawah tengah, teks putih, tindakan "Batal" |
-| Baris khas | `.row-done` (bar hijau kiri), `.row-in-cart` (latar biru lembut) | Isyarat keadaan baris tanpa mengganggu |
+| Chip penapis | `.chips` / `.chip` | Kontrol bersegmen; aktif = pil gelap; chip status ada titik |
+| Jadual | `.table-wrap`, `.table` (+ `.wide` min 880 px, `.compact`, `.num` mono) | Kepala abu huruf besar, garis baris `#E8E8E8` |
+| Lencana status | `.badge` (+ `.done` terracotta, `.cart` hijau, `.indigo`, `.bad`, `.warn`) | “✓ Sudah daftar” terracotta; “Belum daftar” kelabu |
+| Tag kecil | `.tag` (+ `.tag.oku`) | “T1” indigo, “OKU” kuning lembut |
+| Pil ringkasan | `.pill` (+ `.ok`, `.bad`, `.warn`) | Import: nombor besar + label kecil dalam jubin |
+| Bar kemajuan | `.progress` / `.progress-bar` | 10 px, hujung bulat, isian gelap `#1E2A3A` |
+| Langkah bernombor | `.step` / `.step-num` | Bulatan 32 px gelap + tajuk (Jana Resit) |
+| Pilihan bayaran | `.pay-option` | Kad radio; yang dipilih bersempadan cincin gelap |
+| Dialog | `.modal` (dialog natif) | Bar aksen gradien di atas, backdrop 45% + kabur, toolbar bawah kelabu |
+| Toast | `.toast-wrap`, `.toast`, `.toast-action` | Bawah tengah, gelap `#1E2A3A`, tindakan “Batal” terracotta lembut |
+| Baris khas | `.row-done` (latar kelabu lembut), `.row-in-cart` (latar hijau lembut) | Isyarat keadaan baris tanpa mengganggu |
+| Butiran resit | `.receipt-toolbar`, `.receipt-main`, `.receipt-layout` + `aside` WhatsApp | Toolbar jalur kelabu; resit kiri, kad kongsi kanan (satu lajur < 1020 px) |
+| Log masuk | `.login-wrap`, `.login-card`, `.login-crest` | Kad tengah 420 px; logo 84 px bertindih di atas bucu; cahaya ambien halus |
+| Footer | `.footer`, `.footer-in` | Jalur `#F3F3F4` dua teks (hak cipta + nama sistem) |
 
 **Pengecualian penting — Resit:** kad resit (`#/resit/{id}`, PDF dan cetakan) **keluar dari
 sistem reka bentuk**. Ia menggunakan **Helvetica** untuk semua teks dan **Times New Roman**
@@ -454,6 +478,10 @@ notis selesai → semak di `Pendaftaran`.
 ### 4.2 Kebebasan kreatif (tema baharu sepenuhnya)
 
 Stitch **bebas** mencadangkan dan kami akan pilih:
+
+> **Dilaksanakan 18 Okt 2026** — tema “Warm Slate”: indigo gelap `#1E2A3A` + terracotta
+> `#8C322A`, tajuk Plus Jakarta Sans + teks Inter, radius 8/12 px, bayaran pilihan menjadi
+> kad radio, stepper −/＋ untuk kuantiti, dan footer hak cipta. Butiran penuh: 2.3.
 
 - **Palet warna baharu** (primary, accent, semantic success/warning/danger, neutral/surface).
 - **Tipografi baharu** untuk tajuk dan teks UI (boleh ganti Urbanist/Inter; fon mesti
@@ -957,19 +985,19 @@ Untuk fasa pelaksanaan selepas Stitch: ganti nilai dalam `frontend/src/style.css
 
 | Bahagian | Kelas CSS utama | Nota pelaksanaan |
 |---|---|---|
-| Rangka | `.devbar`, `.topbar`, `.topbar-main`, `.brand`, `.brand-logo`, `.who`, `.nav`, `.nav-group`, `.nav-group-label`, `.nav-group-links`, `.container` | Ganti `--primary` dsb. untuk topbar |
-| Kad | `.card`, `.cards`, `.card.stat`, `.nav-cards`, `.nav-card`, `.notice`, `.muted`, `.error` | Panel metrik = satu panel, pemisah menegak |
-| Borang | `.input`, `.input-lg`, `.input-school`, `.form-grid`, `.radio-group`, `.radio`, `label.check`, `.login-wrap`, `.login-card`, `.login-logo` | Kekalkan id (`#q`, `#f-name`, …) |
-| Butang | `.btn` + `.primary`, `.danger`, `.ok`, `.small`, `.block`; `.toolbar`, `.search-row`, `.filter-row` | Kekalkan kelas aksi (`data-action`) |
-| Jadual | `.table-wrap`, `.table`, `.wide`, `.compact`, `.num`, `.nowrap`, `.row-done`, `.row-in-cart`, `.row-actions` | `.wide` min 720px |
-| Maklum balas | `.badge`, `.badge.ok`, `.tag`, `.tag.oku`, `.pill`, `.pill.ok/.bad/.warn`, `.progress`, `.progress-bar`, `.chips`, `.chip`, `.toast-wrap`, `.toast`, `.toast-action`, `.modal` | Toast & dialog struktur JS kekal |
-| Resit | `.receipt`, `.receipt-head`, `.receipt-logo`, `.receipt-org`, `.receipt-title`, `.receipt-meta`, `.receipt-pay`, `.receipt-thanks` | **Jangan ubah** (kecuali pemetaan warna `--text`, `--muted`, `--line` yang dikongsi) |
-| Utiliti | `.hidden`, `.fixed-qty`, `.sticky`, `.results`, `.result`, `.selected`, `.total`, `.import-summary`, `.receipt-layout` | — |
-| Token | `--primary`, `--primary-hover`, `--primary-soft`, `--success`, `--warning`, `--danger`, `--background`, `--surface*`, `--text*`, `--border*`, `--radius-*`, `--font-heading`, `--font-body` | Satu tempat ganti = tema baharu |
+| Rangka | `.devbar`, `.topbar`, `.topbar-in`, `.brand`, `.brand-badge`, `.brand-logo`, `.nav`, `.nav-link`, `.nav-drop`, `.nav-menu`, `.topbar-user`, `.who`, `.page`, `.footer`, `.footer-in` | Header + footer baharu (lihat 2.2); kelas lama `.topbar-main` / `.nav-group*` / `.container` telah dibuang |
+| Kad | `.card`, `.cards`, `.cards-float`, `.card.stat`, `.nav-cards`, `.nav-card`, `.notice`, `.muted`, `.error` | Papan Pemuka = satu jalur panel; e-Daftar kaunter = kad terapung |
+| Borang | `.input`, `.input-lg`, `.input-school`, `.stepper`, `.pay-option`, `.bankref`, `.form-grid`, `.radio-group`, `.radio`, `label.check`, `.login-wrap`, `.login-card`, `.login-crest`, `.login-logo` | Kekalkan id (`#q`, `#f-name`, …) |
+| Butang | `.btn` + `.primary`, `.ok`, `.danger`, `.wa`, `.small`, `.block`; `.toolbar`, `.search-row`, `.filter-row` | Kekalkan kelas aksi (`data-action`) |
+| Jadual | `.table-wrap`, `.table`, `.wide`, `.compact`, `.num`, `.nowrap`, `.row-done`, `.row-in-cart`, `.row-actions` | `.wide` min 880 px; `.num` guna fon mono |
+| Maklum balas | `.badge` (+ `.done`, `.cart`, `.indigo`, `.bad`, `.warn`), `.tag`, `.tag.oku`, `.pill`, `.pill.ok/.bad/.warn`, `.progress`, `.progress-bar`, `.chips`, `.chip`, `.step`, `.step-num`, `.toast-wrap`, `.toast`, `.toast-action`, `.modal` | Toast & dialog struktur JS kekal |
+| Resit | `.receipt`, `.receipt-head`, `.receipt-logo`, `.receipt-org`, `.receipt-title`, `.receipt-meta`, `.receipt-pay`, `.receipt-thanks`; kroma: `.receipt-toolbar`, `.receipt-main`, `.receipt-layout` | Dokumen resit **jangan ubah** (kecuali pemetaan warna `--text`, `--muted`, `--line` yang dikongsi); kroma halaman boleh ikut tema |
+| Utiliti | `.hidden`, `.fixed-qty`, `.sticky`, `.results`, `.result`, `.selected`, `.avatar`, `.receiver`, `.total`, `.sum-row`, `.import-summary`, `.import-layout` | — |
+| Token | `--primary`, `--primary-deep`, `--accent`, `--accent-soft`, `--green*`, `--indigo-soft*`, `--gold-soft*`, `--amber*`, `--danger*`, `--background`, `--surface*`, `--text*`, `--border*`, `--radius-*`, `--shadow-*`, `--font-heading`, `--font-body`, `--font-mono` | Satu tempat ganti = tema baharu |
 
-Fon: jika tema baharu menggunakan fon Google, muat turun fail variable `.ttf/.woff2`
-dan hos sendiri di `frontend/public/fonts/` (corak sedia ada), kemudian kemas kini
-`@font-face` dan token `--font-heading` / `--font-body`.
+Fon: tema semasa menggunakan fon Google **Plus Jakarta Sans** (tajuk) + **Inter** (teks),
+fail variable `.ttf` dihos sendiri di `frontend/public/fonts/` (corak sedia ada); kemas kini
+`@font-face` dan token `--font-heading` / `--font-body` jika bertukar tema.
 
 ## 10. Rujukan
 

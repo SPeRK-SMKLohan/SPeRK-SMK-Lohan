@@ -8,38 +8,55 @@ const STATUS_LABEL = {
   duplicate_existing: "Sudah wujud",
 };
 
+const STATUS_CLASS = {
+  invalid: "bad",
+  duplicate_in_file: "warn",
+  duplicate_existing: "warn",
+};
+
+const EMPTY_BOX = `<p class="muted">Pilih fail Excel untuk memulakan pratonton semakan di sini.</p>`;
+
 export function renderImportData(root) {
   root.innerHTML = `
-    <h1>Import Data</h1>
-    <p class="muted">Muat naik senarai murid daripada fail Excel (.xlsx). Gunakan halaman ini
-      sebelum hari pendaftaran untuk menyediakan senarai murid dalam sistem.</p>
+    <div class="page-head">
+      <h1>Import Data</h1>
+      <p>Muat naik senarai murid daripada fail Excel (.xlsx). Gunakan halaman ini
+        sebelum hari pendaftaran untuk menyediakan senarai murid dalam sistem.</p>
+    </div>
 
-    <section class="card">
-      <h2>Fail murid</h2>
-      <p class="muted">Lajur wajib: <strong>Nama Murid</strong>, <strong>No. IC</strong> dan
-        <strong>Sekolah Rendah Asal</strong>. Lajur pilihan: <strong>Tingkatan</strong>,
-        <strong>Status OKU</strong>, <strong>Status Daftar</strong>, <strong>Sekolah Dipohon</strong>,
-        <strong>Sebab Penempatan Semula</strong> dan <strong>Catatan</strong>.</p>
-      <p class="muted">Murid yang sudah wujud (IC sama) dilangkau, tidak diganti.</p>
-      <div class="toolbar">
-        <input id="file" class="input" type="file" accept=".xlsx">
-        <button id="template" class="btn small" type="button">Muat turun templat</button>
-      </div>
-      <div id="import-box"></div>
-      <p class="muted">Selepas import, buka <a href="#/pendaftaran">e-Daftar</a> untuk menanda status
-        daftar murid pada hari pendaftaran.</p>
-    </section>`;
+    <div class="import-layout">
+      <section class="card">
+        <h2>Fail murid</h2>
+        <p class="muted">Lajur wajib: <strong>Nama Murid</strong>, <strong>No. IC</strong> dan
+          <strong>Sekolah Rendah Asal</strong>. Lajur pilihan: <strong>Tingkatan</strong>,
+          <strong>Status OKU</strong>, <strong>Status Daftar</strong>, <strong>Sekolah Dipohon</strong>,
+          <strong>Sebab Penempatan Semula</strong> dan <strong>Catatan</strong>.</p>
+        <p class="muted">Murid yang sudah wujud (IC sama) dilangkau, tidak diganti.</p>
+        <div class="toolbar">
+          <input id="file" class="input" type="file" accept=".xlsx">
+          <button id="template" class="btn small" type="button">Muat turun templat</button>
+        </div>
+        <p class="muted">Selepas import, buka <a href="#/pendaftaran">e-Daftar</a> untuk menanda status
+          daftar murid pada hari pendaftaran.</p>
+      </section>
+
+      <section class="card">
+        <h2>Pratonton semakan</h2>
+        <div id="import-box">${EMPTY_BOX}</div>
+      </section>
+    </div>`;
 
   const fileInput = root.querySelector("#file");
   const importBox = root.querySelector("#import-box");
   let pendingRows = null;
 
-  const pill = (cls, label) => `<span class="pill ${cls}">${esc(label)}</span>`;
+  const pill = (cls, count, label) =>
+    `<span class="pill ${cls}"><strong>${count}</strong><span>${label}</span></span>`;
 
   function resetImport() {
     pendingRows = null;
     fileInput.value = "";
-    importBox.innerHTML = "";
+    importBox.innerHTML = EMPTY_BOX;
   }
 
   function renderPreview(rows, result) {
@@ -50,11 +67,11 @@ export function renderImportData(root) {
 
     importBox.innerHTML = `
       <div class="import-summary">
-        ${pill("", `${s.total} baris dibaca`)}
-        ${pill("ok", `${s.valid} sah`)}
-        ${pill(s.invalid ? "bad" : "", `${s.invalid} tidak sah`)}
-        ${pill(s.duplicateInFile ? "warn" : "", `${s.duplicateInFile} pendua dalam fail`)}
-        ${pill(s.duplicateExisting ? "warn" : "", `${s.duplicateExisting} sudah wujud`)}
+        ${pill("", s.total, "baris dibaca")}
+        ${pill("ok", s.valid, "sah")}
+        ${pill(s.invalid ? "bad" : "", s.invalid, "tidak sah")}
+        ${pill(s.duplicateInFile ? "warn" : "", s.duplicateInFile, "pendua dalam fail")}
+        ${pill(s.duplicateExisting ? "warn" : "", s.duplicateExisting, "sudah wujud")}
       </div>
       ${shown.length ? `
         <div class="table-wrap"><table class="table compact">
@@ -65,7 +82,7 @@ export function renderImportData(root) {
               <td>${esc(p.row)}</td>
               <td>${esc(r?.name ?? "")}</td>
               <td>${esc(maskIC(r?.icNumber ?? ""))}</td>
-              <td>${esc(STATUS_LABEL[p.status] ?? p.status)}</td>
+              <td><span class="badge ${STATUS_CLASS[p.status] ?? ""}">${esc(STATUS_LABEL[p.status] ?? p.status)}</span></td>
               <td>${esc(p.reason)}</td>
             </tr>`;
           }).join("")}</tbody>
@@ -102,7 +119,7 @@ export function renderImportData(root) {
   function renderDone(done) {
     const s = done.summary;
     importBox.innerHTML = `
-      <p class="notice"><strong>Import selesai.</strong> ${done.imported} murid ditambah.
+      <p class="notice ok"><strong>Import selesai.</strong> ${done.imported} murid ditambah.
       ${s.invalid + s.duplicateInFile + s.duplicateExisting} baris dilangkau
       (${s.invalid} tidak sah, ${s.duplicateInFile + s.duplicateExisting} pendua).
       Buka <a href="#/pendaftaran">e-Daftar</a> untuk menyemak senarai murid.</p>`;
@@ -112,7 +129,10 @@ export function renderImportData(root) {
     const file = fileInput.files[0];
     pendingRows = null;
     importBox.innerHTML = "";
-    if (!file) return;
+    if (!file) {
+      importBox.innerHTML = EMPTY_BOX;
+      return;
+    }
 
     importBox.innerHTML = `<p class="muted">Membaca dan menyemak fail...</p>`;
     try {

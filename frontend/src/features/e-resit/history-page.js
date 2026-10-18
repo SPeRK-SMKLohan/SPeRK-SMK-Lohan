@@ -1,16 +1,20 @@
 import { listReceipts } from "./api.js";
 import { paymentLabel } from "./constants.js";
 import { formatRM } from "../../shared/money.js";
-import { esc, formatDateTime } from "../../shared/dom.js";
+import { esc, formatTime } from "../../shared/dom.js";
 
 export function renderHistory(root) {
   root.innerHTML = `
-    <h1>Sejarah Resit</h1>
-    <div class="toolbar">
-      <input id="q" class="input" type="search" placeholder="Cari no. resit atau nama murid">
-      <label class="inline">Dari <input id="from" class="input" type="date"></label>
-      <label class="inline">Hingga <input id="to" class="input" type="date"></label>
+    <div class="page-head">
+      <h1>Sejarah Resit</h1>
     </div>
+    <section class="card">
+      <div class="toolbar">
+        <input id="q" class="input" type="search" placeholder="Cari no. resit atau nama murid">
+        <label class="inline">Dari <input id="from" class="input" type="date"></label>
+        <label class="inline">Hingga <input id="to" class="input" type="date"></label>
+      </div>
+    </section>
     <p id="count" class="muted"></p>
     <div class="table-wrap"><table class="table">
       <thead><tr><th>No. Resit</th><th>Tarikh</th><th>Murid</th><th class="num">Jumlah</th><th>Bayaran</th><th></th></tr></thead>
@@ -37,12 +41,12 @@ export function renderHistory(root) {
         : `${receipts.length} resit`;
       $("#rows").innerHTML = receipts.map((r) => `
         <tr>
-          <td>${esc(r.receiptNo)}</td>
-          <td>${esc(formatDateTime(r.createdAt))}</td>
+          <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
+          <td class="nowrap"><strong>${esc(new Date(r.createdAt).toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" }))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>
           <td>${esc(r.studentNameSnapshot)}</td>
           <td class="num">${formatRM(r.totalSen)}</td>
-          <td>${esc(paymentLabel(r.paymentMethod))}</td>
-          <td><a href="#/resit/${esc(r.receiptId)}">Lihat</a></td>
+          <td><span class="badge${r.paymentMethod === "CASH" ? "" : " indigo"}">${esc(paymentLabel(r.paymentMethod))}</span></td>
+          <td><a class="btn small" href="#/resit/${esc(r.receiptId)}">Lihat</a></td>
         </tr>`).join("") || `<tr><td colspan="6" class="muted">Tiada resit.</td></tr>`;
     } catch (err) {
       if (mine !== seq) return;

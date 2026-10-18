@@ -17,9 +17,9 @@ export function renderEDaftar(root) {
         dikongsi dengan e-Resit Koperasi.</p>
     </div>
 
-    <section class="cards">
+    <section class="cards cards-float">
+      <div class="card stat alert"><span>Belum daftar</span><strong id="stat-not">–</strong></div>
       <div class="card stat"><span>Sudah daftar</span><strong id="stat-done">–</strong></div>
-      <div class="card stat"><span>Belum daftar</span><strong id="stat-not">–</strong></div>
       <div class="card stat"><span>Didaftarkan hari ini</span><strong id="stat-today">–</strong></div>
       <div class="card stat"><span>Jumlah murid aktif</span><strong id="stat-total">–</strong></div>
     </section>
@@ -179,14 +179,14 @@ export function renderEDaftar(root) {
     statTotal.textContent = counts.total;
     const pct = counts.total ? Math.round((counts.done / counts.total) * 100) : 0;
     progressBar.style.width = `${pct}%`;
-    progressText.textContent = `${pct}% sudah daftar (${counts.done} daripada ${counts.total} murid)`;
+    progressText.innerHTML = `<strong>${pct}% sudah daftar</strong> (${counts.done} daripada ${counts.total} murid)`;
   }
 
   /* ----- Jadual murid ----- */
   function rowHtml(s) {
     const done = s.registrationStatus === "SUDAH";
     const statusCell = done
-      ? `<span class="badge ok">✓ Sudah daftar</span>` +
+      ? `<span class="badge done">✓ Sudah daftar</span>` +
         (s.registeredAt
           ? `<br><span class="muted">${esc(formatTime(s.registeredAt))}${
               s.registeredBy ? ` · ${esc(s.registeredBy)}` : ""}</span>`
@@ -194,7 +194,7 @@ export function renderEDaftar(root) {
       : `<span class="badge">Belum daftar</span>`;
 
     const actions = done
-      ? `<button class="btn small" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>↩ Batal daftar</button>`
+      ? `<button class="btn small danger" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>↩ Batal daftar</button>`
       : `<button class="btn small ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
 
     return `<tr data-id="${esc(s.studentId)}"${done ? ' class="row-done"' : ""}>

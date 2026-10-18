@@ -4,8 +4,8 @@ import { apiFetch } from "../shared/api.js";
 export function renderLogin(root) {
   root.innerHTML = `
     <div class="login-wrap">
-      <form id="login-form" class="card login-card">
-        <img class="login-logo" src="/logo.svg" alt="Logo SMK Lohan" />
+      <form id="login-form" class="login-card">
+        <span class="login-crest"><img class="login-logo" src="/logo.svg" alt="Logo SMK Lohan" /></span>
         <h1>Log Masuk</h1>
         <p class="muted">Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK)<br>SMK Lohan, Ranau</p>
         <label>E-mel

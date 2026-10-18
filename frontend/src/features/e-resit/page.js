@@ -18,12 +18,14 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   const requestId = makeId(); // satu ID untuk resit ini; mengelakkan resit pendua
 
   root.innerHTML = `
-    <h1>e-Resit Koperasi</h1>
+    <div class="page-head">
+      <h1>e-Resit Koperasi</h1>
+    </div>
     <div class="receipt-layout">
       <div>
-        <section class="card"><h2>1. Murid</h2><div id="student-box"></div></section>
-        <section class="card"><h2>2. Barangan</h2><div id="items-box"><p class="muted">Memuatkan...</p></div></section>
-        <section class="card"><h2>3. Kaedah pembayaran</h2><div id="payment-box"></div></section>
+        <section class="card"><h2 class="step"><span class="step-num">1</span>Murid</h2><div id="student-box"></div></section>
+        <section class="card"><h2 class="step"><span class="step-num">2</span>Barangan</h2><div id="items-box"><p class="muted">Memuatkan...</p></div></section>
+        <section class="card"><h2 class="step"><span class="step-num">3</span>Kaedah pembayaran</h2><div id="payment-box"></div></section>
       </div>
       <aside>
         <section class="card sticky"><h2>Ringkasan</h2><div id="summary-box"></div></section>
@@ -41,13 +43,17 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   // Harga seunit diambil daripada senarai barangan rasmi.
   const unitPrice = (item) => item?.priceSen ?? 0;
 
+  const initials = (name) =>
+    String(name).trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+
   /* ----- 1. Murid ----- */
   function renderStudentBox() {
     if (student) {
       studentBox.innerHTML = `
         <div class="selected">
-          <div>
-            <strong>${esc(student.name)}</strong><br>
+          <span class="avatar" aria-hidden="true">${esc(initials(student.name))}</span>
+          <div class="selected-info">
+            <strong>${esc(student.name)}</strong>${student.tingkatan ? `<span class="tag">T${esc(student.tingkatan)}</span>` : ""}<br>
             <span class="muted">${esc(student.icMasked)} · ${esc(student.formerPrimarySchool)}</span>
           </div>
           <button class="btn small" id="change-student" type="button">Tukar</button>
@@ -128,11 +134,15 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
           const line = lines.find((l) => l.itemId === i.itemId);
           return `
           <tr data-item="${esc(i.itemId)}"${line ? ' class="row-in-cart"' : ""}>
-            <td>${esc(i.name)}${line ? ` <span class="badge">${line.quantity} dalam resit</span>` : ""}</td>
+            <td>${esc(i.name)}${line ? ` <span class="badge cart">${line.quantity} dalam resit</span>` : ""}</td>
             <td class="num">${formatRM(i.priceSen)}</td>
             <td class="num">${i.fixedQuantity
               ? `<span class="fixed-qty">${i.fixedQuantity}</span>`
-              : `<input class="input qty" type="number" min="1" max="99" value="1">`}</td>
+              : `<div class="stepper">
+                   <button class="step-btn qty-minus" type="button" aria-label="Kurangkan kuantiti" disabled>−</button>
+                   <input class="input qty" type="number" min="1" max="99" value="1" aria-label="Kuantiti">
+                   <button class="step-btn qty-plus" type="button" aria-label="Tambah kuantiti">+</button>
+                 </div>`}</td>
             <td><button class="btn small add" type="button">${line ? "Tambah lagi" : "Tambah"}</button></td>
           </tr>`;
         }).join("")}
@@ -141,6 +151,19 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   }
 
   itemsBox.addEventListener("click", (e) => {
+    // Butang naik/turun kuantiti (stepper).
+    const stepBtn = e.target.closest(".qty-minus, .qty-plus");
+    if (stepBtn) {
+      const stepper = stepBtn.closest(".stepper");
+      const input = stepper.querySelector(".qty");
+      const delta = stepBtn.classList.contains("qty-minus") ? -1 : 1;
+      const next = Math.min(99, Math.max(1, (parseInt(input.value, 10) || 1) + delta));
+      input.value = next;
+      stepper.querySelector(".qty-minus").disabled = next <= 1;
+      stepper.querySelector(".qty-plus").disabled = next >= 99;
+      return;
+    }
+
     const btn = e.target.closest(".add");
     if (!btn) return;
     const row = btn.closest("tr");
@@ -168,8 +191,9 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   /* ----- 3. Pembayaran ----- */
   paymentBox.innerHTML = `
     ${paymentMethods.map((p) => `
-      <label class="radio">
-        <input type="radio" name="pay" value="${esc(p.value)}"${p.value === paymentMethod ? " checked" : ""}> ${esc(p.label)}
+      <label class="pay-option">
+        <input type="radio" name="pay" value="${esc(p.value)}"${p.value === paymentMethod ? " checked" : ""}>
+        <strong>${esc(p.label)}</strong>
       </label>`).join("")}
     <label id="bankref-label" class="bankref hidden">No. Rujukan pindahan
       <input id="bankref" class="input" type="text" autocomplete="off" maxlength="60"
@@ -203,7 +227,10 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     const ready = student && lines.length > 0 && paymentMethod && confirmed && !saving && !needsRef;
 
     summaryBox.innerHTML = `
-      <p><strong>Murid:</strong> ${student ? esc(student.name) : "<em>Belum dipilih</em>"}</p>
+      <div class="receiver">
+        <span class="receiver-label">Murid</span>
+        <strong>${student ? esc(student.name) : "Belum dipilih"}</strong>
+      </div>
       ${lines.length ? `
         <table class="table compact">
           <tbody>${lines.map((l) => {
@@ -222,9 +249,9 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
               </tr>`;
           }).join("")}</tbody>
         </table>` : `<p class="muted">Belum ada barangan.</p>`}
-      <p class="total">Jumlah: <strong>${formatRM(total)}</strong></p>
-      <p><strong>Bayaran:</strong> ${payLabel ? esc(payLabel) : "<em>Belum dipilih</em>"}</p>
-      ${paymentMethod === "BANK_TRANSFER" ? `<p><strong>No. Rujukan:</strong> ${bankRef.trim() ? esc(bankRef.trim()) : "<em>Belum diisi</em>"}</p>` : ""}
+      <p class="total">Jumlah <strong>${formatRM(total)}</strong></p>
+      <p class="sum-row"><span>Bayaran</span><strong>${payLabel ? esc(payLabel) : "Belum dipilih"}</strong></p>
+      ${paymentMethod === "BANK_TRANSFER" ? `<p class="sum-row"><span>No. Rujukan</span><strong>${bankRef.trim() ? esc(bankRef.trim()) : "Belum diisi"}</strong></p>` : ""}
       <label class="check">
         <input type="checkbox" id="confirm" ${confirmed ? "checked" : ""}>
         Pembayaran telah disahkan mengikut prosedur koperasi

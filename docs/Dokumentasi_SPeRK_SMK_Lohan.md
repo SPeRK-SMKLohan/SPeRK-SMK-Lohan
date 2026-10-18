@@ -241,9 +241,10 @@ menggunakan Helvetica. Lajur jadual disusun seimbang dan susunan item
 mengikut senarai harga rasmi sekolah, walaupun item ditambah tidak
 mengikut turutan.
 
-Antara muka web selain resit mengikut Design System sekolah: Urbanist
-untuk tajuk, Inter untuk teks, warna utama biru (#355C7D), dan permukaan
-rata tanpa bayang-bayang yang berlebihan.
+Antara muka web selain resit mengikut tema "Warm Slate": Plus Jakarta Sans
+untuk tajuk, Inter untuk teks, warna utama indigo gelap (#1E2A3A) dengan aksen
+terracotta (#8C322A), permukaan rata (#F9F9F9) dengan kad putih beradius 12 px
+dan bayang halus, serta footer hak cipta di bawah setiap halaman.
 
 Tiada medan kelas dalam skop semasa.
 

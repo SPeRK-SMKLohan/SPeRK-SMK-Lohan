@@ -27,25 +27,29 @@ export async function renderReceiptDetail(root, id) {
   }
 
   root.innerHTML = `
-    <div class="toolbar no-print">
+    <div class="toolbar no-print receipt-toolbar">
       <a class="btn" href="#/sejarah">← Sejarah</a>
       <a class="btn" href="#/jana-resit">Resit Baharu</a>
       ${r.studentId ? `<a class="btn" href="#/jana-resit?student=${esc(encodeURIComponent(r.studentId))}">Resit Baharu (murid sama)</a>` : ""}
-      <button class="btn" id="print" type="button">Cetak</button>
+      <button class="btn primary" id="print" type="button">Cetak</button>
       <button class="btn" id="pdf" type="button">Muat turun PDF</button>
     </div>
     <p id="pdf-msg" class="error no-print"></p>
-    <section class="card no-print">
-      <h2>Kongsi melalui WhatsApp</h2>
-      <p class="muted">Nombor telefon penerima adalah pilihan. Jika dikosongkan, WhatsApp akan
-        membenarkan anda memilih penerima. Nombor tidak disimpan. No. IC tidak dimasukkan dalam mesej.</p>
-      <div class="toolbar">
-        <input id="wa-phone" class="input" type="tel" placeholder="Contoh: 012-3456789" autocomplete="off">
-        <button id="wa" class="btn" type="button">Buka WhatsApp</button>
-      </div>
-      <p id="wa-msg" class="error"></p>
-    </section>
-    ${receiptHtml(r)}`;
+    <div class="receipt-layout">
+      <div class="receipt-main">${receiptHtml(r)}</div>
+      <aside class="no-print">
+        <section class="card">
+          <h2>Kongsi melalui WhatsApp</h2>
+          <p class="muted">Nombor telefon penerima adalah pilihan. Jika dikosongkan, WhatsApp akan
+            membenarkan anda memilih penerima. Nombor tidak disimpan. No. IC tidak dimasukkan dalam mesej.</p>
+          <div class="toolbar">
+            <input id="wa-phone" class="input" type="tel" placeholder="Contoh: 012-3456789" autocomplete="off">
+            <button id="wa" class="btn wa" type="button">Buka WhatsApp</button>
+          </div>
+          <p id="wa-msg" class="error"></p>
+        </section>
+      </aside>
+    </div>`;
 
   root.querySelector("#print").addEventListener("click", () => window.print());
 

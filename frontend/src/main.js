@@ -13,8 +13,8 @@ import { renderReceiptDetail } from "./features/e-resit/receipt-page.js";
 
 /* SPeRK: dua ciri berkongsi satu pangkalan data murid.
    Navigasi dikelompokkan mengikut ciri. */
-const NAV_GROUPS = [
-  { label: null, links: [["/", "Papan Pemuka"]] },
+const NAV = [
+  { label: "Papan Pemuka", path: "/" },
   {
     label: "e-Daftar",
     links: [
@@ -57,29 +57,82 @@ function currentRoute() {
   return { path, params: new URLSearchParams(query) };
 }
 
+const isActive = (path, p) =>
+  path === p || (p === "/sejarah" && path.startsWith("/resit/"));
+
 function layoutHtml(path) {
-  const active = (p) =>
-    path === p || (p === "/sejarah" && path.startsWith("/resit/")) ? "active" : "";
-  const navLink = ([p, label]) => {
-    const state = active(p);
-    return `<a href="#${p}" class="${state}"${state ? ' aria-current="page"' : ""}>${label}</a>`;
+  const navLink = (p, label) => {
+    const state = isActive(path, p) ? " active" : "";
+    return `<a class="nav-link${state}" href="#${p}"${state ? ' aria-current="page"' : ""}>${label}</a>`;
   };
-  const navGroup = ({ label, links }) => `
-      <div class="nav-group">
-        ${label ? `<span class="nav-group-label">${label}</span>` : ""}
-        <div class="nav-group-links">${links.map(navLink).join("")}</div>
+  const navDrop = ({ label, links }) => {
+    const state = links.some(([p]) => isActive(path, p)) ? " active" : "";
+    return `
+      <div class="nav-drop">
+        <button class="nav-link nav-drop-btn${state}" type="button" aria-haspopup="true" aria-expanded="false">${label}</button>
+        <div class="nav-menu">
+          ${links.map(([p, l]) => navLink(p, l)).join("")}
+        </div>
       </div>`;
+  };
+  const navItem = (item) => (item.links ? navDrop(item) : navLink(item.path, item.label));
+
   return `
     ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</div>` : ""}
     <header class="topbar no-print">
-      <div class="topbar-main">
-        <div class="brand"><img class="brand-logo" src="/logo.svg" alt="" /> ${APP_NAME} SMK Lohan</div>
-        <span class="who">${esc(currentEmail())}</span>
-        <button id="logout" class="btn small" type="button">Log Keluar</button>
+      <div class="topbar-in">
+        <a class="brand" href="#/">
+          <span class="brand-badge"><img class="brand-logo" src="/logo.svg" alt="" /></span>
+          <span class="brand-name">${APP_NAME} SMK Lohan</span>
+        </a>
+        <nav class="nav" aria-label="Navigasi utama">${NAV.map(navItem).join("")}</nav>
+        <div class="topbar-user">
+          <span class="who">${esc(currentEmail())}</span>
+          <button id="logout" class="btn small" type="button">Log Keluar</button>
+        </div>
       </div>
-      <nav class="nav">${NAV_GROUPS.map(navGroup).join("")}</nav>
     </header>
-    <main id="view" class="container"></main>`;
+    <main id="view" class="page"></main>
+    <footer class="footer no-print">
+      <div class="footer-in">
+        <span>© ${new Date().getFullYear()} SMK Lohan, Ranau, Sabah. Hak Cipta Terpelihara.</span>
+        <span>Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK)</span>
+      </div>
+    </footer>`;
+}
+
+// Menu lungsur navigasi: buka dengan klik (sokongan sentuh), tutup bila klik luar.
+function wireNav(scope) {
+  const drops = [...scope.querySelectorAll(".nav-drop")];
+  const closeAll = () => {
+    for (const d of drops) {
+      d.classList.remove("open");
+      d.querySelector("button")?.setAttribute("aria-expanded", "false");
+    }
+  };
+
+  for (const d of drops) {
+    const btn = d.querySelector("button");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = !d.classList.contains("open");
+      closeAll();
+      d.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", String(open));
+    });
+  }
+
+  const onDocClick = () => closeAll();
+  const onKey = (e) => {
+    if (!scope.isConnected) {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onKey);
+      return;
+    }
+    if (e.key === "Escape") closeAll();
+  };
+  document.addEventListener("click", onDocClick);
+  document.addEventListener("keydown", onKey);
 }
 
 function render() {
@@ -107,6 +160,7 @@ function render() {
 
   app.innerHTML = layoutHtml(path);
   const view = app.querySelector("#view");
+  wireNav(app);
 
   if (path.startsWith("/resit/")) {
     renderReceiptDetail(view, decodeURIComponent(path.slice("/resit/".length)));

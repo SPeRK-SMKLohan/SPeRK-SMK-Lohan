@@ -1,6 +1,6 @@
 import { apiFetch } from "../shared/api.js";
 import { formatRM } from "../shared/money.js";
-import { esc, formatDateTime } from "../shared/dom.js";
+import { esc, formatTime } from "../shared/dom.js";
 import { APP_LONG_NAME } from "../shared/config.js";
 import { paymentLabel } from "../features/e-resit/constants.js";
 
@@ -9,8 +9,10 @@ const getDashboard = () => apiFetch("/api/dashboard");
 
 export async function renderDashboard(root) {
   root.innerHTML = `
-    <h1>Papan Pemuka</h1>
-    <p class="muted">${esc(APP_LONG_NAME)}</p>
+    <div class="page-head">
+      <h1>Papan Pemuka</h1>
+      <p>${esc(APP_LONG_NAME)}</p>
+    </div>
     <div id="dash"><p class="muted">Memuatkan...</p></div>`;
   const box = root.querySelector("#dash");
 
@@ -38,7 +40,7 @@ export async function renderDashboard(root) {
         <div class="progress" role="img" aria-label="Kemajuan pendaftaran">
           <div class="progress-bar" style="width:${pct}%"></div>
         </div>
-        <span class="muted">${pct}% sudah daftar · ${d.registeredStudents} daripada ${d.activeStudents} murid aktif</span>
+        <span class="muted"><strong>${pct}% sudah daftar</strong> · ${d.registeredStudents} daripada ${d.activeStudents} murid aktif</span>
       </div>
       ${d.activeStudents === 0 ? `
         <p class="notice">Belum ada data murid. <a href="#/import">Import senarai murid</a> dahulu
@@ -70,10 +72,10 @@ export async function renderDashboard(root) {
           <tbody>${d.recent.map((r) => `
             <tr>
               <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
-              <td>${esc(formatDateTime(r.createdAt))}</td>
+              <td class="nowrap"><strong>${esc(new Date(r.createdAt).toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" }))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>
               <td>${esc(r.studentNameSnapshot)}</td>
               <td class="num">${formatRM(r.totalSen)}</td>
-              <td>${esc(paymentLabel(r.paymentMethod))}</td>
+              <td><span class="badge${r.paymentMethod === "CASH" ? "" : " indigo"}">${esc(paymentLabel(r.paymentMethod))}</span></td>
             </tr>`).join("")}
           </tbody>
         </table></div>` : `<p class="muted">Belum ada resit.</p>`}
