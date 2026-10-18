@@ -1,5 +1,5 @@
 import { commit, runQuery } from "../../firestore.js";
-import { clearStudentsCache } from "../../shared/students.js";
+import { invalidateStudentsCache } from "../../shared/students.js";
 import { HttpError } from "../../util.js";
 import { readStudentFields } from "./students.js";
 
@@ -118,7 +118,7 @@ export async function importStudents(env, user, request) {
     }
   } catch (err) {
     console.error(err);
-    await clearStudentsCache();
+    await invalidateStudentsCache();
     throw new HttpError(
       500,
       imported
@@ -127,7 +127,7 @@ export async function importStudents(env, user, request) {
     );
   }
 
-  await clearStudentsCache();
+  await invalidateStudentsCache();
 
   // Rekod ringkas import (tidak menghentikan import jika gagal).
   try {

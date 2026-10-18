@@ -420,7 +420,7 @@ Skala rasmi untuk hari pendaftaran (anggaran 300–400 murid, 30–40 peranti se
 | Parametra | Kapasiti direka | Catatan |
 |---|---|---|
 | Murid aktif | 300–400 (import maksimum 2,000 baris sekali gus) | Senarai dipaparkan 50 baris/halaman; cache memegang senarai penuh (~160 KB untuk 400 murid). |
-| Peranti serentak | 30–40 peranti | Setiap peranti menyemak senarai setiap 30 saat; cache senarai dikongsi antara isolate dalam rantau (PoP) yang sama. |
+| Peranti serentak | 30–40 peranti | Setiap peranti menyemak senarai setiap 30 saat; cache senarai dikongsi antara isolate dalam rantau (PoP) yang sama, dengan muatan penuh sekali dan kemudian hanya dokumen yang berubah. |
 | Anggaran permintaan | ≤ ~40,000/hari (40 peranti × 30 saat × 8 jam + tindakan kaunter) | Di bawah had Cloudflare Free (~100,000/hari). |
 | Masa muatan disasarkan | <1–2 saat selepas cache panas; muatan sejuk pertama 3–5 saat | Muatan sejuk menarik kunci Google + soalan penuh + render sekali sahaja. |
 
@@ -437,8 +437,8 @@ Apabila melebihi kapasiti direka (melebihi ~1,000 murid atau ~50 peranti), siste
 | Padam murid | **Kekal** — tiada fungsi "undur" | Sandaran (§10) ialah satu-satunya pemulihan. |
 | Baris resit | 1–30 item; kuantiti 1–99 | Pengesahan `validateBody`. |
 | Senarai resit | had 100 (lalai), maksimum 200 | Parameter `limit`. |
-| Kiraan hari papan pemuka | maksimum 500 resit sehari | Melebihi had, angka hari ini mungkin terlebih. |
-| Kesegaran antara peranti | ≤ 60 saat | Cache murid 60 saat; tulisan membersihkan cache segerak, tetapi isolate lain mungkin kekal sehingga TTL berakhir. |
+| Kiraan hari papan pemuka | Kaunter harian (1 bacaan) | Menggunakan kaunter `counters/daily-YYYY-MM-DD` yang dikemas kini dalam transaksi yang sama dengan resit. |
+| Kesegaran antara peranti | ≤ 10–15 saat | Cache murid 10 saat (delta sync); tulisan membersihkan cache segerak. |
 | Carian nama/IC | Padanan "setiap perkataan" atas senarai penuh dalam memori | Tiada carian penuh teks (full-text) Firestore. |
 | Nama murid | Dipaparkan **HURUF BESAR** di semua skrin, resit, PDF, WhatsApp | Paparan sahaja; data disimpan seperti diimport. |
 | Akaun pengguna | Senarai benar `ALLOWED_EMAILS` (e-mel sahaja) | Tiada peranan/pengguna biasa — semua akaun yang dibenarkan mempunyai akses penuh. |
@@ -447,11 +447,13 @@ Apabila melebihi kapasiti direka (melebihi ~1,000 murid atau ~50 peranti), siste
 
 | Lapisan | TTL | Skop |
 |---|---|---|
-| Senarai murid (memori + Cache API) | 60 saat | Per-PoP; dibersihkan segerak oleh sebarang tulisan murid (tambah/kemas kini/padam). |
-| Papan pemuka | 30 saat | Per-PoP. |
-| Token Google (akses Firestore) | 1 jam | Per-isolate; dipra-ambil pada permintaan awal. |
+| Senarai murid (memori + Cache API) | 10 saat + delta | Per-PoP; muatan penuh sekali sahaja, kemudian hanya dokumen yang berubah (`updatedAt`); tulisan tunggal digabung terus ke cache. |
+| Papan pemuka | 30 saat | Per-PoP; angka hari ini dibaca daripada kaunter harian (1 bacaan). |
+| Token Google (akses Firestore) | 1 jam | Per-isolate; dipra-ambil pada permintaan awal (selari dengan pengesahan JWT pengguna). |
 | Token pengguna (JWT) | 5 minit | Per-isolate; pengesahan ulangan dilangkau. |
 | Auto-segar senarai e-Daftar | 30 saat | Per-peranti (dihentikan semasa menaip atau dialog terbuka). |
+| Aset statik berhash (`/assets/*`) | 1 tahun (immutable) | Ditetapkan melalui `frontend/public/_headers` (Workers static assets). |
+| Fon (`/fonts/*`) | 1 tahun (immutable) | WOFF2 subhimpunan Latin; ~84% lebih kecil daripada TTF asal. |
 
 ### 12.4 Kos dan had pelan percuma
 
@@ -481,7 +483,7 @@ Sistem ini direka supaya kekal dalam pelan percuma untuk skala sebuah sekolah:
 | 18 Okt 2026 | **Padam murid**: butang **Padam** pada setiap baris e-Daftar + dialog pengesahan **kata laluan akaun** (disahkan melalui Firebase — kata laluan tidak dihantar ke API pelayan). Pemadaman **kekal**; `DELETE /api/students/:id`. |
 | 18 Okt 2026 | **Padam pilihan (bulk)**: kotak semak setiap baris + "Pilih semua" + toolbar **Padam Terpilih** — maksimum 200 ID dalam satu commit atomik, pengesahan kata laluan; `DELETE /api/students/bulk` (laluan disemak sebelum pola `:id`). |
 | 18 Okt 2026 | **Nama murid HURUF BESAR** pada semua skrin, resit, PDF dan mesej WhatsApp (normakan pada lapisan API — paparan sahaja, tiada migrasi data). |
-| 18 Okt 2026 | **Prestasi produksi**: senarai murid dipaparkan 50 baris/halaman (`offset` + `hasMore`); cache JWT pengguna 5 minit; cache papan pemuka 15→30 saat; resit papan pemuka diambil dengan `select` medan terpilih (dokumen ≤1 KiB dikenakan separuh bacaan Firestore). |
+| 18 Okt 2026 | **Prestasi produksi (fasa 2)**: (a) fon bertukar TTF → **WOFF2 subhimpunan Latin** (Inter 876 KB → 138 KB, Plus Jakarta 176 KB → 47 KB, Roboto Mono 184 KB → 51 KB; ~1 MB dijimatkan pada muatan pertama); (b) **cache lama** ditetapkan melalui `frontend/public/_headers` (aset berhash dan fon 1 tahun *immutable*; PDF 7 hari); (c) **pramuat fon kritikal** + `preconnect` ke Google Identity Toolkit dan API worker dalam `index.html`; (d) **cache senarai murid delta-sync** (muatan penuh sekali, kemudian hanya dokumen berubah — bacaan Firestore kekal kecil walaupun 30–40 peranti meninjau setiap 30 saat; dikongsi antara isolate melalui Cache API); (e) **papan pemuka** menggunakan kaunter harian (1 bacaan) dan medan `koperasiMember` pada murid (tiada lagi imbasan penuh koleksi resit); (f) `findStudentByIC` ditukar kepada pertanyaan tepat (1 bacaan) dengan sandaran senarai cache; (g) token Google dipra-ambil selari dengan pengesahan JWT pengguna; (h) logo SVG dioptimumkan (65 KB → 24 KB) untuk nav/favicon/log masuk; logo resit kekal tidak berubah. Anggaran bacaan Firestore harian turun daripada ~170k kepada ~15k (kekal dalam pelan Spark). |
 | 18 Okt 2026 | Kemasan UI/UX: bar atas satu baris dengan logo dipotong rapat (tanpa bulatan); menu lungsur boleh dibaca; Papan Pemuka tanpa panel *Kemajuan Hari Pendaftaran*; halaman e-Daftar dinyahsesak (kad statistik, bar kemajuan dan notis bawah senarai dibuang; e-mel penanda tidak lagi dipaparkan); borang murid diratakan (tiada kotak kad dalam borang) dengan radio sejajar; templat import bertanda **(wajib)/(pilihan)** (penghurai mengabaikan penanda ini); fon angka bertukar kepada **Roboto Mono**. Tangkapan skrin manual diambil semula. |
 
 **Sisa pilihan (tidak menjejaskan sistem):** akaun GitHub lama `srpk2026` (tiada repositori) dan pengguna Cloudflare lama `srpk2026` (tiada akaun) masih wujud; boleh dipadamkan oleh pemiliknya pada bila-bila masa.

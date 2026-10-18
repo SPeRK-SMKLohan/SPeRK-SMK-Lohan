@@ -988,7 +988,7 @@ Untuk fasa pelaksanaan selepas Stitch: ganti nilai dalam `frontend/src/style.css
 
 Fon: tema semasa menggunakan fon Google **Plus Jakarta Sans** (tajuk), **Inter** (teks) dan
 **Roboto Mono** (angka/nombor),
-fail variable `.ttf` dihos sendiri di `frontend/public/fonts/` (corak sedia ada); kemas kini
+fail variable `.woff2` (subhimpunan Latin) dihos sendiri di `frontend/public/fonts/` (corak sedia ada); kemas kini
 `@font-face` dan token `--font-heading` / `--font-body` jika bertukar tema.
 
 ## 10. Rujukan

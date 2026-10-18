@@ -2,8 +2,9 @@ import {
   batchGet, beginTransaction, commit, fieldFilter, getDoc, runQuery, toValue,
 } from "../../firestore.js";
 import {
-  DAY_MS, HttpError, ID_RE, UUID_RE, clampInt, myDayStart, myYear, parseDateKey, readJson,
+  DAY_MS, HttpError, ID_RE, UUID_RE, clampInt, myDateKey, myDayStart, myYear, parseDateKey, readJson,
 } from "../../util.js";
+import { mergeStudentIntoCache } from "../../shared/students.js";
 
 /* ---------- e-Resit Koperasi: jana, senarai dan butiran resit ---------- */
 const PAYMENT_METHODS = ["BANK_TRANSFER", "CASH"];
@@ -118,6 +119,11 @@ export async function createReceipt(env, user, request) {
   const year = myYear(now);
   const counterId = `receipts-${year}`;
 
+  // Adakah resit ini mengandungi item Keahlian Koperasi? Jika ya, tandakan
+  // murid berkenaan sebagai ahli koperasi (satu tulisan dalam transaksi yang
+  // sama) supaya papan pemuka tidak perlu mengimbas semua resit.
+  const hasKoperasi = lines.some((l) => found.get(`items/${l.itemId}`)?.koperasiMembership === true);
+
   // Nombor resit dan penyimpanan dalam satu transaksi atomik.
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -128,6 +134,13 @@ export async function createReceipt(env, user, request) {
 
       const counter = await getDoc(env, "counters", counterId, tx);
       const next = (counter?.value ?? 0) + 1;
+
+      // Kaunter ringkas bagi hari ini: jumlah resit + jumlah RM, untuk papan
+      // pemuka (1 bacaan sahaja, tanpa imbasan koleksi).
+      const dailyId = `daily-${myDateKey(now)}`;
+      const daily = await getDoc(env, "counters", dailyId, tx);
+      const dailyCount = (daily?.count ?? 0) + 1;
+      const dailyTotal = (daily?.totalSen ?? 0) + totalSen;
 
       const receipt = {
         receiptNo: `${year}-${String(next).padStart(6, "0")}`,
@@ -143,16 +156,38 @@ export async function createReceipt(env, user, request) {
         createdAt: now,
         createdByAccountId: user.sub,
         requestId,
+        hasKoperasiMembership: hasKoperasi,
       };
 
-      await commit(
-        env,
-        [
-          { collection: "counters", id: counterId, data: { value: next, year, updatedAt: now } },
-          { collection: "receipts", id: requestId, data: receipt, mustNotExist: true },
-        ],
-        tx
-      );
+      const writes = [
+        { collection: "counters", id: counterId, data: { value: next, year, updatedAt: now } },
+        { collection: "receipts", id: requestId, data: receipt, mustNotExist: true },
+        {
+          collection: "counters",
+          id: dailyId,
+          data: { count: dailyCount, totalSen: dailyTotal, updatedAt: now },
+          mask: true,
+        },
+      ];
+      if (hasKoperasi && student.koperasiMember !== true) {
+        writes.push({
+          collection: "students",
+          id: studentId,
+          data: { koperasiMember: true, updatedAt: now },
+          mask: true,
+        });
+      }
+
+      await commit(env, writes, tx);
+
+      // Kemas kini cache murid supaya statistik koperasi segera terkini.
+      if (hasKoperasi && student.koperasiMember !== true) {
+        try {
+          await mergeStudentIntoCache({ id: studentId, ...student, koperasiMember: true, updatedAt: now });
+        } catch {
+          /* Cache tidak kritikal. */
+        }
+      }
 
       return {
         receipt: publicReceipt({ id: requestId, ...receipt, createdAt: now.toISOString() }),

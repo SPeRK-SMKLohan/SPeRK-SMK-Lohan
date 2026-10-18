@@ -1,12 +1,12 @@
-import { fieldFilter, runQuery, toValue } from "./firestore.js";
+import { fieldFilter, getDoc, runQuery, toValue } from "./firestore.js";
 import { receiptSummary } from "./features/e-resit/receipts.js";
 import { getActiveStudents } from "./shared/students.js";
 import { DAY_MS, myDateKey, myDayStart } from "./util.js";
 
 /* ---------- Papan Pemuka: statistik kedua-dua ciri ---------- */
 
-// Cache 30 saat (dikenal dari 15 saat) untuk mengurangkan beban Firestore
-// apabila ramai peranti membuka papan pemuka secara serentak. Cache API
+// Cache pendek (30 saat) supaya ramai peranti yang membuka papan pemuka pada
+// masa yang sama tidak mencetuskan bacaan Firestore berulang. Cache API
 // dikongsi antara isolate dalam PoP yang sama.
 const DASHBOARD_TTL_MS = 30_000;
 const DASHBOARD_CACHE_KEY = "https://sperk-cache.internal/dashboard";
@@ -52,56 +52,30 @@ export async function getDashboard(env) {
 }
 
 async function computeDashboard(env) {
-  const start = myDayStart(myDateKey());
+  const dateKey = myDateKey();
+  const start = myDayStart(dateKey);
   const end = new Date(start.getTime() + DAY_MS);
 
-  // Parallel: profil murid (cache), item aktif, resit hari ini, resit terkini,
-  // resit ISSUED (untuk kiraan ahli koperasi — dikongsi oleh cache 30 saat).
-  const [students, activeItems, todayDocs, recentDocs, allReceipts] = await Promise.all([
+  // Profil murid (cache delta) + item aktif + kaunter resit hari ini (1 bacaan)
+  // + resit terkini. Ahli koperasi disimpan sebagai medan murid (koperasiMember),
+  // jadi tiada lagi imbasan penuh koleksi resit.
+  const [students, activeItems, dailyCounter, recentDocs] = await Promise.all([
     getActiveStudents(env),
     runQuery(env, {
       from: [{ collectionId: "items" }],
       where: fieldFilter("active", "EQUAL", toValue(true)),
-      select: { fields: [{ fieldPath: "name" }, { fieldPath: "koperasiMembership" }] },
+      select: { fields: [{ fieldPath: "name" }] },
     }),
-    runQuery(env, {
-      from: [{ collectionId: "receipts" }],
-      where: {
-        compositeFilter: {
-          op: "AND",
-          filters: [
-            fieldFilter("createdAt", "GREATER_THAN_OR_EQUAL", toValue(start)),
-            fieldFilter("createdAt", "LESS_THAN", toValue(end)),
-          ],
-        },
-      },
-      select: { fields: [{ fieldPath: "totalSen" }, { fieldPath: "status" }] },
-      limit: 500, // >500 resit sehari tidak dijangka; hadkan bacaan
-    }),
+    getDoc(env, "counters", `daily-${dateKey}`),
     runQuery(env, {
       from: [{ collectionId: "receipts" }],
       orderBy: [{ field: { fieldPath: "createdAt" }, direction: "DESCENDING" }],
       limit: 5,
     }),
-    runQuery(env, {
-      from: [{ collectionId: "receipts" }],
-      where: fieldFilter("status", "EQUAL", toValue("ISSUED")),
-      select: { fields: [{ fieldPath: "studentId" }, { fieldPath: "items" }] },
-    }),
   ]);
 
-  const issuedToday = todayDocs.filter((d) => d.status === "ISSUED");
-
-  // Keahlian koperasi: murid dengan resit ISSUED yang mengandungi item
-  // bertanda koperasiMembership (hanya medan terpilih dihantar — payload kecil).
-  const koperasiItemIds = new Set(activeItems.filter((d) => d.koperasiMembership === true).map((d) => d.id));
-  const members = new Set();
-  for (const r of allReceipts) {
-    if (!r.studentId || members.has(r.studentId)) continue;
-    if ((r.items || []).some((it) => koperasiItemIds.has(it.itemId))) members.add(r.studentId);
-  }
-
   const registered = students.filter((s) => s.registrationStatus === "SUDAH").length;
+  const koperasiStudents = students.filter((s) => s.koperasiMember === true).length;
 
   // Kemajuan hari pendaftaran: murid yang ditandakan hadir hari ini (masa Malaysia).
   const startMs = start.getTime();
@@ -117,10 +91,10 @@ async function computeDashboard(env) {
     registeredStudents: registered,
     notRegisteredStudents: students.length - registered,
     registeredTodayCount,
-    koperasiStudents: members.size,
+    koperasiStudents,
     activeItems: activeItems.length,
-    todayCount: issuedToday.length,
-    todayTotalSen: issuedToday.reduce((sum, d) => sum + (d.totalSen || 0), 0),
+    todayCount: dailyCounter?.count ?? 0,
+    todayTotalSen: dailyCounter?.totalSen ?? 0,
     recent: recentDocs.map(receiptSummary),
   };
 }

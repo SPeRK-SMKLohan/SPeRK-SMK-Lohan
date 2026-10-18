@@ -1,7 +1,7 @@
 import { SCHOOL_LOOKUP } from "./schools.js";
 import { batchGet, commit, getDoc, runQuery } from "../../firestore.js";
 import {
-  clearStudentsCache, getActiveStudents, publicStudent, studentFromDoc,
+  clearStudentsCache, getActiveStudents, mergeStudentIntoCache, publicStudent, studentFromDoc,
 } from "../../shared/students.js";
 import { HttpError, ID_RE, DAY_MS, clampInt, myDateKey, myDayStart, readJson } from "../../util.js";
 
@@ -185,14 +185,29 @@ function registrationTrace(oldStatus, newStatus, user, now) {
 
 // Mencari murid lain yang mempunyai digit IC sama (untuk mengelak pendua).
 async function findStudentByIC(env, digits, exceptId = null) {
-  const docs = await runQuery(env, {
-    from: [{ collectionId: "students" }],
-    select: { fields: [{ fieldPath: "icNumber" }] },
-  });
-  const hit = docs.find(
-    (d) => d.id !== exceptId && String(d.icNumber ?? "").replace(/\D/g, "") === digits
-  );
-  return hit ? hit.studentId ?? hit.id : null;
+  // Pertanyaan tepat pada No. IC yang dinormalkan (1 bacaan sahaja, bukan
+  // imbasan penuh koleksi).
+  try {
+    const docs = await runQuery(env, {
+      from: [{ collectionId: "students" }],
+      where: fieldFilter("icNumber", "EQUAL", toValue(`${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`)),
+      select: { fields: [{ fieldPath: "icNumber" }] },
+    });
+    const hit = docs.find((d) => d.id !== exceptId);
+    if (hit) return hit.studentId ?? hit.id;
+  } catch {
+    /* Teruskan ke imbasan senarai cache jika pertanyaan gagal. */
+  }
+
+  // Sandaran: imbas senarai cache (tanpa bacaan tambahan) untuk kes format lama.
+  try {
+    const all = await getActiveStudents(env);
+    const hit = all.find((s) => s.studentId !== exceptId && String(s.icNumber).replace(/\D/g, "") === digits);
+    if (hit) return hit.studentId;
+  } catch {
+    /* Abaikan; pendua tidak dapat disahkan. */
+  }
+  return null;
 }
 
 export async function getStudent(env, id) {
@@ -219,7 +234,7 @@ export async function createStudent(env, user, request) {
     ...registrationTrace(null, parsed.student.registrationStatus, user, now),
   };
   await commit(env, [{ collection: "students", id, data }]);
-  await clearStudentsCache();
+  await mergeStudentIntoCache({ id, ...data });
   return { student: publicStudent(studentFromDoc({ id, ...data })) };
 }
 
@@ -243,7 +258,7 @@ export async function updateStudent(env, user, id, request) {
     ...registrationTrace(existing.registrationStatus, parsed.student.registrationStatus, user, now),
   };
   await commit(env, [{ collection: "students", id, data, mask: true }]);
-  await clearStudentsCache();
+  await mergeStudentIntoCache({ id, ...existing, ...data });
   return { student: publicStudent(studentFromDoc({ id, ...existing, ...data })) };
 }
 
@@ -268,7 +283,7 @@ export async function setRegistrationStatus(env, user, id, request) {
     ...registrationTrace(existing.registrationStatus, status, user, now),
   };
   await commit(env, [{ collection: "students", id, data, mask: true }]);
-  await clearStudentsCache();
+  await mergeStudentIntoCache({ id, ...existing, ...data });
   return { student: publicStudent(studentFromDoc({ ...existing, ...data })) };
 }
 
