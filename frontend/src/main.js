@@ -70,7 +70,7 @@ function layoutHtml(path) {
         <div class="nav-group-links">${links.map(navLink).join("")}</div>
       </div>`;
   return `
-    ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: data rekaan sahaja</div>` : ""}
+    ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</div>` : ""}
     <header class="topbar no-print">
       <div class="topbar-main">
         <div class="brand"><img class="brand-logo" src="/logo.svg" alt="" /> ${APP_NAME} SMK Lohan</div>

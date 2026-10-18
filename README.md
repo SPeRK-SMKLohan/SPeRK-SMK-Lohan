@@ -3,7 +3,7 @@
 Aplikasi web untuk pendaftaran murid (e-Daftar) dan merekod bayaran
 koperasi serta menjana resit digital (e-Resit Koperasi). Kedua-dua ciri
 berkongsi satu pangkalan data murid.
-Status: dalam pembangunan. Gunakan data rekaan sahaja.
+Status: sedia untuk produksi — https://sperk.smk-lohan.workers.dev
 
 ## Modul
 
@@ -104,7 +104,7 @@ npx wrangler deploy
 
 Selepas deploy, pastikan domain frontend ada dalam `ALLOWED_ORIGINS`
 (`worker/wrangler.toml`) dan `VITE_API_BASE_URL` menunjuk ke URL worker
-API. Jangan tetapkan `ENABLE_SEED` di produksi.
+API.
 
 ## Peraturan penting
 

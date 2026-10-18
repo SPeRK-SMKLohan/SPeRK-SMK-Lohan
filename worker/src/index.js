@@ -6,7 +6,6 @@ import {
 } from "./features/e-daftar/students.js";
 import { listItems } from "./features/e-resit/items.js";
 import { createReceipt, getReceipt, listReceipts } from "./features/e-resit/receipts.js";
-import { seedDevData } from "./seed.js";
 import { HttpError } from "./util.js";
 
 /* SPeRK (Sistem Pengurusan Pelajar dan Resit Koperasi) SMK Lohan.
@@ -138,13 +137,6 @@ export default {
         const one = pathname.match(/^\/api\/receipts\/([^/]+)$/);
         if (one && method === "GET") {
           return json(await getReceipt(env, decodeURIComponent(one[1])));
-        }
-
-        /* ---------- Alat pembangunan ---------- */
-        if (pathname === "/api/dev/seed" && method === "POST" && env.ENABLE_SEED === "true") {
-          // ?items=1 -> kemas kini senarai barangan sahaja (murid sedia ada tidak disentuh).
-          const itemsOnly = new URL(request.url).searchParams.get("items") === "1";
-          return json(await seedDevData(env, { itemsOnly }));
         }
       } catch (err) {
         if (err instanceof HttpError) return json({ error: err.message }, err.status);

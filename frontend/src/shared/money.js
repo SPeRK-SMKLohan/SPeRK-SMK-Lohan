@@ -7,7 +7,7 @@ export function formatAmount(sen) {
   return (sen / 100).toFixed(2);
 }
 
-export function lineTotal(quantity, unitPriceSen) {
+function lineTotal(quantity, unitPriceSen) {
   return quantity * unitPriceSen;
 }
 

@@ -63,7 +63,7 @@ export function toValue(v) {
   return { mapValue: { fields: toFields(v) } };
 }
 
-export function toFields(obj) {
+function toFields(obj) {
   const fields = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v !== undefined) fields[k] = toValue(v);

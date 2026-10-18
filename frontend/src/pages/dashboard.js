@@ -22,15 +22,6 @@ export async function renderDashboard(root) {
     return;
   }
 
-  // Alat pembangunan: hanya muncul semasa `npm run dev`.
-  const devTools = import.meta.env.DEV ? `
-    <section class="card">
-      <h2>Alat pembangunan</h2>
-      <p class="muted">Memasukkan murid dan barangan rekaan ke Firestore. Tidak tersedia di versi produksi.</p>
-      <button id="seed" class="btn" type="button">Masukkan data rekaan</button>
-      <p id="seed-msg" class="muted"></p>
-    </section>` : "";
-
   const pct = d.activeStudents ? Math.round((d.registeredStudents / d.activeStudents) * 100) : 0;
 
   box.innerHTML = `
@@ -86,20 +77,5 @@ export async function renderDashboard(root) {
             </tr>`).join("")}
           </tbody>
         </table></div>` : `<p class="muted">Belum ada resit.</p>`}
-    </section>
-    ${devTools}`;
-
-  const seedBtn = box.querySelector("#seed");
-  seedBtn?.addEventListener("click", async () => {
-    const msg = box.querySelector("#seed-msg");
-    seedBtn.disabled = true;
-    msg.textContent = "Memasukkan data rekaan...";
-    try {
-      await apiFetch("/api/dev/seed", { method: "POST" });
-      await renderDashboard(root);
-    } catch (err) {
-      msg.textContent = err.message;
-      seedBtn.disabled = false;
-    }
-  });
+    </section>`;
 }

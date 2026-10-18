@@ -183,10 +183,9 @@ Lencana/Tanda Nama dan Keahlian Koperasi = 1). Harga yang digunakan pada
 resit mesti disimpan sebagai snapshot supaya perubahan harga baharu
 tidak mengubah resit lama.
 
-Senarai item dalam pangkalan data boleh dikemas kini tanpa menyentuh
-data murid dengan memanggil `POST /api/dev/seed?items=1` (memerlukan
-`ENABLE_SEED=true`). Panggilan tanpa `?items=1` akan menulis semula
-murid contoh dan item sekali gus.
+Senarai item tersimpan dalam koleksi `items` di Firestore. Perubahan
+harga dibuat terus pada koleksi itu; halaman **Barangan** hanya
+memaparkan senarai semasa.
 
 ### 4.3 Pengiraan jumlah automatik
 
@@ -194,7 +193,7 @@ Formula:
 
 `Jumlah item = Kuantiti × Harga seunit`
 
-Jumlah keseluruhan ialah jumlah semua item. Contoh rekaan:
+Jumlah keseluruhan ialah jumlah semua item. Contoh:
 
   Item                        Kuantiti   Harga seunit       Jumlah
   ------------------------- ---------- -------------- ------------
@@ -545,7 +544,7 @@ petugas individu jika semua menggunakan akaun sama. - Gunakan HTTPS,
 pengesahan token dan kawalan akses. - Jangan simpan kata laluan atau
 rahsia backend dalam GitHub. - Hadkan akses dan paparan nombor IC. -
 Sediakan log keluar dan pengurusan sesi. - Sediakan sandaran dan uji
-pemulihan. - Gunakan data rekaan semasa pembangunan.
+pemulihan.
 
 Akaun bersama mengurangkan kebolehkesanan tindakan individu. Dapatkan
 kelulusan sekolah sebelum menggunakannya. Jika audit individu
@@ -557,7 +556,7 @@ diperlukan, gunakan akaun berasingan untuk setiap petugas.
 
 -   Cipta repositori GitHub.
 -   Sediakan Vite dan struktur frontend/Worker.
--   Sediakan README dan data rekaan.
+-   Sediakan README projek.
 
 **Hasil:** aplikasi asas berjalan secara tempatan.
 
@@ -668,13 +667,12 @@ terkini: **Sekolah (SK Terdahulu), Nama Murid, No. IC, Status OKU,
 Status Daftar dan Penempatan Semula**, tanpa kelas dan tanpa PIBG; data
 murid tidak terhad kepada Tingkatan 1.
 
-Pembangunan dimulakan dengan frontend dan data rekaan. Firebase,
-Firestore dan Cloudflare Workers disambungkan secara berperingkat. Data
-sebenar murid hanya dimasukkan selepas format, kawalan akses dan
-penggunaan sistem disahkan oleh pihak sekolah.
+Pembangunan bermula dengan frontend, kemudian Firebase, Firestore dan
+Cloudflare Workers disambungkan secara berperingkat. Data murid sebenar
+hanya dimasukkan selepas format, kawalan akses dan penggunaan sistem
+disahkan oleh pihak sekolah.
 
 ------------------------------------------------------------------------
 
-*Dokumen ini ialah draf perancangan. Harga, format resit, senarai
-sekolah rendah dan akses pengguna perlu disahkan sebelum penggunaan
-produksi.*
+*Dokumen ini ialah rujukan perancangan. Senarai sekolah rendah dan sebab
+penempatan semula masih menunggu senarai rasmi daripada pihak sekolah.*
