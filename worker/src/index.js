@@ -21,6 +21,11 @@ const JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
 
+// Cache token JWT yang sudah disahkan (5 minit) supaya permintaan serentak
+// daripada akaun yang sama tidak memerlukan pengesahan JWT berulang.
+const TOKEN_CACHE_TTL_MS = 5 * 60 * 1000;
+const tokenCache = new Map(); // token -> { payload, expiresAt }
+
 function splitList(value) {
   return (value || "").split(",").map((s) => s.trim()).filter(Boolean);
 }
@@ -45,15 +50,23 @@ async function authenticate(request, env) {
 
   const match = (request.headers.get("Authorization") || "").match(/^Bearer (.+)$/);
   if (!match) return { ok: false, status: 401, error: "Sila log masuk." };
+  const token = match[1];
+
+  // Periksa cache token dahulu.
+  const cached = tokenCache.get(token);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { ok: true, user: cached.payload };
+  }
 
   let payload;
   try {
-    ({ payload } = await jwtVerify(match[1], JWKS, {
+    ({ payload } = await jwtVerify(token, JWKS, {
       issuer: `https://securetoken.google.com/${env.FIREBASE_PROJECT_ID}`,
       audience: env.FIREBASE_PROJECT_ID,
       algorithms: ["RS256"],
     }));
   } catch {
+    tokenCache.delete(token);
     return { ok: false, status: 401, error: "Sesi tidak sah atau tamat. Sila log masuk semula." };
   }
 
@@ -61,9 +74,11 @@ async function authenticate(request, env) {
   const allowed = splitList(env.ALLOWED_EMAILS).map((e) => e.toLowerCase());
   const email = String(payload.email || "").toLowerCase();
   if (!payload.sub || !email || !allowed.includes(email)) {
+    tokenCache.delete(token);
     return { ok: false, status: 403, error: "Akaun tidak dibenarkan." };
   }
 
+  tokenCache.set(token, { payload, expiresAt: Date.now() + TOKEN_CACHE_TTL_MS });
   return { ok: true, user: payload };
 }
 

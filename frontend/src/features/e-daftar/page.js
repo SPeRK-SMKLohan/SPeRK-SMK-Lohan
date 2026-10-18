@@ -65,6 +65,12 @@ export function renderEDaftar(root) {
       </table></div>
     </section>
 
+    <div id="pager" class="pager hidden">
+      <button id="btn-prev" class="btn small" type="button">‹ Sebelumnya</button>
+      <span id="pager-info" class="muted"></span>
+      <button id="btn-next" class="btn small" type="button">Seterusnya ›</button>
+    </div>
+
     <dialog id="form-dialog" class="modal">
       <form id="student-form">
         <h2 id="form-title">Daftar murid baharu</h2>
@@ -202,6 +208,10 @@ export function renderEDaftar(root) {
   const countEl = root.querySelector("#count");
   const hintEl = root.querySelector("#hint");
   const rowsEl = root.querySelector("#rows");
+  const pagerEl = root.querySelector("#pager");
+  const btnPrev = root.querySelector("#btn-prev");
+  const btnNext = root.querySelector("#btn-next");
+  const pagerInfo = root.querySelector("#pager-info");
 
   let filters = { tingkatan: "", status: "" };
   let rows = [];
@@ -212,6 +222,11 @@ export function renderEDaftar(root) {
   let mutationGen = 0; // ditambah pada setiap mutasi: muatan lama diabaikan
   let busy = 0;
   let timer;
+
+  /* Paginasi halaman (50 baris) — hadkan payload & DOM kepada satu halaman. */
+  let page = 0;            // halaman semasa (0-based)
+  let hasMore = false;     // ada halaman seterusnya
+  const pageSize = 50;     // baris setiap halaman
 
   /* ----- Jadual murid ----- */
   function rowHtml(s) {
@@ -281,21 +296,42 @@ export function renderEDaftar(root) {
       const data = await searchStudents(qEl.value.trim(), {
         ...filters,
         school: schoolEl.value,
-        limit: 200,
+        offset: page * pageSize,
+        limit: pageSize,
       });
       // Abaikan respons lapuk: carian lebih baharu, atau mutasi berlaku selepas muatan ini mula.
       if (mine !== seq || gen !== mutationGen) return;
       rows = data.students;
+      hasMore = data.hasMore ?? false;
+      // Pilihan baris tidak lagi sah selepas senarai baharu dipaparkan.
+      selectedIds.clear();
+      selAll.checked = false;
+      // Halaman terakhir kosong (murid dipadam/selesai) → kembali ke halaman 1.
+      if (!rows.length && page > 0) {
+        page = 0;
+        return load({ silent });
+      }
       renderRows();
       renderHint();
+      renderPager();
+      updateBulkToolbar();
+      const from = page * pageSize + 1;
+      const to = page * pageSize + rows.length;
       countEl.textContent = data.total > rows.length
-        ? `Menunjukkan ${rows.length} daripada ${data.total} padanan`
+        ? `Menunjukkan ${from}–${to} daripada ${data.total} padanan`
         : `${data.total} padanan`;
     } catch (err) {
       if (mine !== seq) return;
       countEl.textContent = "";
       rowsEl.innerHTML = `<tr><td colspan="6" class="error">${esc(err.message)}</td></tr>`;
     }
+  }
+
+  function renderPager() {
+    pagerEl.classList.toggle("hidden", page === 0 && !hasMore);
+    btnPrev.disabled = page === 0;
+    btnNext.disabled = !hasMore;
+    pagerInfo.textContent = `Halaman ${page + 1}`;
   }
 
   /* ----- Tanda daftar / batal daftar (dengan undo) ----- */
@@ -383,17 +419,18 @@ export function renderEDaftar(root) {
       if (!chip) return;
       for (const c of group.querySelectorAll(".chip")) c.classList.toggle("active", c === chip);
       filters[key] = chip.dataset.value;
+      page = 0;
       load();
     });
   }
   chipGroup("chips-tingkatan", "tingkatan");
   chipGroup("chips-status", "status");
 
-  schoolEl.addEventListener("change", () => load());
+  schoolEl.addEventListener("change", () => { page = 0; load(); });
 
   qEl.addEventListener("input", () => {
     clearTimeout(timer);
-    timer = setTimeout(() => load(), 250);
+    timer = setTimeout(() => { page = 0; load(); }, 250);
   });
 
   // Cari murid tunggal -> Enter terus tanda daftar (dengan "Batal" jika tersalah).
@@ -685,14 +722,21 @@ export function renderEDaftar(root) {
     }
   });
 
-  // Kosongkan pilihan setiap kali data dimuat semula.
-  const _load = load;
-  load = async () => {
-    selectedIds.clear();
-    selAll.checked = false;
-    await _load();
-    updateBulkToolbar();
-  };
+  /* ----- Paginasi: butang Sebelumnya / Seterusnya ----- */
+  btnPrev.addEventListener("click", () => {
+    if (page > 0) {
+      page -= 1;
+      load();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
+  btnNext.addEventListener("click", () => {
+    if (hasMore) {
+      page += 1;
+      load();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
 
   resetForm();
   load();

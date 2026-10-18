@@ -116,12 +116,23 @@ function studentSource(body) {
   };
 }
 
+/* ---------- Senarai murid: paginasi atas cache penuh ---------- */
+
+// Baris setiap halaman: hadkan payload kepada ~50 baris (300-400 murid → 6-8
+// halaman), bukan semua data setiap permintaan. Saringan nama/IC berjalan ke
+// atas senarai penuh yang sudah dicache supaya carian tepat — tiada indeks
+// Firestore tambahan diperlukan (hanya active == true, indeks medan tunggal).
+const PAGE_DEFAULT = 50;
+const PAGE_MAX = 200;
+const OFFSET_MAX = 100_000;
+
 export async function listStudents(env, url) {
   const q = (url.searchParams.get("q") || "").trim().slice(0, 100).toLowerCase();
   const school = url.searchParams.get("school") || "";
   const tingkatan = url.searchParams.get("tingkatan") || "";
   const status = url.searchParams.get("status") || "";
-  const limit = clampInt(url.searchParams.get("limit"), 1, 200, 50);
+  const limit = clampInt(url.searchParams.get("limit"), 1, PAGE_MAX, PAGE_DEFAULT);
+  const offset = clampInt(url.searchParams.get("offset"), 0, OFFSET_MAX, 0);
 
   // Carian berbilang perkataan: setiap perkataan mesti ada dalam nama, manakala
   // kumpulan digit dipadankan dengan No. IC (contoh: "ahmad 140512").
@@ -157,7 +168,9 @@ export async function listStudents(env, url) {
     registeredTotal: registered,
     notRegisteredTotal: all.length - registered,
     registeredTodayCount: registeredToday,
-    students: matched.slice(0, limit).map(publicStudent),
+    students: matched.slice(offset, offset + limit).map(publicStudent),
+    offset,
+    hasMore: offset + limit < matched.length,
   };
 }
 

@@ -27,7 +27,7 @@ export function studentFromDoc(d) {
 export function publicStudent(s) {
   return {
     studentId: s.studentId,
-    name: s.name,
+    name: String(s.name ?? "").toUpperCase(), // Paparan HURUF BESAR (keperluan sekolah)
     icMasked: maskIC(s.icNumber),
     formerPrimarySchool: s.formerPrimarySchool,
     tingkatan: s.tingkatan,

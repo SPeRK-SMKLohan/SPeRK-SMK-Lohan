@@ -13,7 +13,7 @@ export function receiptSummary(d) {
     receiptId: d.id,
     receiptNo: d.receiptNo,
     createdAt: d.createdAt,
-    studentNameSnapshot: d.studentNameSnapshot,
+    studentNameSnapshot: String(d.studentNameSnapshot ?? "").toUpperCase(),
     totalSen: d.totalSen,
     paymentMethod: d.paymentMethod,
     status: d.status,

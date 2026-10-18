@@ -5,10 +5,10 @@ import { DAY_MS, myDateKey, myDayStart } from "./util.js";
 
 /* ---------- Papan Pemuka: statistik kedua-dua ciri ---------- */
 
-// Cache pendek (15 saat) supaya ramai peranti yang membuka papan pemuka pada
-// masa yang sama tidak mencetuskan bacaan Firestore berulang. Cache API
+// Cache 30 saat (dikenal dari 15 saat) untuk mengurangkan beban Firestore
+// apabila ramai peranti membuka papan pemuka secara serentak. Cache API
 // dikongsi antara isolate dalam PoP yang sama.
-const DASHBOARD_TTL_MS = 15_000;
+const DASHBOARD_TTL_MS = 30_000;
 const DASHBOARD_CACHE_KEY = "https://sperk-cache.internal/dashboard";
 const dashboardCacheRequest = () => new Request(DASHBOARD_CACHE_KEY);
 let dashboardCache = { at: 0, data: null };
@@ -38,7 +38,7 @@ export async function getDashboard(env) {
       try {
         await caches.default.put(
           dashboardCacheRequest(),
-          Response.json(data, { headers: { "Cache-Control": "max-age=15" } })
+          Response.json(data, { headers: { "Cache-Control": "max-age=30" } })
         );
       } catch {
         /* Simpanan cache gagal: data tetap dikembalikan. */
@@ -55,6 +55,8 @@ async function computeDashboard(env) {
   const start = myDayStart(myDateKey());
   const end = new Date(start.getTime() + DAY_MS);
 
+  // Parallel: profil murid (cache), item aktif, resit hari ini, resit terkini,
+  // resit ISSUED (untuk kiraan ahli koperasi — dikongsi oleh cache 30 saat).
   const [students, activeItems, todayDocs, recentDocs, allReceipts] = await Promise.all([
     getActiveStudents(env),
     runQuery(env, {
@@ -74,6 +76,7 @@ async function computeDashboard(env) {
         },
       },
       select: { fields: [{ fieldPath: "totalSen" }, { fieldPath: "status" }] },
+      limit: 500, // >500 resit sehari tidak dijangka; hadkan bacaan
     }),
     runQuery(env, {
       from: [{ collectionId: "receipts" }],
@@ -89,8 +92,8 @@ async function computeDashboard(env) {
 
   const issuedToday = todayDocs.filter((d) => d.status === "ISSUED");
 
-  // Keahlian koperasi: murid yang mempunyai resit berstatus ISSUED yang
-  // mengandungi item bertanda koperasiMembership (Keahlian Koperasi).
+  // Keahlian koperasi: murid dengan resit ISSUED yang mengandungi item
+  // bertanda koperasiMembership (hanya medan terpilih dihantar — payload kecil).
   const koperasiItemIds = new Set(activeItems.filter((d) => d.koperasiMembership === true).map((d) => d.id));
   const members = new Set();
   for (const r of allReceipts) {

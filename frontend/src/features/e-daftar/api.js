@@ -3,8 +3,8 @@ import { apiFetch } from "../../shared/api.js";
 /* Panggilan API e-Daftar. Senarai murid ini juga digunakan oleh e-Resit
    Koperasi kerana kedua-dua ciri berkongsi satu pangkalan data murid. */
 
-export const searchStudents = (q, { school = "", tingkatan = "", status = "", limit = 50 } = {}) =>
-  apiFetch(`/api/students?${new URLSearchParams({ q, school, tingkatan, status, limit })}`);
+export const searchStudents = (q, { school = "", tingkatan = "", status = "", offset = 0, limit = 50 } = {}) =>
+  apiFetch(`/api/students?${new URLSearchParams({ q, school, tingkatan, status, offset, limit })}`);
 
 export const getStudent = (id) => apiFetch(`/api/students/${encodeURIComponent(id)}`);
 

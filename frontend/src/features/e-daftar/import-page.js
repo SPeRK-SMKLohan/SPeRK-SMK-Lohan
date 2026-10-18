@@ -77,7 +77,7 @@ export function renderImportData(root) {
             const r = byRow.get(p.row);
             return `<tr>
               <td>${esc(p.row)}</td>
-              <td>${esc(r?.name ?? "")}</td>
+              <td>${esc(String(r?.name ?? "").toUpperCase())}</td>
               <td>${esc(maskIC(r?.icNumber ?? ""))}</td>
               <td><span class="badge ${STATUS_CLASS[p.status] ?? ""}">${esc(STATUS_LABEL[p.status] ?? p.status)}</span></td>
               <td>${esc(p.reason)}</td>
