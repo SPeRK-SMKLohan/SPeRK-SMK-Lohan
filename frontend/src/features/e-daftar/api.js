@@ -27,6 +27,14 @@ export const setStudentStatus = (id, registrationStatus) =>
 export const deleteStudent = (id) =>
   apiFetch(`/api/students/${encodeURIComponent(id)}`, { method: "DELETE" });
 
+// Padam banyak murid sekaligus (memerlukan kata laluan disahkan).
+export const deleteStudents = (ids) =>
+  apiFetch("/api/students/bulk", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+
 export const importStudents = (rows, dryRun) =>
   apiFetch("/api/students/import", {
     method: "POST",

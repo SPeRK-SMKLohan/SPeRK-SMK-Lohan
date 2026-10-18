@@ -1,6 +1,7 @@
 import { schools, tingkatanOptions, okuOptions, registrationStatusOptions, transferReasons } from "./constants.js";
 import {
-  createStudent, deleteStudent, getStudent, searchStudents, setStudentStatus, updateStudent,
+  createStudent, deleteStudent, deleteStudents, getStudent, searchStudents,
+  setStudentStatus, updateStudent,
 } from "./api.js";
 import { esc, formatTime } from "../../shared/dom.js";
 import { loginErrorMessage, reauthenticate } from "../../shared/auth.js";
@@ -47,13 +48,20 @@ export function renderEDaftar(root) {
         <span id="hint"></span></p>
     </section>
 
+    <div id="bulk-toolbar" class="bulk-toolbar hidden">
+      <span id="bulk-count">0 dipilih</span>
+      <button id="sel-none" class="btn small" type="button">Pilih kosongkan</button>
+      <button id="bulk-del" class="btn danger-solid small" type="button">Padam Terpilih</button>
+    </div>
+
     <section class="card">
       <div class="table-wrap"><table class="table wide">
         <thead><tr>
+          <th class="sel-col"><input type="checkbox" id="sel-all" title="Pilih semua"></th>
           <th>Murid</th><th>Sekolah Rendah Asal</th><th>Status Daftar</th>
           <th>Penempatan Semula</th><th>Tindakan</th>
         </tr></thead>
-        <tbody id="rows"><tr><td colspan="5" class="muted">Memuatkan…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="6" class="muted">Memuatkan…</td></tr></tbody>
       </table></div>
     </section>
 
@@ -140,6 +148,24 @@ export function renderEDaftar(root) {
           <button id="del-confirm" class="btn danger-solid" type="submit">Padam Kekal</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="bulk-delete-dialog" class="modal modal-sm">
+      <form id="bulk-delete-form">
+        <h2>Padam Murid Terpilih</h2>
+        <p class="muted">Anda pasti mahu memadam <strong id="bulk-del-count"></strong> murid? Tindakan ini
+          <strong>kekal</strong> — semua rekod dipilih akan dibuang daripada pangkalan data. Resit lama masih
+          memaparkan nama murid, tetapi murid ini tidak lagi boleh dicari. No. IC yang sama boleh
+          diimport semula kemudian.</p>
+        <label>Kata laluan (pengesahan)
+          <input id="bulk-del-password" class="input" type="password" autocomplete="current-password">
+        </label>
+        <p id="bulk-del-msg" class="error"></p>
+        <div class="toolbar">
+          <button id="bulk-del-cancel" class="btn" type="button">Batal</button>
+          <button id="bulk-del-confirm" class="btn danger-solid" type="submit">Padam Semua Terpilih</button>
+        </div>
+      </form>
     </dialog>`;
 
   const dialog = root.querySelector("#form-dialog");
@@ -159,6 +185,18 @@ export function renderEDaftar(root) {
   const deleteMsg = root.querySelector("#del-msg");
   const deleteConfirmBtn = root.querySelector("#del-confirm");
 
+  const bulkToolbar = root.querySelector("#bulk-toolbar");
+  const bulkCount = root.querySelector("#bulk-count");
+  const selAll = root.querySelector("#sel-all");
+  const bulkDelBtn = root.querySelector("#bulk-del");
+  const selNoneBtn = root.querySelector("#sel-none");
+  const bulkDeleteDialog = root.querySelector("#bulk-delete-dialog");
+  const bulkDeleteForm = root.querySelector("#bulk-delete-form");
+  const bulkDelCount = root.querySelector("#bulk-del-count");
+  const bulkDelPassword = root.querySelector("#bulk-del-password");
+  const bulkDelMsg = root.querySelector("#bulk-del-msg");
+  const bulkDelConfirmBtn = root.querySelector("#bulk-del-confirm");
+
   const qEl = root.querySelector("#q");
   const schoolEl = root.querySelector("#school");
   const countEl = root.querySelector("#count");
@@ -169,6 +207,7 @@ export function renderEDaftar(root) {
   let rows = [];
   let editingId = null;
   let deletingStudent = null;
+  let selectedIds = new Set();
   let seq = 0;
   let mutationGen = 0; // ditambah pada setiap mutasi: muatan lama diabaikan
   let busy = 0;
@@ -187,6 +226,7 @@ export function renderEDaftar(root) {
       : `<button class="btn small ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
 
     return `<tr data-id="${esc(s.studentId)}"${done ? ' class="row-done"' : ""}>
+      <td class="sel-col"><input type="checkbox" class="sel-row" data-id="${esc(s.studentId)}"></td>
       <td>
         <strong>${esc(s.name)}</strong>
         ${s.tingkatan ? `<span class="tag">T${esc(s.tingkatan)}</span>` : ""}
@@ -222,7 +262,7 @@ export function renderEDaftar(root) {
       message = `Belum ada data murid. <a href="#/import">Import senarai murid</a> dahulu
         (Papan Pemuka &rsaquo; e-Daftar &rsaquo; Import Data).`;
     }
-    rowsEl.innerHTML = `<tr><td colspan="5" class="muted">${message}</td></tr>`;
+    rowsEl.innerHTML = `<tr><td colspan="6" class="muted">${message}</td></tr>`;
   }
 
   function renderHint() {
@@ -254,7 +294,7 @@ export function renderEDaftar(root) {
     } catch (err) {
       if (mine !== seq) return;
       countEl.textContent = "";
-      rowsEl.innerHTML = `<tr><td colspan="5" class="error">${esc(err.message)}</td></tr>`;
+      rowsEl.innerHTML = `<tr><td colspan="6" class="error">${esc(err.message)}</td></tr>`;
     }
   }
 
@@ -553,6 +593,106 @@ export function renderEDaftar(root) {
       deleteConfirmBtn.textContent = "Padam Kekal";
     }
   });
+
+  /* ----- Padam banyak (pilih lalu padam dengan kata laluan) ----- */
+
+  function updateBulkToolbar() {
+    const n = selectedIds.size;
+    if (n === 0) {
+      bulkToolbar.classList.add("hidden");
+      selectedIds.clear();
+    } else {
+      bulkToolbar.classList.remove("hidden");
+      bulkCount.textContent = `${n} dipilih`;
+    }
+    // Sinkrimin status kotak semak baris dengan set pilihan.
+    rowsEl.querySelectorAll(".sel-row").forEach((cb) => {
+      cb.checked = selectedIds.has(cb.dataset.id);
+    });
+    selAll.checked = rowsEl.querySelectorAll(".sel-row").length > 0 &&
+      [...rowsEl.querySelectorAll(".sel-row")].every((cb) => cb.checked);
+  }
+
+  selAll.addEventListener("change", () => {
+    rowsEl.querySelectorAll(".sel-row").forEach((cb) => {
+      cb.checked = selAll.checked;
+      if (cb.checked) selectedIds.add(cb.dataset.id);
+      else selectedIds.delete(cb.dataset.id);
+    });
+    updateBulkToolbar();
+  });
+
+  rowsEl.addEventListener("change", (e) => {
+    const cb = e.target.closest(".sel-row");
+    if (!cb) return;
+    if (cb.checked) selectedIds.add(cb.dataset.id);
+    else selectedIds.delete(cb.dataset.id);
+    updateBulkToolbar();
+  });
+
+  selNoneBtn.addEventListener("click", () => {
+    selectedIds.clear();
+    rowsEl.querySelectorAll(".sel-row").forEach((cb) => (cb.checked = false));
+    selAll.checked = false;
+    updateBulkToolbar();
+  });
+
+  bulkDelBtn.addEventListener("click", () => {
+    bulkDelCount.textContent = selectedIds.size;
+    bulkDelMsg.textContent = "";
+    bulkDeleteForm.reset();
+    bulkDeleteDialog.showModal();
+    bulkDelPassword.focus();
+  });
+
+  bulkDeleteDialog.addEventListener("close", () => {
+    bulkDelMsg.textContent = "";
+    bulkDeleteForm.reset();
+  });
+  root.querySelector("#bulk-del-cancel").addEventListener("click", () =>
+    bulkDeleteDialog.close()
+  );
+
+  bulkDeleteForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    bulkDelMsg.textContent = "";
+    if (selectedIds.size === 0) return;
+
+    const password = bulkDelPassword.value;
+    if (!password) {
+      bulkDelMsg.textContent = "Sila isi kata laluan untuk pengesahan.";
+      return;
+    }
+
+    bulkDelConfirmBtn.disabled = true;
+    bulkDelConfirmBtn.textContent = "Memadam...";
+    try {
+      await reauthenticate(password);
+      await deleteStudents([...selectedIds]);
+      const n = selectedIds.size;
+      selectedIds.clear();
+      bulkDeleteDialog.close();
+      updateBulkToolbar();
+      showToast(`${n} murid telah dipadam.`);
+      await load();
+    } catch (err) {
+      bulkDelMsg.textContent = err.code
+        ? (PASSWORD_ERR_CODES.has(err.code) ? "Kata laluan tidak betul." : loginErrorMessage(err))
+        : err.message;
+    } finally {
+      bulkDelConfirmBtn.disabled = false;
+      bulkDelConfirmBtn.textContent = "Padam Semua Terpilih";
+    }
+  });
+
+  // Kosongkan pilihan setiap kali data dimuat semula.
+  const _load = load;
+  load = async () => {
+    selectedIds.clear();
+    selAll.checked = false;
+    await _load();
+    updateBulkToolbar();
+  };
 
   resetForm();
   load();

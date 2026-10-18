@@ -2,12 +2,13 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { getDashboard } from "./dashboard.js";
 import { importStudents } from "./features/e-daftar/import.js";
 import {
-  createStudent, deleteStudent, getStudent, listStudents, setRegistrationStatus, updateStudent,
+  createStudent, deleteStudent, deleteStudents, getStudent, listStudents,
+  setRegistrationStatus, updateStudent,
 } from "./features/e-daftar/students.js";
 import { listItems } from "./features/e-resit/items.js";
 import { createReceipt, getReceipt, listReceipts } from "./features/e-resit/receipts.js";
 import { prefetchAccessToken } from "./firestore.js";
-import { HttpError } from "./util.js";
+import { HttpError, readJson } from "./util.js";
 
 /* SPeRK (Sistem Pengurusan Pelajar dan Resit Koperasi) SMK Lohan.
    Dua ciri berkongsi satu pangkalan data Firestore:
@@ -121,6 +122,13 @@ export default {
         }
         if (student && method === "DELETE") {
           return json(await deleteStudent(env, auth.user, decodeURIComponent(student[1])));
+        }
+        if (pathname === "/api/students/bulk" && method === "DELETE") {
+          const body = await readJson(request);
+          if (!body || !Array.isArray(body.ids)) {
+            throw new HttpError(400, "Sila pilih sekurang-kurangnya satu murid.");
+          }
+          return json(await deleteStudents(env, auth.user, body.ids));
         }
         // Tanda kehadiran pantas semasa hari pendaftaran (satu ketukan).
         const studentStatus = pathname.match(/^\/api\/students\/([^/]+)\/status$/);

@@ -346,6 +346,18 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .chip[data-value="SUDAH"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 .chip[data-value="BELUM"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--text-muted); }
 
+/* ---------------- Kolong pilihan & toolbar padam banyak ---------------- */
+.sel-col { width: 40px; text-align: center; }
+.sel-col input { width: 18px; height: 18px; margin: 0; flex: none; }
+.bulk-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 24px;
+  background: var(--surface-low); border-bottom: 1px solid var(--border);
+  font-size: .875rem; color: var(--text-secondary);
+}
+.bulk-toolbar.hidden { display: none !important; }
+.bulk-toolbar span { font-weight: 600; color: var(--text-primary); }
+.bulk-toolbar .btn.small { min-height: 36px; padding: 0 12px; font-size: .8125rem; }
+
 /* ---------------- Kaunter e-Daftar ---------------- */
 .search-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .search-row .input-lg { flex: 1; min-width: 260px; }

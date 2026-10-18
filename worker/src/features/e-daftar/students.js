@@ -1,5 +1,5 @@
 import { SCHOOL_LOOKUP } from "./schools.js";
-import { commit, getDoc, runQuery } from "../../firestore.js";
+import { batchGet, commit, getDoc, runQuery } from "../../firestore.js";
 import {
   clearStudentsCache, getActiveStudents, publicStudent, studentFromDoc,
 } from "../../shared/students.js";
@@ -269,4 +269,35 @@ export async function deleteStudent(env, user, id) {
   await commit(env, [{ collection: "students", id, delete: true }]);
   await clearStudentsCache();
   return { deleted: true, studentId: id };
+}
+
+// Padam banyak murid sekaligus. Semua ID disahkan sebelum pemadaman.
+// Resit lama masih memaparkan nama murid (snapshot); No. IC yang sama boleh
+// diimport semula kemudian.
+export async function deleteStudents(env, user, ids) {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new HttpError(400, "Sila pilih sekurang-kurangnya satu murid.");
+  }
+  if (ids.length > 200) {
+    throw new HttpError(400, "Maksimum 200 murid boleh dipadam sekaligus.");
+  }
+  for (const id of ids) {
+    if (!ID_RE.test(id)) throw new HttpError(400, "ID murid tidak sah.");
+  }
+
+  // Pastikan semua murid wujud sebelum dipadam (satu panggilan batchGet).
+  const found = await batchGet(env, ids.map((id) => ({ collection: "students", id })));
+  const missing = ids.filter((id) => !found.has(`students/${id}`));
+  if (missing.length) {
+    throw new HttpError(404, `Beberapa murid tidak dijumpai (${missing.length} rekod).`);
+  }
+
+  const now = new Date();
+  const writes = ids.map((id) => ({ collection: "students", id, delete: true }));
+
+  // Semua pemadaman dalam satu commit atomik (Firestore hadkan 500 tulisan; 200 di bawah had).
+  await commit(env, writes);
+  await clearStudentsCache();
+
+  return { deleted: ids.length, studentIds: ids };
 }
