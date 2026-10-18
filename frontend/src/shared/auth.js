@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "./firebase.js";
 
 // Tunggu Firebase memulihkan sesi sebelum memaparkan halaman.
@@ -22,6 +22,15 @@ export async function signIn(email, password) {
 
 export function signOutUser() {
   return signOut(auth);
+}
+
+// Pengesahan semula dengan kata laluan akaun pengguna sendiri — diperlukan untuk
+// tindakan sensitif (cth: memadam murid). Kata laluan hanya dihantar ke Firebase,
+// tidak sekali-kali ke pelayan API.
+export async function reauthenticate(password) {
+  const user = auth.currentUser;
+  if (!user?.email) throw new Error("Belum log masuk.");
+  await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
 }
 
 // getIdToken memperbaharui token secara automatik apabila hampir tamat.

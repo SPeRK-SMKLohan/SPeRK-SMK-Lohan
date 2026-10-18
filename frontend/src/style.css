@@ -247,6 +247,8 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
 .btn.ok:hover { background: var(--primary-deep); color: var(--text-on-primary); }
 .btn.danger { background: var(--surface-mid); color: var(--accent); }
 .btn.danger:hover { background: var(--accent-soft); color: var(--accent-soft-ink); }
+.btn.danger-solid { background: var(--danger); color: #fff; }
+.btn.danger-solid:hover { background: var(--danger-soft-ink); color: #fff; }
 .btn.wa { background: #25D366; color: #fff; }
 .btn.wa:hover { background: #1FB959; color: #fff; }
 .btn.small { min-height: 40px; padding: 0 14px; font-size: .8125rem; }
@@ -374,6 +376,11 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 }
 .modal .toolbar #clear { order: -1; margin-right: auto; background: transparent; color: var(--accent); padding: 0 10px; }
 .modal .toolbar #clear:hover { background: var(--accent-soft); color: var(--accent-soft-ink); }
+.modal-sm { width: min(460px, 94vw); }
+.modal-sm label { display: block; margin-top: 14px; font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--text-primary); }
+.modal-sm label .input { width: 100%; margin-top: 6px; }
+.modal .toolbar #del-cancel { order: -1; margin-right: auto; background: transparent; color: var(--text-secondary); padding: 0 10px; }
+.modal .toolbar #del-cancel:hover { background: var(--surface-high); color: var(--text-primary); }
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 16px; }
 .form-grid > .full { grid-column: 1 / -1; }

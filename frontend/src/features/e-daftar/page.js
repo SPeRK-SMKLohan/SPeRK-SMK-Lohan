@@ -1,8 +1,9 @@
 import { schools, tingkatanOptions, okuOptions, registrationStatusOptions, transferReasons } from "./constants.js";
 import {
-  createStudent, getStudent, searchStudents, setStudentStatus, updateStudent,
+  createStudent, deleteStudent, getStudent, searchStudents, setStudentStatus, updateStudent,
 } from "./api.js";
 import { esc, formatTime } from "../../shared/dom.js";
+import { loginErrorMessage, reauthenticate } from "../../shared/auth.js";
 import { showToast } from "../../shared/toast.js";
 
 /* Halaman e-Daftar dioptimumkan sebagai kaunter hari pendaftaran:
@@ -121,6 +122,24 @@ export function renderEDaftar(root) {
           <button id="close" class="btn" type="button">Tutup</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="delete-dialog" class="modal modal-sm">
+      <form id="delete-form">
+        <h2>Padam murid</h2>
+        <p class="muted">Anda pasti mahu memadam <strong id="del-name"></strong>? Tindakan ini
+          <strong>kekal</strong> — rekod murid akan dibuang daripada pangkalan data. Resit lama masih
+          memaparkan nama murid, tetapi murid ini tidak lagi boleh dicari. No. IC yang sama boleh
+          diimport semula kemudian.</p>
+        <label>Kata laluan (pengesahan)
+          <input id="del-password" class="input" type="password" autocomplete="current-password">
+        </label>
+        <p id="del-msg" class="error"></p>
+        <div class="toolbar">
+          <button id="del-cancel" class="btn" type="button">Batal</button>
+          <button id="del-confirm" class="btn danger-solid" type="submit">Padam Kekal</button>
+        </div>
+      </form>
     </dialog>`;
 
   const dialog = root.querySelector("#form-dialog");
@@ -133,6 +152,13 @@ export function renderEDaftar(root) {
   const transferReasonEl = root.querySelector("#f-transfer-reason");
   const transferNotesEl = root.querySelector("#f-transfer-notes");
 
+  const deleteDialog = root.querySelector("#delete-dialog");
+  const deleteForm = root.querySelector("#delete-form");
+  const deleteName = root.querySelector("#del-name");
+  const deletePassword = root.querySelector("#del-password");
+  const deleteMsg = root.querySelector("#del-msg");
+  const deleteConfirmBtn = root.querySelector("#del-confirm");
+
   const qEl = root.querySelector("#q");
   const schoolEl = root.querySelector("#school");
   const countEl = root.querySelector("#count");
@@ -142,6 +168,7 @@ export function renderEDaftar(root) {
   let filters = { tingkatan: "", status: "" };
   let rows = [];
   let editingId = null;
+  let deletingStudent = null;
   let seq = 0;
   let mutationGen = 0; // ditambah pada setiap mutasi: muatan lama diabaikan
   let busy = 0;
@@ -172,6 +199,7 @@ export function renderEDaftar(root) {
       <td class="row-actions nowrap">
         <button class="btn small" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
         ${actions}
+        <button class="btn small danger" type="button" data-action="delete"${s._pending ? " disabled" : ""} title="Padam murid">Padam</button>
       </td>
     </tr>`;
   }
@@ -290,6 +318,10 @@ export function renderEDaftar(root) {
 
     if (action === "mark") return setStatus(s, "SUDAH");
     if (action === "unmark") return setStatus(s, "BELUM");
+    if (action === "delete") {
+      openDeleteDialog(s);
+      return;
+    }
     if (action === "edit") {
       btn.disabled = true;
       try {
@@ -468,6 +500,57 @@ export function renderEDaftar(root) {
     } finally {
       saveBtn.disabled = false;
       saveBtn.textContent = "Simpan";
+    }
+  });
+
+  /* ----- Padam murid (pengesahan kata laluan) ----- */
+  const PASSWORD_ERR_CODES = new Set([
+    "auth/wrong-password", "auth/invalid-credential", "auth/user-mismatch", "auth/invalid-email",
+  ]);
+
+  function openDeleteDialog(s) {
+    deletingStudent = s;
+    deleteName.textContent = s.name;
+    deleteMsg.textContent = "";
+    deleteForm.reset();
+    deleteDialog.showModal();
+    deletePassword.focus();
+  }
+
+  deleteDialog.addEventListener("close", () => {
+    deletingStudent = null;
+    deleteForm.reset();
+  });
+  root.querySelector("#del-cancel").addEventListener("click", () => deleteDialog.close());
+
+  deleteForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    deleteMsg.textContent = "";
+    if (!deletingStudent) return;
+
+    const password = deletePassword.value;
+    if (!password) {
+      deleteMsg.textContent = "Sila isi kata laluan untuk pengesahan.";
+      return;
+    }
+
+    deleteConfirmBtn.disabled = true;
+    deleteConfirmBtn.textContent = "Memadam...";
+    try {
+      // Sahkan kata laluan melalui Firebase (tidak dihantar ke pelayan API).
+      await reauthenticate(password);
+      await deleteStudent(deletingStudent.studentId);
+      const name = deletingStudent.name;
+      deleteDialog.close();
+      showToast(`${name} telah dipadam.`);
+      await load();
+    } catch (err) {
+      deleteMsg.textContent = err.code
+        ? (PASSWORD_ERR_CODES.has(err.code) ? "Kata laluan tidak betul." : loginErrorMessage(err))
+        : err.message;
+    } finally {
+      deleteConfirmBtn.disabled = false;
+      deleteConfirmBtn.textContent = "Padam Kekal";
     }
   });
 

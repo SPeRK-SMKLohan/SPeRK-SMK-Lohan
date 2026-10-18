@@ -258,3 +258,15 @@ export async function setRegistrationStatus(env, user, id, request) {
   await clearStudentsCache();
   return { student: publicStudent(studentFromDoc({ ...existing, ...data })) };
 }
+
+// Padam kekal: dokumen murid dibuang daripada Firestore. Resit lama masih
+// memaparkan nama murid (snapshot), tetapi pautan "murid sama" tidak berfungsi
+// lagi. No. IC yang sama boleh diimport semula kemudian (pendua tidak dikesan).
+export async function deleteStudent(env, user, id) {
+  if (!ID_RE.test(id)) throw new HttpError(404, "Murid tidak dijumpai.");
+  const existing = await getDoc(env, "students", id);
+  if (!existing) throw new HttpError(404, "Murid tidak dijumpai.");
+  await commit(env, [{ collection: "students", id, delete: true }]);
+  await clearStudentsCache();
+  return { deleted: true, studentId: id };
+}

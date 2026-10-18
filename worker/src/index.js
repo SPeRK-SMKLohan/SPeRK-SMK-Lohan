@@ -2,7 +2,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { getDashboard } from "./dashboard.js";
 import { importStudents } from "./features/e-daftar/import.js";
 import {
-  createStudent, getStudent, listStudents, setRegistrationStatus, updateStudent,
+  createStudent, deleteStudent, getStudent, listStudents, setRegistrationStatus, updateStudent,
 } from "./features/e-daftar/students.js";
 import { listItems } from "./features/e-resit/items.js";
 import { createReceipt, getReceipt, listReceipts } from "./features/e-resit/receipts.js";
@@ -30,7 +30,7 @@ function corsHeaders(request, env) {
   if (origin && splitList(env.ALLOWED_ORIGINS).includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
     headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type";
-    headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, OPTIONS";
+    headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
     headers["Access-Control-Max-Age"] = "86400";
   }
   return headers;
@@ -118,6 +118,9 @@ export default {
         }
         if (student && method === "PUT") {
           return json(await updateStudent(env, auth.user, decodeURIComponent(student[1]), request));
+        }
+        if (student && method === "DELETE") {
+          return json(await deleteStudent(env, auth.user, decodeURIComponent(student[1])));
         }
         // Tanda kehadiran pantas semasa hari pendaftaran (satu ketukan).
         const studentStatus = pathname.match(/^\/api\/students\/([^/]+)\/status$/);

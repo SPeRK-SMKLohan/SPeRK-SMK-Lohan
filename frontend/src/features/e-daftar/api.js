@@ -23,6 +23,10 @@ export const updateStudent = (id, payload) =>
 export const setStudentStatus = (id, registrationStatus) =>
   apiFetch(`/api/students/${encodeURIComponent(id)}/status`, studentBody({ registrationStatus }));
 
+// Padam kekal murid (memerlukan kata laluan disahkan sebelum panggilan).
+export const deleteStudent = (id) =>
+  apiFetch(`/api/students/${encodeURIComponent(id)}`, { method: "DELETE" });
+
 export const importStudents = (rows, dryRun) =>
   apiFetch("/api/students/import", {
     method: "POST",
