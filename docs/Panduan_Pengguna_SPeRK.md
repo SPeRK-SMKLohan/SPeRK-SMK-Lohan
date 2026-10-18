@@ -60,6 +60,8 @@ Sistem ini boleh digunakan serentak pada beberapa komputer atau telefon; semua d
 
 Jika e-mel atau kata laluan salah, mesej ralat akan dipaparkan di bawah medan kata laluan dan anda boleh cuba semula.
 
+Di bawah butang Log Masuk terdapat pautan **Panduan Pengguna (PDF)** — dokumen yang sedang anda baca ini. Selepas log masuk, pautan **Panduan** juga tersedia di bar navigasi atas dan pautan **Panduan Pengguna (PDF)** di bahagian bawah setiap halaman.
+
 ### 2.2 Log keluar
 
 - Butang **Log Keluar** berada di penjuru kanan atas (di sebelah alamat e-mel anda).
@@ -134,7 +136,7 @@ Tekan **+ Murid baharu** untuk menambah murid, atau tekan **Butiran** pada baris
 | **Tingkatan** | Tingkatan 1 hingga 5 (boleh dikosongkan jika belum ditetapkan). |
 | **Status OKU** | Ya / Tidak. |
 | **Status daftar** | Sudah daftar / Belum daftar. |
-| **Mohon penempatan semula ke sekolah lain** | Tandakan jika murid memohon berpindah; medan **Nama sekolah dipohon**, **Sebab** dan **Catatan** akan muncul. |
+| **Mohon penempatan semula ke sekolah lain** | Tandakan jika murid memohon berpindah; medan **Nama sekolah dipohon**, **Sebab** dan **Catatan** akan muncul. **Sebab** dipilih daripada senarai (**Sekolah lebih dekat / Berpindah rumah / Masalah pengangkutan / Adik-beradik di sekolah sama**) dan **Catatan** akan diisi automatik dengan huraian penuh — catatan itu masih boleh diedit mengikut keperluan. |
 
 Tekan **Simpan** untuk menyimpan, **Kosongkan borang** untuk memulakan semula, atau **Tutup** untuk keluar tanpa menyimpan.
 
@@ -253,11 +255,16 @@ Buka `Papan Pemuka › e-Resit Koperasi › Jana Resit`. Borang resit disusun da
 | **Resit Baharu (murid sama)** | Membuka borang resit dengan murid ini sudah dipilih (untuk pembelian seterusnya). |
 | **← Sejarah** | Kembali ke senarai Sejarah Resit. |
 
-Panel **Kongsikan melalui WhatsApp** membolehkan resit dihantar kepada ibu bapa/penjaga:
+Panel **Kongsikan melalui WhatsApp** membolehkan resit dihantar kepada ibu bapa/penjaga, **berserta fail PDF resit**:
 
 1. Masukkan no. telefon penerima (contoh: `012-3456789`) — medan ini pilihan; jika dikosongkan, WhatsApp akan meminta anda memilih penerima.
-2. Tekan **Buka WhatsApp**; mesej ringkasan resit akan disediakan secara automatik.
-3. **No. telefon tidak disimpan** dan **No. IC tidak dimasukkan** dalam mesej, demi privasi murid.
+2. Biarkan kotak **"Muat turun PDF resit supaya boleh dilampirkan"** bertanda (lalai). Tekan **Buka WhatsApp** — mesej ringkasan resit akan disediakan secara automatik dan fail PDF resit akan dimuat turun serentak.
+3. Dalam WhatsApp, tekan **📎 (Lampiran) → Dokumen**, kemudian pilih fail `Resit-<no. resit>.pdf` yang baru dimuat turun itu untuk dilampirkan, dan tekan **Hantar**.
+4. **No. telefon tidak disimpan** dan **No. IC tidak dimasukkan** dalam mesej, demi privasi murid.
+
+> **Pada telefon (Android/iPhone):** butang **Kongsi PDF (peranti)** membolehkan mesej dan PDF dihantar sekali gus — pilih WhatsApp daripada lembaran kongsi yang muncul.
+
+> **Mengapa perlu lampirkan secara manual?** WhatsApp tidak membenarkan laman web melampirkan fail secara automatik atas sebab keselamatan. SPeRK menyediakan kedua-duanya sekali klik (mesej + muat turun PDF) supaya anda hanya perlu memilih fail dalam WhatsApp.
 
 ### 6.3 Sejarah Resit
 
@@ -311,6 +318,12 @@ Tekan **↩ Batal daftar** pada baris murid itu, kemudian tandakan semula murid 
 
 **Bilangan "Keahlian koperasi" pada Papan Pemuka tidak sama dengan jualan hari ini.**
 Kad *Keahlian koperasi* mengira **semua murid yang pernah membayar keahlian** (sekali sepanjang tempoh persekolahan), bukan hanya hari ini.
+
+**Bolehkah PDF resit dihantar terus melalui WhatsApp?**
+Ya — tekan **Buka WhatsApp**: mesej resit disediakan dan PDF dimuat turun serentak. Kemudian dalam WhatsApp tekan **📎 → Dokumen → pilih fail PDF** tersebut sebelum menghantar. Pada telefon, butang **Kongsi PDF (peranti)** boleh menghantar mesej dan PDF sekali gus.
+
+**Di manakah saya boleh merujuk panduan ini kemudian?**
+Buka pautan **Panduan** pada bar navigasi atas (atau **Panduan Pengguna (PDF)** di bahagian bawah halaman dan pada halaman log masuk). Anda juga boleh menyimpan PDF ini untuk rujukan luar talian.
 
 ---
 

@@ -16,6 +16,7 @@ export function renderLogin(root) {
         </label>
         <p id="login-error" class="error"></p>
         <button class="btn primary block" type="submit">Log Masuk</button>
+        <p class="login-guide"><a href="/panduan/Panduan_Pengguna_SPeRK.pdf" target="_blank" rel="noopener">Panduan Pengguna (PDF)</a></p>
       </form>
     </div>`;
 

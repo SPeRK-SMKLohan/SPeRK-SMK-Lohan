@@ -55,13 +55,14 @@ Sistem ini dibina sebagai projek sekolah (bukan komersial). Pentadbir utama pada
 | API | Cloudflare Worker (modul ES) | Worker `sperk-smk-lohan-api` (`worker/`) |
 | Pengesahan pengguna | Firebase Authentication (e-mel/kata laluan) | Projek Firebase `sperk-smk-lohan` |
 | Pangkalan data | Cloud Firestore (mod produksi) | Projek Firebase `sperk-smk-lohan` |
-| Fail statik | `logo.svg`, fon Plus Jakarta Sans & Inter (dihos sendiri) | `frontend/public/` → `/dist` |
+| Fail statik | `logo.svg`, fon Plus Jakarta Sans & Inter (dihos sendiri), dan salinan PDF Panduan Pengguna | `frontend/public/` → `/dist` |
 
 Ciri utama seni bina:
 
 - **Harga dikira di pelayan.** Pelanggan hanya menghantar `itemId` dan `quantity`; worker menentukan harga seunit dan jumlah akhir daripada koleksi `items`. Ini menghalang manipulasi harga daripada pelayar.
 - **Pengesahan dua lapis.** Firebase mengesahkan kata laluan; worker mengesahkan token ID Firebase pada setiap permintaan API dan menyemak e-mel terhadap senarai `ALLOWED_EMAILS`.
 - **Tiada pangkalan data di pelanggan.** Semua data melalui API worker.
+- **Panduan awam:** salinan PDF *Panduan Pengguna* dihos pada laman hadapan — `https://sperk.smk-lohan.workers.dev/panduan/Panduan_Pengguna_SPeRK.pdf`.
 
 ---
 
@@ -151,7 +152,7 @@ Semua perkhidmatan di bawah dimiliki oleh **satu akaun Gmail rasmi: `sperk.smklo
 sprek-smk-lohan/
 ├─ frontend/                  # Laman hadapan (Vite)
 │  ├─ src/                    # Kod SPA: pages/, features/, shared/
-│  ├─ public/                 # logo.svg, fonts/
+│  ├─ public/                 # logo.svg, fonts/, panduan/Panduan_Pengguna_SPeRK.pdf
 │  ├─ .env.local              # (gitignored) VITE_FIREBASE_* + VITE_API_BASE_URL
 │  └─ wrangler.toml           # name="sperk", assets ./dist, account_id
 ├─ worker/                    # API (Cloudflare Worker)
@@ -186,7 +187,7 @@ sprek-smk-lohan/
 | `registrationStatus` | string | `SUDAH` atau `BELUM`. |
 | `registeredAt` | timestamp \| null | Diisi automatik apabila status bertukar `SUDAH`. |
 | `registeredBy` | string \| null | E-mel pengguna yang menanda. |
-| `transferSchool`, `transferReason`, `transferNotes` | string \| null | Permohonan penempatan semula (teks bebas sehingga senarai rasmi diterima). |
+| `transferSchool`, `transferReason`, `transferNotes` | string \| null | Permohonan penempatan semula. `transferReason` dipilih daripada senarai rasmi (`transferReasons` dalam `frontend/src/features/e-daftar/constants.js`); `transferNotes` diisi automatik dengan huraian sebab tersebut (boleh diedit). Nilai teks lain (import/rekod lama) tetap diterima dan dipaparkan sebagai *"(rekod lama)"* dalam borang. |
 | `active` | boolean | `true` semasa dicipta. |
 | `createdAt`, `updatedAt` | timestamp | |
 
@@ -228,6 +229,8 @@ Sebanyak 9 barangan disenaraikan (senarai harga penuh dalam *Panduan Pengguna*, 
 ### 6.5 Peraturan perniagaan penting
 
 - **Harga pelayan:** jumlah resit sentiasa dikira semula oleh worker daripada `items.priceSen`.
+- **Panduan dalam app:** pautan **Panduan** (bar atas), **Panduan Pengguna (PDF)** (footer dan halaman log masuk) merujuk kepada `public/panduan/Panduan_Pengguna_SPeRK.pdf`. Setiap kali manual dijana semula, salin PDF baharu ke folder itu sebelum `npm run build`.
+- **Kongsi WhatsApp:** WhatsApp tidak membenarkan lampiran fail melalui pautan `wa.me`. App memuat turun PDF serentak apabila **Buka WhatsApp** ditekan (kotak *"Muat turun PDF resit supaya boleh dilampirkan"*), dan menyediakan butang **Kongsi PDF (peranti)** melalui Web Share API pada peranti yang menyokong perkongsian fail (Android/iPhone).
 - **Keahlian koperasi** tidak disimpan pada murid; ia *diperoleh* daripada resit yang mengandungi barangan bertanda `koperasiMembership`.
 - **Import murid:** maksimum 2,000 baris / 2 MB fail; baris dengan IC yang sudah wujud **dilangkau** (tidak diganti); penulisan dipecahkan kepada kelompok 400 untuk had Firestore.
 - **Papan Pemuka:** tarikh "hari ini" menggunakan zon waktu **Malaysia (UTC+8)**.
@@ -423,6 +426,7 @@ Sistem ini direka supaya kekal dalam pelan percuma untuk skala sebuah sekolah:
 | **18 Okt 2026** | **Migrasi penuh ke akaun rasmi sekolah `sperk.smklohan@gmail.com`:** repositori dipindahkan ke `SPeRK-SMKLohan/SPeRK-SMK-Lohan` (sejarah penuh dikekalkan); projek Firebase baharu `sperk-smk-lohan` (auth + Firestore disemai semula: 9 barangan); Cloudflare kekal akaun sekolah-akaun yang sama, Gmail sekolah dijadikan Super Admin, akaun lama dibuang; `account_id` dipin dalam kedua-dua `wrangler.toml`; penomboran resit dimulakan semula pada `2026-000001`. |
 | 18 Okt 2026 | Projek Firebase lama `resit-koperasi-lohan` dipadamkan oleh pemilik selepas pengesahan silang (permintaan lama tidak lagi berfungsi). Google akan membersihkan sisa dalam ~30 hari. |
 | 18 Okt 2026 | Reka bentuk UI "Warm Slate" dimuktamadkan dan didokumentasikan (`docs/Reka_Bentuk_UI-UX_SPeRK.md`). |
+| 18 Okt 2026 | Penempatan semula: **Sebab** kini senarai pilihan rasmi dengan **autofill Catatan**; **Kongsi WhatsApp** memuat turun PDF resit serentak (butang **Kongsi PDF** pada peranti menyokong Web Share); pautan **Panduan Pengguna (PDF)** ditambah pada bar atas, footer dan halaman log masuk. |
 | 18 Okt 2026 | Panduan Pengguna & Panduan Teknikal (dokumen ini) diterbitkan bersama tangkapan skrin. |
 
 **Sisa pilihan (tidak menjejaskan sistem):** akaun GitHub lama `srpk2026` (tiada repositori) dan pengguna Cloudflare lama `srpk2026` (tiada akaun) masih wujud; boleh dipadamkan oleh pemiliknya pada bila-bila masa.

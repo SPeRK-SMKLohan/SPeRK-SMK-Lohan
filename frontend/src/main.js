@@ -85,7 +85,10 @@ function layoutHtml(path) {
           <span class="brand-badge"><img class="brand-logo" src="/logo.svg" alt="" /></span>
           <span class="brand-name">${APP_NAME} SMK Lohan</span>
         </a>
-        <nav class="nav" aria-label="Navigasi utama">${NAV.map(navItem).join("")}</nav>
+        <nav class="nav" aria-label="Navigasi utama">${NAV.map(navItem).join("")}
+          <a class="nav-link" href="/panduan/Panduan_Pengguna_SPeRK.pdf" target="_blank"
+             rel="noopener" title="Panduan Pengguna SPeRK (PDF)">Panduan</a>
+        </nav>
         <div class="topbar-user">
           <span class="who">${esc(currentEmail())}</span>
           <button id="logout" class="btn small" type="button">Log Keluar</button>
@@ -96,7 +99,8 @@ function layoutHtml(path) {
     <footer class="footer no-print">
       <div class="footer-in">
         <span>© ${new Date().getFullYear()} SMK Lohan, Ranau, Sabah. Hak Cipta Terpelihara.</span>
-        <span>Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK)</span>
+        <span>Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK) ·
+          <a href="/panduan/Panduan_Pengguna_SPeRK.pdf" target="_blank" rel="noopener">Panduan Pengguna (PDF)</a></span>
       </div>
     </footer>`;
 }

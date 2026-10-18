@@ -70,6 +70,10 @@ kod kongsi dalam `shared/`.
 | [Dokumentasi Projek](docs/Dokumentasi_SPeRK_SMK_Lohan.md) | Latar belakang & perancangan | Markdown |
 | [Reka Bentuk UI/UX](docs/Reka_Bentuk_UI-UX_SPeRK.md) | Sistem reka bentuk | Markdown |
 
+> Panduan Pengguna juga boleh dibuka terus dalam aplikasi —
+> <https://sperk.smk-lohan.workers.dev/panduan/Panduan_Pengguna_SPeRK.pdf>
+> (pautan **Panduan** pada bar navigasi atas, footer, dan halaman log masuk).
+
 ## Nama teknikal
 
 - Worker API: `sperk-smk-lohan-api` —

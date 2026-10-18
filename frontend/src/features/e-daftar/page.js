@@ -1,4 +1,4 @@
-import { schools, tingkatanOptions, okuOptions, registrationStatusOptions } from "./constants.js";
+import { schools, tingkatanOptions, okuOptions, registrationStatusOptions, transferReasons } from "./constants.js";
 import {
   createStudent, getStudent, searchStudents, setStudentStatus, updateStudent,
 } from "./api.js";
@@ -121,10 +121,13 @@ export function renderEDaftar(root) {
               <input id="f-transfer-school" class="input" type="text" maxlength="100" autocomplete="off">
             </label>
             <label>Sebab
-              <input id="f-transfer-reason" class="input" type="text" maxlength="200" autocomplete="off">
+              <select id="f-transfer-reason" class="input">
+                <option value="">— Pilih sebab —</option>
+                ${transferReasons.map((r) => `<option value="${esc(r.value)}">${esc(r.value)}</option>`).join("")}
+              </select>
             </label>
-            <label class="full">Catatan
-              <input id="f-transfer-notes" class="input" type="text" maxlength="300" autocomplete="off">
+            <label class="full">Catatan (diisi automatik mengikut sebab — boleh diedit)
+              <textarea id="f-transfer-notes" class="input" maxlength="300" rows="2"></textarea>
             </label>
             <p class="muted full">Murid yang hadir pada hari pendaftaran tetap dikira
               <strong>sudah daftar</strong>, walaupun memohon penempatan semula.</p>
@@ -147,6 +150,8 @@ export function renderEDaftar(root) {
   const saveBtn = root.querySelector("#save");
   const transferToggle = root.querySelector("#f-transfer");
   const transferBox = root.querySelector("#transfer-box");
+  const transferReasonEl = root.querySelector("#f-transfer-reason");
+  const transferNotesEl = root.querySelector("#f-transfer-notes");
 
   const qEl = root.querySelector("#q");
   const schoolEl = root.querySelector("#school");
@@ -435,6 +440,26 @@ export function renderEDaftar(root) {
     transferBox.classList.toggle("hidden", !on);
   }
 
+  // Sebab dipilih daripada senarai rasmi. Rekod lama (teks bebas) tetap
+  // dipaparkan sebagai pilihan tambahan supaya tidak hilang semasa dikemas kini.
+  function setTransferReason(value) {
+    const v = value ?? "";
+    for (const o of transferReasonEl.querySelectorAll("option[data-legacy]")) o.remove();
+    if (v && !transferReasons.some((r) => r.value === v)) {
+      const o = document.createElement("option");
+      o.value = v;
+      o.textContent = `${v} (rekod lama)`;
+      o.dataset.legacy = "1";
+      transferReasonEl.appendChild(o);
+    }
+    transferReasonEl.value = v;
+  }
+
+  transferReasonEl.addEventListener("change", () => {
+    const found = transferReasons.find((r) => r.value === transferReasonEl.value);
+    if (found) transferNotesEl.value = found.notes; // catatan masih boleh diedit
+  });
+
   function resetForm() {
     editingId = null;
     form.reset();
@@ -455,8 +480,8 @@ export function renderEDaftar(root) {
       setRadio("oku", student.oku === true ? "true" : student.oku === false ? "false" : "");
       setRadio("status", student.registrationStatus);
       root.querySelector("#f-transfer-school").value = student.transferSchool;
-      root.querySelector("#f-transfer-reason").value = student.transferReason;
-      root.querySelector("#f-transfer-notes").value = student.transferNotes;
+      setTransferReason(student.transferReason);
+      transferNotesEl.value = student.transferNotes;
       showTransfer(Boolean(student.transferSchool || student.transferReason || student.transferNotes));
     } else {
       root.querySelector("#f-tingkatan").value = filters.tingkatan || "1";
@@ -495,8 +520,8 @@ export function renderEDaftar(root) {
       oku: checkedRadio("oku") === "true",
       registrationStatus: checkedRadio("status") || "BELUM",
       transferSchool: transfer ? transferSchool : "",
-      transferReason: transfer ? root.querySelector("#f-transfer-reason").value.trim() : "",
-      transferNotes: transfer ? root.querySelector("#f-transfer-notes").value.trim() : "",
+      transferReason: transfer ? transferReasonEl.value.trim() : "",
+      transferNotes: transfer ? transferNotesEl.value.trim() : "",
     };
 
     const updating = Boolean(editingId);

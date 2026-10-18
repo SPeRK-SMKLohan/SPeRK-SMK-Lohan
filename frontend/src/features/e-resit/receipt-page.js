@@ -1,6 +1,6 @@
 import { getReceipt } from "./api.js";
 import { receiptHtml, whatsappText } from "./receipt-view.js";
-import { downloadReceiptPdf } from "./pdf.js";
+import { buildReceiptPdfBlob, downloadReceiptPdf, receiptPdfName } from "./pdf.js";
 import { esc } from "../../shared/dom.js";
 
 // Mengembalikan "" (tiada nombor), nombor antarabangsa tanpa +, atau null jika tidak sah.
@@ -40,16 +40,28 @@ export async function renderReceiptDetail(root, id) {
       <aside class="no-print">
         <section class="card">
           <h2>Kongsi melalui WhatsApp</h2>
-          <p class="muted">Nombor telefon penerima adalah pilihan. Jika dikosongkan, WhatsApp akan
-            membenarkan anda memilih penerima. Nombor tidak disimpan. No. IC tidak dimasukkan dalam mesej.</p>
+          <p class="muted">Mesej ringkasan disediakan automatik (tanpa No. IC; nombor telefon tidak
+            disimpan). WhatsApp tidak membenarkan PDF dilampirkan secara automatik — tandakan kotak
+            di bawah untuk muat turun PDF resit, kemudian lampirkan fail itu dalam WhatsApp.</p>
           <div class="toolbar">
             <input id="wa-phone" class="input" type="tel" placeholder="Contoh: 012-3456789" autocomplete="off">
             <button id="wa" class="btn wa" type="button">Buka WhatsApp</button>
+            <button id="wa-share" class="btn" type="button" hidden>Kongsi PDF (peranti)</button>
           </div>
-          <p id="wa-msg" class="error"></p>
+          <label class="inline"><input id="wa-pdf" type="checkbox" checked>
+            Muat turun PDF resit supaya boleh dilampirkan</label>
+          <p id="wa-msg" class="muted" role="status"></p>
         </section>
       </aside>
     </div>`;
+
+  const waMsg = root.querySelector("#wa-msg");
+  const waPhone = root.querySelector("#wa-phone");
+  const waPdf = root.querySelector("#wa-pdf");
+  const setWaMsg = (kind, text) => {
+    waMsg.className = kind;
+    waMsg.textContent = text;
+  };
 
   root.querySelector("#print").addEventListener("click", () => window.print());
 
@@ -71,14 +83,71 @@ export async function renderReceiptDetail(root, id) {
   });
 
   root.querySelector("#wa").addEventListener("click", () => {
-    const msg = root.querySelector("#wa-msg");
-    const number = whatsappNumber(root.querySelector("#wa-phone").value);
+    const number = whatsappNumber(waPhone.value);
     if (number === null) {
-      msg.textContent = "Nombor telefon tidak sah. Gunakan format seperti 012-3456789.";
+      setWaMsg("error", "Nombor telefon tidak sah. Gunakan format seperti 012-3456789.");
       return;
     }
-    msg.textContent = "";
+
+    // Buka WhatsApp dahulu, dalam pengendali klik yang sama (elak sekatan pop-up).
     const url = `https://wa.me/${number}?text=${encodeURIComponent(whatsappText(r))}`;
     window.open(url, "_blank", "noopener");
+
+    if (!waPdf.checked) {
+      setWaMsg("muted", "");
+      return;
+    }
+
+    setWaMsg("muted", "Menyediakan PDF resit...");
+    downloadReceiptPdf(r)
+      .then(() =>
+        setWaMsg(
+          "notice ok",
+          `PDF ${receiptPdfName(r)} telah dimuat turun. Dalam WhatsApp, tekan 📎 (Lampiran) →
+           Dokumen → pilih fail tersebut untuk dilampirkan pada mesej.`
+        )
+      )
+      .catch((err) => {
+        console.error(err);
+        setWaMsg("error", 'PDF gagal dijana. Gunakan butang "Muat turun PDF" di atas, kemudian cuba lagi.');
+      });
   });
+
+  // Perkongsian fail terus (Android/iOS atau peranti yang menyokong Web Share API):
+  // mesej + PDF dihantar sekali gus ke WhatsApp melalui lembaran kongsi sistem.
+  const shareBtn = root.querySelector("#wa-share");
+  let shareSupported = false;
+  try {
+    shareSupported = Boolean(
+      navigator.canShare &&
+        navigator.canShare({
+          files: [new File([new Blob(["x"], { type: "application/pdf" })], "resit.pdf", { type: "application/pdf" })],
+        })
+    );
+  } catch {
+    shareSupported = false;
+  }
+
+  if (shareSupported) {
+    shareBtn.hidden = false;
+    shareBtn.addEventListener("click", async () => {
+      shareBtn.disabled = true;
+      setWaMsg("muted", "Menyediakan PDF resit...");
+      try {
+        const blob = await buildReceiptPdfBlob(r);
+        const file = new File([blob], receiptPdfName(r), { type: "application/pdf" });
+        await navigator.share({ files: [file], text: whatsappText(r), title: receiptPdfName(r) });
+        setWaMsg("muted", "");
+      } catch (err) {
+        if (err?.name !== "AbortError") {
+          console.error(err);
+          setWaMsg("error", 'Perkongsian gagal. Gunakan butang "Muat turun PDF" sebagai ganti.');
+        } else {
+          setWaMsg("muted", "");
+        }
+      } finally {
+        shareBtn.disabled = false;
+      }
+    });
+  }
 }

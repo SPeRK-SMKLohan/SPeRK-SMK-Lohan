@@ -365,7 +365,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* ---------------- Dialog borang (e-Daftar) ---------------- */
 .modal {
-  width: min(760px, 94vw); padding: 0; overflow: hidden;
+  width: min(760px, 94vw); padding: 0; overflow: auto; max-height: 92vh;
   border: none; border-radius: 16px; background: var(--surface);
   box-shadow: var(--shadow-modal);
 }
@@ -373,6 +373,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .modal > form { padding: 24px 28px 0; }
 .modal::backdrop { background: rgba(9, 21, 37, .45); backdrop-filter: blur(4px); }
 .modal .toolbar {
+  position: sticky; bottom: 0; z-index: 1;
   margin: 22px -28px 0; padding: 16px 28px;
   background: var(--surface-low); border-radius: 0 0 16px 16px;
   justify-content: flex-end;
@@ -384,6 +385,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .form-grid > .full { grid-column: 1 / -1; }
 .form-grid label { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--text-primary); }
 .form-grid .input { width: 100%; margin-top: 6px; }
+.form-grid textarea.input { padding: 10px 14px; line-height: 1.5; resize: vertical; }
 .form-grid label.inline { display: flex; gap: 10px; align-items: center; font-size: .875rem; font-weight: 400; letter-spacing: 0; }
 .radio-group {
   border: none; border-radius: var(--radius-card);
@@ -548,6 +550,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .login-card label .input { width: 100%; margin-top: 6px; }
 .login-card .error { text-align: left; }
 .login-card .btn.block { margin-top: 4px; }
+.login-card .login-guide { margin: 14px 0 0; font-size: .8125rem; text-align: center; }
 
 /* ---------------- Maklum balas pantas dengan "Batal" ---------------- */
 .toast-wrap {
