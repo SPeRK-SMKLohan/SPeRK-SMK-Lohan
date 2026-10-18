@@ -108,6 +108,7 @@ Halaman e-Daftar (`Papan Pemuka › e-Daftar › Pendaftaran`) dioptimumkan seba
 - Taip nama atau sebahagian No. IC dalam kotak carian (contoh: `ahmad 140512`). Senarai akan ditapis secara automatik.
 - Pintasan papan kekunci: tekan **`/`** pada papan kekunci untuk terus meletakkan kursor dalam kotak carian.
 - Butang **Muat semula** (↻) menyegarkan senarai. Senarai juga dikemas kini secara automatik setiap 30 saat supaya kaunter lain nampak data terkini.
+- Senarai dipaparkan **50 baris setiap halaman** — gunakan butang **‹ Sebelumnya** / **Seterusnya ›** di bawah jadual untuk ke halaman berikutnya.
 
 ### 4.2 Menanda kehadiran (satu ketukan)
 
@@ -146,6 +147,28 @@ Tekan **Simpan** untuk menyimpan, **Kosongkan borang** untuk memulakan semula, a
 - Butang **Semua status** / **Sudah daftar** / **Belum daftar** menapis mengikut status kehadiran.
 - Menu **Semua sekolah rendah** menapis mengikut sekolah rendah asal.
 - Lajur **Penempatan Semula** pada jadual menunjukkan nama sekolah yang dipohon (jika ada).
+
+### 4.5 Memadam murid (satu)
+
+> **Amaran: pemadaman adalah KEKAL.** Tiada butang "undur" — pemulihan hanya boleh dibuat melalui sandaran sistem oleh pentadbir.
+
+1. Tekan butang **Padam** (merah) pada baris murid yang hendak dipadam.
+2. Dialog **Padam murid** memaparkan nama murid dan amaran pemadaman kekal.
+3. Masukkan **kata laluan akaun anda** (kata laluan yang sama untuk log masuk) dan tekan **Padam Kekal**.
+4. Jika kata laluan salah, ralat dipaparkan dan tiada apa-apa dipadam.
+
+Selepas dipadam, murid hilang daripada senarai. No. IC yang sama boleh diimport semula kemudian jika perlu. Resit lama masih memaparkan nama murid seperti sedia ada.
+
+### 4.6 Memadam beberapa murid serentak (pilihan)
+
+1. Tandakan kotak semak pada baris yang hendak dipadam — atau gunakan kotak di **kepala jadual** untuk memilih semua murid dalam halaman semasa.
+2. Bar alat **Padam Terpilih** muncul di atas jadual dengan bilangan dipilih. Tekan **Pilih kosongkan** untuk membatalkan semua pilihan.
+3. Tekan **Padam Terpilih**, semak bilangan dalam dialog, masukkan kata laluan, kemudian tekan **Padam Semua Terpilih**.
+4. **Had: 200 murid setiap satu tindakan.** Jika perlu memadam lebih, ulangi mengikut kumpulan.
+
+### 4.7 Nama murid dalam HURUF BESAR
+
+Semua nama murid dipaparkan dalam **HURUF BESAR** — pada senarai e-Daftar, carian e-Resit, resit (skrin dan PDF) serta mesej WhatsApp. Ini hanya kesan paparan: data disimpan seperti yang diimport atau ditaip, dan carian tetap berfungsi sama ada anda menaip huruf kecil atau besar.
 
 ---
 

@@ -27,7 +27,7 @@ Dokumen dalaman untuk pentadbir sistem dan penyelenggara.
 9. [Pengurusan pengguna dan keselamatan](#9-pengurusan-pengguna-dan-keselamatan)
 10. [Sandaran dan pemulihan data](#10-sandaran-dan-pemulihan-data)
 11. [Pemantauan dan penyelesaian masalah](#11-pemantauan-dan-penyelesaian-masalah)
-12. [Kos dan had pelan percuma](#12-kos-dan-had-pelan-percuma)
+12. [Kapasiti, had dan kos](#12-kapasiti-had-dan-kos)
 13. [Sejarah migrasi dan rekod perubahan](#13-sejarah-migrasi-dan-rekod-perubahan)
 
 ---
@@ -246,16 +246,24 @@ Semua laluan selain `/api/health` memerlukan `Authorization: Bearer <Firebase ID
 | GET | `/api/health` | Semak kesihatan worker (awam). |
 | GET | `/api/me` | E-mel pengguna yang disahkan. |
 | GET | `/api/dashboard` | Statistik gabungan e-Daftar + e-Resit. |
-| GET | `/api/students` | Senarai/carian murid (`q`, `tingkatan`, `status`, `school`, `limit`). |
+| GET | `/api/students` | Senarai/carian murid — 50 baris/halaman (`q`, `tingkatan`, `status`, `school`, `offset`, `limit`); respons termasuk `students[]`, `total`, `hasMore`. |
 | POST | `/api/students` | Tambah murid baharu. |
 | GET | `/api/students/:id` | Butiran murid. |
 | PUT | `/api/students/:id` | Kemas kini murid (hanya medan yang dihantar). |
+| DELETE | `/api/students/:id` | Padam kekal satu murid. Klien mengesahkan kata laluan akaun melalui Firebase dahulu (kata laluan tidak dihantar ke API pelayan). |
+| DELETE | `/api/students/bulk` | Padam kekal banyak murid — badan `{ "ids": [...] }`, maksimum 200 ID, satu commit atomik. Laluan ini disemak **sebelum** pola `/api/students/:id`. |
 | POST | `/api/students/:id/status` | Tanda/batal daftar (`registrationStatus`). |
 | POST | `/api/students/import` | Import senarai murid (JSON baris daripada fail Excel). |
 | GET | `/api/items` | Senarai barangan. |
 | GET | `/api/receipts` | Senarai resit (`q`, `from`, `to`, `limit`). |
 | POST | `/api/receipts` | Jana resit (`requestId`, `studentId`, `paymentMethod`, `bankRef?`, `lines[]`). |
 | GET | `/api/receipts/:id` | Butiran satu resit. |
+
+Nota penting:
+
+- **Paginasi:** `offset` (lalai 0) + `limit` (lalai 50, maksimum 200) mengehadkan payload kepada satu halaman (≈400 murid kini 6–8 halaman). Carian nama/IC dijalankan atas senarai penuh yang dicache — padanan tepat **tanpa** indeks Firestore tambahan.
+- **Pemadaman adalah kekal:** pelayan tiada mekanisme *soft-delete*; pemulihan hanya melalui sandaran (§10). Resit lama kekal memaparkan nama murid (snapshot) walaupun rekod murid dipadam.
+- **Nama HURUF BESAR:** semua respons menormalkan nama murid kepada HURUF BESAR (`publicStudent` dan `receiptSummary`) — paparan sahaja; data disimpan seperti diimport/ditaip.
 
 Cuba cepat selepas deploy:
 
@@ -399,11 +407,53 @@ Skrip semakan/sandaran boleh diletakkan dalam folder alat tempatan (tidak di-com
 | Laman putih selepas deploy | `dist/` kosong (build gagal) | Jalankan `npm run build` semula, deploy. |
 | Deploy menuju akaun salah | Wrangler log masuk sebagai akaun peribadi | `npx wrangler login` sebagai `sperk.smklohan@gmail.com`; pastikan `account_id` kekal dipin. |
 | "Resit mungkin telah disimpan" semasa simpan | Sambungan terputus selepas simpan berjaya (perlindungan idempotensi) | Buka **Sejarah Resit** — jangan jana semula. |
-| Papan Pemuka menunjukkan angka lama | Cache 30-anit murid dalam worker | Tunggu sebentar, muat semula halaman. |
+| Papan Pemuka menunjukkan angka lama | Cache murid (60 saat) dan papan pemuka (30 saat) dalam worker | Tunggu sebentar, muat semula halaman. |
 
 ---
 
-## 12. Kos dan had pelan percuma
+## 12. Kapasiti, had dan kos
+
+### 12.1 Kapasiti direka
+
+Skala rasmi untuk hari pendaftaran (anggaran 300–400 murid, 30–40 peranti serentak):
+
+| Parametra | Kapasiti direka | Catatan |
+|---|---|---|
+| Murid aktif | 300–400 (import maksimum 2,000 baris sekali gus) | Senarai dipaparkan 50 baris/halaman; cache memegang senarai penuh (~160 KB untuk 400 murid). |
+| Peranti serentak | 30–40 peranti | Setiap peranti menyemak senarai setiap 30 saat; cache senarai dikongsi antara isolate dalam rantau (PoP) yang sama. |
+| Anggaran permintaan | ≤ ~40,000/hari (40 peranti × 30 saat × 8 jam + tindakan kaunter) | Di bawah had Cloudflare Free (~100,000/hari). |
+| Masa muatan disasarkan | <1–2 saat selepas cache panas; muatan sejuk pertama 3–5 saat | Muatan sejuk menarik kunci Google + soalan penuh + render sekali sahaja. |
+
+Apabila melebihi kapasiti direka (melebihi ~1,000 murid atau ~50 peranti), sistem masih berfungsi tetapi pertimbangkan: indeks komposit Firestore, cache merentas rantau (Cloudflare KV / Workers DO), dan carian berindeks.
+
+### 12.2 Had operasi
+
+| Had | Nilai | Sebab / catatan |
+|---|---|---|
+| Badan permintaan borang | 20 KB | Perlindungan `readJson`. |
+| Badan import | 1 MB / 2,000 baris / fail ≤2 MB | Pecahkan fail besar kepada beberapa import. |
+| Halaman senarai murid | 50 baris (lalai), maksimum 200 | Parameter `offset` + `limit`. |
+| Padam pilihan (bulk) | 200 ID setiap panggilan | Firestore had 500 tulisan/commit; ulangi mengikut kumpulan. |
+| Padam murid | **Kekal** — tiada fungsi "undur" | Sandaran (§10) ialah satu-satunya pemulihan. |
+| Baris resit | 1–30 item; kuantiti 1–99 | Pengesahan `validateBody`. |
+| Senarai resit | had 100 (lalai), maksimum 200 | Parameter `limit`. |
+| Kiraan hari papan pemuka | maksimum 500 resit sehari | Melebihi had, angka hari ini mungkin terlebih. |
+| Kesegaran antara peranti | ≤ 60 saat | Cache murid 60 saat; tulisan membersihkan cache segerak, tetapi isolate lain mungkin kekal sehingga TTL berakhir. |
+| Carian nama/IC | Padanan "setiap perkataan" atas senarai penuh dalam memori | Tiada carian penuh teks (full-text) Firestore. |
+| Nama murid | Dipaparkan **HURUF BESAR** di semua skrin, resit, PDF, WhatsApp | Paparan sahaja; data disimpan seperti diimport. |
+| Akaun pengguna | Senarai benar `ALLOWED_EMAILS` (e-mel sahaja) | Tiada peranan/pengguna biasa — semua akaun yang dibenarkan mempunyai akses penuh. |
+
+### 12.3 Cache dan kesegaran data
+
+| Lapisan | TTL | Skop |
+|---|---|---|
+| Senarai murid (memori + Cache API) | 60 saat | Per-PoP; dibersihkan segerak oleh sebarang tulisan murid (tambah/kemas kini/padam). |
+| Papan pemuka | 30 saat | Per-PoP. |
+| Token Google (akses Firestore) | 1 jam | Per-isolate; dipra-ambil pada permintaan awal. |
+| Token pengguna (JWT) | 5 minit | Per-isolate; pengesahan ulangan dilangkau. |
+| Auto-segar senarai e-Daftar | 30 saat | Per-peranti (dihentikan semasa menaip atau dialog terbuka). |
+
+### 12.4 Kos dan had pelan percuma
 
 Sistem ini direka supaya kekal dalam pelan percuma untuk skala sebuah sekolah:
 
@@ -428,6 +478,10 @@ Sistem ini direka supaya kekal dalam pelan percuma untuk skala sebuah sekolah:
 | 18 Okt 2026 | Reka bentuk UI "Warm Slate" dimuktamadkan dan didokumentasikan (`docs/Reka_Bentuk_UI-UX_SPeRK.md`). |
 | 18 Okt 2026 | Penempatan semula: **Sebab** kini senarai pilihan rasmi dengan **autofill Catatan**; **Kongsi WhatsApp** memuat turun PDF resit serentak (butang **Kongsi PDF** pada peranti menyokong Web Share); pautan **Panduan Pengguna (PDF)** ditambah pada bar atas, footer dan halaman log masuk. |
 | 18 Okt 2026 | Panduan Pengguna & Panduan Teknikal (dokumen ini) diterbitkan bersama tangkapan skrin. |
+| 18 Okt 2026 | **Padam murid**: butang **Padam** pada setiap baris e-Daftar + dialog pengesahan **kata laluan akaun** (disahkan melalui Firebase — kata laluan tidak dihantar ke API pelayan). Pemadaman **kekal**; `DELETE /api/students/:id`. |
+| 18 Okt 2026 | **Padam pilihan (bulk)**: kotak semak setiap baris + "Pilih semua" + toolbar **Padam Terpilih** — maksimum 200 ID dalam satu commit atomik, pengesahan kata laluan; `DELETE /api/students/bulk` (laluan disemak sebelum pola `:id`). |
+| 18 Okt 2026 | **Nama murid HURUF BESAR** pada semua skrin, resit, PDF dan mesej WhatsApp (normakan pada lapisan API — paparan sahaja, tiada migrasi data). |
+| 18 Okt 2026 | **Prestasi produksi**: senarai murid dipaparkan 50 baris/halaman (`offset` + `hasMore`); cache JWT pengguna 5 minit; cache papan pemuka 15→30 saat; resit papan pemuka diambil dengan `select` medan terpilih (dokumen ≤1 KiB dikenakan separuh bacaan Firestore). |
 | 18 Okt 2026 | Kemasan UI/UX: bar atas satu baris dengan logo dipotong rapat (tanpa bulatan); menu lungsur boleh dibaca; Papan Pemuka tanpa panel *Kemajuan Hari Pendaftaran*; halaman e-Daftar dinyahsesak (kad statistik, bar kemajuan dan notis bawah senarai dibuang; e-mel penanda tidak lagi dipaparkan); borang murid diratakan (tiada kotak kad dalam borang) dengan radio sejajar; templat import bertanda **(wajib)/(pilihan)** (penghurai mengabaikan penanda ini); fon angka bertukar kepada **Roboto Mono**. Tangkapan skrin manual diambil semula. |
 
 **Sisa pilihan (tidak menjejaskan sistem):** akaun GitHub lama `srpk2026` (tiada repositori) dan pengguna Cloudflare lama `srpk2026` (tiada akaun) masih wujud; boleh dipadamkan oleh pemiliknya pada bila-bila masa.

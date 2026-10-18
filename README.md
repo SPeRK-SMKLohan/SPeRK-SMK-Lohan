@@ -9,6 +9,9 @@ Status: sedia untuk produksi — https://sperk.smk-lohan.workers.dev
 
 - **e-Daftar** — sekolah rendah terdahulu, nama, No. IC, tingkatan, status
   OKU, status daftar (kehadiran hari pendaftaran) dan penempatan semula.
+  Murid boleh **dipadam** — tunggal atau pilihan sehingga 200 serentak —
+  dengan pengesahan kata laluan akaun (pemadaman kekal). Senarai dipaparkan
+  50 baris/halaman; nama murid dipaparkan HURUF BESAR.
   Halaman Pendaftaran dioptimumkan sebagai kaunter hari pendaftaran: cari
   murid, tekan **Tanda daftar** (satu ketukan), dengan pilihan **Batal**
   pada maklum balas; status dipaparkan serta-merta.
