@@ -206,7 +206,7 @@ export async function createStudent(env, user, request) {
     ...registrationTrace(null, parsed.student.registrationStatus, user, now),
   };
   await commit(env, [{ collection: "students", id, data }]);
-  clearStudentsCache();
+  await clearStudentsCache();
   return { student: publicStudent(studentFromDoc({ id, ...data })) };
 }
 
@@ -230,7 +230,7 @@ export async function updateStudent(env, user, id, request) {
     ...registrationTrace(existing.registrationStatus, parsed.student.registrationStatus, user, now),
   };
   await commit(env, [{ collection: "students", id, data, mask: true }]);
-  clearStudentsCache();
+  await clearStudentsCache();
   return { student: publicStudent(studentFromDoc({ id, ...existing, ...data })) };
 }
 
@@ -255,6 +255,6 @@ export async function setRegistrationStatus(env, user, id, request) {
     ...registrationTrace(existing.registrationStatus, status, user, now),
   };
   await commit(env, [{ collection: "students", id, data, mask: true }]);
-  clearStudentsCache();
+  await clearStudentsCache();
   return { student: publicStudent(studentFromDoc({ ...existing, ...data })) };
 }

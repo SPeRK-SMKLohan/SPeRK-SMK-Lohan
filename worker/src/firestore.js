@@ -10,6 +10,7 @@ export const fieldFilter = (field, op, value) => ({
 let cachedAccount = null; // { raw, value }
 let cachedKey = null;
 let cachedToken = null; // { value, expiresAt }
+let pendingToken = null; // Promise token sedang berjalan (dikongsi)
 
 function getServiceAccount(env) {
   const raw = env.FIREBASE_SERVICE_ACCOUNT;
@@ -18,14 +19,14 @@ function getServiceAccount(env) {
     cachedAccount = { raw, value: JSON.parse(raw) };
     cachedKey = null;
     cachedToken = null;
+    pendingToken = null;
   }
   return cachedAccount.value;
 }
 
-async function getAccessToken(env) {
+async function fetchAccessToken(env) {
   const sa = getServiceAccount(env);
   const now = Math.floor(Date.now() / 1000);
-  if (cachedToken && cachedToken.expiresAt - 60 > now) return cachedToken.value;
 
   cachedKey ??= await importPKCS8(sa.private_key, "RS256");
   const assertion = await new SignJWT({ scope: "https://www.googleapis.com/auth/datastore" })
@@ -50,6 +51,24 @@ async function getAccessToken(env) {
 
   cachedToken = { value: data.access_token, expiresAt: now + (data.expires_in || 3600) };
   return cachedToken.value;
+}
+
+async function getAccessToken(env) {
+  const now = Math.floor(Date.now() / 1000);
+  if (cachedToken && cachedToken.expiresAt - 60 > now) return cachedToken.value;
+
+  // Kongsi satu permintaan token sahaja walaupun banyak permintaan serentak
+  // pada isolate yang sejuk.
+  pendingToken ??= fetchAccessToken(env).finally(() => {
+    pendingToken = null;
+  });
+  return pendingToken;
+}
+
+// Mula ambil token Google lebih awal supaya ia berjalan selari dengan
+// pengesahan token Firebase pengguna (mengurangkan latensi permintaan pertama).
+export function prefetchAccessToken(env) {
+  getAccessToken(env).catch(() => {});
 }
 
 /* ---------- Penukaran nilai JS <-> Firestore ---------- */
@@ -136,6 +155,23 @@ export async function getDoc(env, collection, id, transaction) {
 export async function runQuery(env, structuredQuery) {
   const results = await fsRequest(env, ":runQuery", { body: { structuredQuery } });
   return results.filter((r) => r.document).map((r) => fromDoc(r.document));
+}
+
+// Agregasi (count/sum) jauh lebih murah daripada membaca setiap dokumen:
+// Firestore mengenakan satu bacaan bagi setiap 1,000 dokumen yang diagregatkan.
+// aggregations: [{ alias: "jumlah", sum: { field: { fieldPath: "totalSen" } } }]
+export async function runAggregation(env, structuredQuery, aggregations) {
+  const results = await fsRequest(env, ":runAggregationQuery", {
+    body: { structuredAggregationQuery: { structuredQuery, aggregations } },
+  });
+  const fields = results.find((r) => r.result)?.result?.aggregateFields ?? {};
+  const out = {};
+  for (const [alias, value] of Object.entries(fields)) {
+    if (value.integerValue !== undefined) out[alias] = Number(value.integerValue);
+    else if (value.doubleValue !== undefined) out[alias] = Number(value.doubleValue);
+    else out[alias] = 0;
+  }
+  return out;
 }
 
 // refs: [{ collection, id }] -> Map("collection/id" -> dokumen)

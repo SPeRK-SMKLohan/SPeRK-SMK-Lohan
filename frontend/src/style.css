@@ -3,23 +3,25 @@
    Fon: Plus Jakarta Sans (tajuk) + Inter (teks/UI). Dihoskan sendiri.
    Palet: Indigo Slate (#1E2A3A) + Terracotta (#8C322A).
    ============================================================ */
+/* Fail WOFF2 (subhimpunan Latin) jauh lebih kecil daripada TTF asal,
+   jadi halaman dimuatkan lebih pantas dalam rangkaian sekolah. */
 @font-face {
   font-family: "Plus Jakarta Sans";
-  src: url("/fonts/PlusJakartaSans-Variable.ttf") format("truetype");
+  src: url("/fonts/PlusJakartaSans-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Inter";
-  src: url("/fonts/Inter-Variable.ttf") format("truetype");
+  src: url("/fonts/Inter-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Roboto Mono";
-  src: url("/fonts/RobotoMono-Variable.ttf") format("truetype");
+  src: url("/fonts/RobotoMono-Variable.woff2") format("woff2");
   font-weight: 100 700;
   font-style: normal;
   font-display: swap;

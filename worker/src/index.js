@@ -6,6 +6,7 @@ import {
 } from "./features/e-daftar/students.js";
 import { listItems } from "./features/e-resit/items.js";
 import { createReceipt, getReceipt, listReceipts } from "./features/e-resit/receipts.js";
+import { prefetchAccessToken } from "./firestore.js";
 import { HttpError } from "./util.js";
 
 /* SPeRK (Sistem Pengurusan Pelajar dan Resit Koperasi) SMK Lohan.
@@ -83,6 +84,9 @@ export default {
 
     // Semua laluan /api/ lain dilindungi secara lalai.
     if (url.pathname.startsWith("/api/")) {
+      // Ambil token Google lebih awal (selari dengan pengesahan token pengguna).
+      prefetchAccessToken(env);
+
       const auth = await authenticate(request, env);
       if (!auth.ok) return json({ error: auth.error }, auth.status);
 

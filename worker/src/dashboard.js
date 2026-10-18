@@ -5,7 +5,53 @@ import { DAY_MS, myDateKey, myDayStart } from "./util.js";
 
 /* ---------- Papan Pemuka: statistik kedua-dua ciri ---------- */
 
+// Cache pendek (15 saat) supaya ramai peranti yang membuka papan pemuka pada
+// masa yang sama tidak mencetuskan bacaan Firestore berulang. Cache API
+// dikongsi antara isolate dalam PoP yang sama.
+const DASHBOARD_TTL_MS = 15_000;
+const DASHBOARD_CACHE_KEY = "https://sperk-cache.internal/dashboard";
+const dashboardCacheRequest = () => new Request(DASHBOARD_CACHE_KEY);
+let dashboardCache = { at: 0, data: null };
+let dashboardPending = null;
+
 export async function getDashboard(env) {
+  if (dashboardCache.data && Date.now() - dashboardCache.at < DASHBOARD_TTL_MS) {
+    return dashboardCache.data;
+  }
+  if (dashboardPending) return dashboardPending;
+
+  dashboardPending = (async () => {
+    try {
+      try {
+        const hit = await caches.default.match(dashboardCacheRequest());
+        if (hit) {
+          const data = await hit.json();
+          dashboardCache = { at: Date.now(), data };
+          return data;
+        }
+      } catch {
+        /* Teruskan kiraan jika Cache API gagal. */
+      }
+
+      const data = await computeDashboard(env);
+      dashboardCache = { at: Date.now(), data };
+      try {
+        await caches.default.put(
+          dashboardCacheRequest(),
+          Response.json(data, { headers: { "Cache-Control": "max-age=15" } })
+        );
+      } catch {
+        /* Simpanan cache gagal: data tetap dikembalikan. */
+      }
+      return data;
+    } finally {
+      dashboardPending = null;
+    }
+  })();
+  return dashboardPending;
+}
+
+async function computeDashboard(env) {
   const start = myDayStart(myDateKey());
   const end = new Date(start.getTime() + DAY_MS);
 

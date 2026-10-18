@@ -118,7 +118,7 @@ export async function importStudents(env, user, request) {
     }
   } catch (err) {
     console.error(err);
-    clearStudentsCache();
+    await clearStudentsCache();
     throw new HttpError(
       500,
       imported
@@ -127,7 +127,7 @@ export async function importStudents(env, user, request) {
     );
   }
 
-  clearStudentsCache();
+  await clearStudentsCache();
 
   // Rekod ringkas import (tidak menghentikan import jika gagal).
   try {
