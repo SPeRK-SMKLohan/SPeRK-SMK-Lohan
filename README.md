@@ -54,7 +54,8 @@ kod kongsi dalam `shared/`.
   - `src/features/e-resit/`: API barangan dan resit
   - `src/shared/students.js`: lapisan data murid yang dikongsi
   - `src/dashboard.js`: statistik papan pemuka (kedua-dua ciri)
-- `docs/`: dokumentasi perancangan
+- `docs/`: dokumentasi perancangan dan reka bentuk UI/UX
+  (`Dokumentasi_SPeRK_SMK_Lohan.md`, `Reka_Bentuk_UI-UX_SPeRK.md`)
 
 ## Nama teknikal
 
