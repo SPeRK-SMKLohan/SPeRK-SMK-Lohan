@@ -107,9 +107,9 @@ aplikasi SPeRK, berkongsi satu pangkalan data murid:
 -   `worker/src/dashboard.js` — statistik papan pemuka (kedua-dua ciri)
 
 Nama teknikal: Worker Cloudflare `sperk-smk-lohan-api` dan repositori
-`sperk-smk-lohan`. Projek Firebase dikekalkan sebagai
-`resit-koperasi-lohan` kerana penukaran nama projek memerlukan migrasi
-data.
+`SPeRK-SMK-Lohan` (https://github.com/SPeRK-SMKLohan/SPeRK-SMK-Lohan).
+Projek Firebase `sperk-smk-lohan` (akaun `sperk.smklohan@gmail.com`) —
+migrasi penuh daripada akaun lama pada 18 Oktober 2026.
 
 ## 4. Ciri-ciri sistem
 

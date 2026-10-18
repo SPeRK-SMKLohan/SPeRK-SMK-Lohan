@@ -660,7 +660,7 @@ Row 5: wide data table (horizontal scroll on narrow screens) with headers:
 "Murid | Sekolah Rendah Asal | Status Daftar | Penempatan Semula | Tindakan".
 Row anatomy: bold student name + small tags "T1" and (if applicable) "OKU" +
 masked IC "******-**-1401" below; then former school; then either a green badge
-"✓ Sudah daftar" with small line "09:41 · srpk2026@gmail.com" or a grey badge
+"✓ Sudah daftar" with small line "09:41 · sperk.smklohan@gmail.com" or a grey badge
 "Belum daftar"; then transfer school name or "—"; then row actions: "Butiran"
 and either green "✓ Tanda daftar" or neutral "↩ Batal daftar".
 Rows already registered get a subtle green left edge accent.

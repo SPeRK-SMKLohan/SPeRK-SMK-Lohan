@@ -63,9 +63,9 @@ kod kongsi dalam `shared/`.
   https://sperk-smk-lohan-api.smk-lohan.workers.dev
 - Frontend (fail statik): `sperk` —
   https://sperk.smk-lohan.workers.dev
-- Repositori: `sperk-smk-lohan`
-- Projek Firebase: `resit-koperasi-lohan` (dikekalkan; penukaran nama
-  memerlukan migrasi data)
+- Repositori: https://github.com/SPeRK-SMKLohan/SPeRK-SMK-Lohan
+- Projek Firebase: `sperk-smk-lohan` (akaun `sperk.smklohan@gmail.com`,
+  sejak 18 Oktober 2026)
 
 ## Menjalankan secara tempatan
 
