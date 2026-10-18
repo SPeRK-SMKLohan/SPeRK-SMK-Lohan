@@ -1,5 +1,5 @@
 import "./style.css";
-import { initAuth, isLoggedIn, signOutUser, currentEmail } from "./shared/auth.js";
+import { initAuth, isLoggedIn, signOutUser, currentEmail, getIdToken } from "./shared/auth.js";
 import { esc } from "./shared/dom.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
@@ -200,17 +200,27 @@ async function cleanupLegacySW() {
   }
 }
 
-initAuth().then(async () => {
-  await cleanupLegacySW();
+initAuth().then(() => {
+  // Jangan tahan paparan aplikasi sementara pembersihan SW berjalan.
+  cleanupLegacySW();
 
   // Semak sesi awal: jika token tamat / tidak sah, terus ke log masuk
   // tanpa menunggu panggilan API gagal.
   if (isLoggedIn()) {
-    const user = auth.currentUser;
-    user.getIdToken().catch(() => {
+    getIdToken().catch(() => {
       signOutUser().then(() => { location.hash = "/login"; });
     });
   }
   window.addEventListener("hashchange", render);
   render();
+}).catch((err) => {
+  console.error("Gagal memulakan SPeRK:", err);
+  app.innerHTML = `
+    <main class="page">
+      <section class="card">
+        <h1>Sistem tidak dapat dimulakan</h1>
+        <p class="error">Sambungan pengesahan gagal. Semak sambungan internet dan cuba muat semula halaman.</p>
+        <button class="btn primary" type="button" onclick="location.reload()">Cuba Lagi</button>
+      </section>
+    </main>`;
 });
