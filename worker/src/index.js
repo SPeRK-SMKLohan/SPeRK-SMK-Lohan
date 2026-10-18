@@ -113,6 +113,14 @@ export default {
         if (pathname === "/api/students" && method === "POST") {
           return json(await createStudent(env, auth.user, request), 201);
         }
+        // Padam banyak murid (mesti disemak sebelum pola /api/students/:id).
+        if (pathname === "/api/students/bulk" && method === "DELETE") {
+          const body = await readJson(request);
+          if (!body || !Array.isArray(body.ids)) {
+            throw new HttpError(400, "Sila pilih sekurang-kurangnya satu murid.");
+          }
+          return json(await deleteStudents(env, auth.user, body.ids));
+        }
         const student = pathname.match(/^\/api\/students\/([^/]+)$/);
         if (student && method === "GET") {
           return json(await getStudent(env, decodeURIComponent(student[1])));
@@ -122,13 +130,6 @@ export default {
         }
         if (student && method === "DELETE") {
           return json(await deleteStudent(env, auth.user, decodeURIComponent(student[1])));
-        }
-        if (pathname === "/api/students/bulk" && method === "DELETE") {
-          const body = await readJson(request);
-          if (!body || !Array.isArray(body.ids)) {
-            throw new HttpError(400, "Sila pilih sekurang-kurangnya satu murid.");
-          }
-          return json(await deleteStudents(env, auth.user, body.ids));
         }
         // Tanda kehadiran pantas semasa hari pendaftaran (satu ketukan).
         const studentStatus = pathname.match(/^\/api\/students\/([^/]+)\/status$/);
