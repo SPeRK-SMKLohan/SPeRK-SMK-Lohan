@@ -2,6 +2,8 @@
 # Deploy: npm run build && npx wrangler deploy
 name = "sperk"
 compatibility_date = "2026-10-01"
+# Akaun sekolah (d38ad14997c2236d1875f7289f774025).
+account_id = "d38ad14997c2236d1875f7289f774025"
 
 [assets]
 directory = "./dist"

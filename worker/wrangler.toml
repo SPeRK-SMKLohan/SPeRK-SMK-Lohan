@@ -1,6 +1,9 @@
 name = "sperk-smk-lohan-api"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
+# Akaun sekolah (d38ad14997c2236d1875f7289f774025) — pin supaya deploy
+# tidak tersasar ke akaun peribadi Gmail yang sama.
+account_id = "d38ad14997c2236d1875f7289f774025"
 
 [vars]
 # Projek Firebase baharu (migrasi ke akaun sperk.smklohan@gmail.com, 18 Okt 2026).
