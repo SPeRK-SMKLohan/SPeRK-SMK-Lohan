@@ -186,13 +186,28 @@ function render() {
 
 // Tunggu Firebase memulihkan sesi dahulu, kemudian mulakan aplikasi.
 app.innerHTML = `<p class="muted" style="padding:1rem">Memuatkan...</p>`;
-initAuth().then(() => {
+
+// Bersihkan service worker lama (jika ada) supaya tidak sekat muatan.
+async function cleanupLegacySW() {
+  if (!("serviceWorker" in navigator)) return;
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const reg of regs) {
+      await reg.unregister();
+    }
+  } catch {
+    /* abaikan */
+  }
+}
+
+initAuth().then(async () => {
+  await cleanupLegacySW();
+
   // Semak sesi awal: jika token tamat / tidak sah, terus ke log masuk
   // tanpa menunggu panggilan API gagal.
   if (isLoggedIn()) {
     const user = auth.currentUser;
     user.getIdToken().catch(() => {
-      // Token tamat / tidak boleh diperbaharui → log keluar bersih
       signOutUser().then(() => { location.hash = "/login"; });
     });
   }
