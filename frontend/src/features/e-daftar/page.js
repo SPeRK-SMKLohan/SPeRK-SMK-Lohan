@@ -2,7 +2,7 @@ import { schools, tingkatanOptions, okuOptions, registrationStatusOptions, trans
 import {
   createStudent, getStudent, searchStudents, setStudentStatus, updateStudent,
 } from "./api.js";
-import { esc, formatClock, formatTime } from "../../shared/dom.js";
+import { esc, formatTime } from "../../shared/dom.js";
 import { showToast } from "../../shared/toast.js";
 
 /* Halaman e-Daftar dioptimumkan sebagai kaunter hari pendaftaran:
@@ -13,25 +13,8 @@ export function renderEDaftar(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>e-Daftar</h1>
-      <p class="muted">Cari murid, kemudian tekan <strong>Tanda daftar</strong>. Data ini
-        dikongsi dengan e-Resit Koperasi.</p>
+      <p class="muted">Cari murid, kemudian tekan <strong>Tanda daftar</strong>.</p>
     </div>
-
-    <section class="cards cards-float">
-      <div class="card stat alert"><span>Belum daftar</span><strong id="stat-not">–</strong></div>
-      <div class="card stat"><span>Sudah daftar</span><strong id="stat-done">–</strong></div>
-      <div class="card stat"><span>Didaftarkan hari ini</span><strong id="stat-today">–</strong></div>
-      <div class="card stat"><span>Jumlah murid aktif</span><strong id="stat-total">–</strong></div>
-    </section>
-
-    <section class="card">
-      <div class="progress-row">
-        <div class="progress" role="img" aria-label="Kemajuan pendaftaran">
-          <div class="progress-bar" id="progress-bar" style="width:0%"></div>
-        </div>
-        <span class="muted" id="progress-text">Memuatkan…</span>
-      </div>
-    </section>
 
     <section class="card kaunter-tools">
       <div class="search-row">
@@ -60,8 +43,7 @@ export function renderEDaftar(root) {
       </div>
 
       <p class="muted count-line"><span id="count">Memuatkan…</span>
-        <span id="hint"></span>
-        <span id="updated" class="muted"></span></p>
+        <span id="hint"></span></p>
     </section>
 
     <section class="card">
@@ -72,8 +54,6 @@ export function renderEDaftar(root) {
         </tr></thead>
         <tbody id="rows"><tr><td colspan="5" class="muted">Memuatkan…</td></tr></tbody>
       </table></div>
-      <p class="notice">No. IC dipaparkan separa. Guna <strong>Butiran</strong> untuk
-        membetulkan maklumat atau merekod permohonan penempatan semula.</p>
     </section>
 
     <dialog id="form-dialog" class="modal">
@@ -108,7 +88,7 @@ export function renderEDaftar(root) {
           </fieldset>
 
           <fieldset class="radio-group">
-            <legend>Status daftar (kehadiran hari pendaftaran)</legend>
+            <legend>Status daftar</legend>
             ${registrationStatusOptions.map((o) => `<label class="radio">
               <input type="radio" name="status" value="${o.value}"${o.value === "BELUM" ? " checked" : ""}> ${o.label}
             </label>`).join("")}
@@ -126,7 +106,7 @@ export function renderEDaftar(root) {
                 ${transferReasons.map((r) => `<option value="${esc(r.value)}">${esc(r.value)}</option>`).join("")}
               </select>
             </label>
-            <label class="full">Catatan (diisi automatik mengikut sebab — boleh diedit)
+            <label class="full">Catatan
               <textarea id="f-transfer-notes" class="input" maxlength="300" rows="2"></textarea>
             </label>
             <p class="muted full">Murid yang hadir pada hari pendaftaran tetap dikira
@@ -157,14 +137,7 @@ export function renderEDaftar(root) {
   const schoolEl = root.querySelector("#school");
   const countEl = root.querySelector("#count");
   const hintEl = root.querySelector("#hint");
-  const updatedEl = root.querySelector("#updated");
   const rowsEl = root.querySelector("#rows");
-  const statDone = root.querySelector("#stat-done");
-  const statNot = root.querySelector("#stat-not");
-  const statToday = root.querySelector("#stat-today");
-  const statTotal = root.querySelector("#stat-total");
-  const progressBar = root.querySelector("#progress-bar");
-  const progressText = root.querySelector("#progress-text");
 
   let filters = { tingkatan: "", status: "" };
   let rows = [];
@@ -174,28 +147,12 @@ export function renderEDaftar(root) {
   let busy = 0;
   let timer;
 
-  /* ----- Statistik dan kemajuan ----- */
-  let counts = { done: 0, not: 0, today: 0, total: 0 };
-
-  function renderCounts() {
-    statDone.textContent = counts.done;
-    statNot.textContent = counts.not;
-    statToday.textContent = counts.today;
-    statTotal.textContent = counts.total;
-    const pct = counts.total ? Math.round((counts.done / counts.total) * 100) : 0;
-    progressBar.style.width = `${pct}%`;
-    progressText.innerHTML = `<strong>${pct}% sudah daftar</strong> (${counts.done} daripada ${counts.total} murid)`;
-  }
-
   /* ----- Jadual murid ----- */
   function rowHtml(s) {
     const done = s.registrationStatus === "SUDAH";
     const statusCell = done
       ? `<span class="badge done">✓ Sudah daftar</span>` +
-        (s.registeredAt
-          ? `<br><span class="muted">${esc(formatTime(s.registeredAt))}${
-              s.registeredBy ? ` · ${esc(s.registeredBy)}` : ""}</span>`
-          : "")
+        (s.registeredAt ? `<br><span class="muted">${esc(formatTime(s.registeredAt))}</span>` : "")
       : `<span class="badge">Belum daftar</span>`;
 
     const actions = done
@@ -261,19 +218,11 @@ export function renderEDaftar(root) {
       // Abaikan respons lapuk: carian lebih baharu, atau mutasi berlaku selepas muatan ini mula.
       if (mine !== seq || gen !== mutationGen) return;
       rows = data.students;
-      counts = {
-        done: data.registeredTotal,
-        not: data.notRegisteredTotal,
-        today: data.registeredTodayCount ?? 0,
-        total: data.registeredTotal + data.notRegisteredTotal,
-      };
       renderRows();
       renderHint();
-      renderCounts();
       countEl.textContent = data.total > rows.length
         ? `Menunjukkan ${rows.length} daripada ${data.total} padanan`
         : `${data.total} padanan`;
-      updatedEl.textContent = ` · dikemas kini ${formatClock()}`;
     } catch (err) {
       if (mine !== seq) return;
       countEl.textContent = "";
@@ -282,13 +231,6 @@ export function renderEDaftar(root) {
   }
 
   /* ----- Tanda daftar / batal daftar (dengan undo) ----- */
-  const isToday = (iso) => {
-    const d = new Date(iso);
-    const now = new Date();
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-      && d.getDate() === now.getDate();
-  };
-
   async function setStatus(s, status, { skipConfirm = false } = {}) {
     if (
       status === "BELUM" && !skipConfirm &&
@@ -302,8 +244,6 @@ export function renderEDaftar(root) {
       registeredAt: s.registeredAt,
       registeredBy: s.registeredBy,
     };
-    const wasToday = prev.registrationStatus === "SUDAH" && prev.registeredAt
-      && isToday(prev.registeredAt);
 
     s._pending = true;
     s.registrationStatus = status;
@@ -314,16 +254,6 @@ export function renderEDaftar(root) {
     try {
       const { student } = await setStudentStatus(s.studentId, status);
       Object.assign(s, student); // nilai sebenar daripada pelayan
-      if (status === "SUDAH") {
-        counts.done += 1;
-        counts.not -= 1;
-        counts.today += 1;
-      } else {
-        counts.done -= 1;
-        counts.not += 1;
-        if (wasToday) counts.today -= 1;
-      }
-      renderCounts();
       showToast(
         status === "SUDAH"
           ? `✓ ${s.name} ditanda sudah daftar.`

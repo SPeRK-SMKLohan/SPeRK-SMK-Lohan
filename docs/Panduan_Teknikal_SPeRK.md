@@ -55,7 +55,7 @@ Sistem ini dibina sebagai projek sekolah (bukan komersial). Pentadbir utama pada
 | API | Cloudflare Worker (modul ES) | Worker `sperk-smk-lohan-api` (`worker/`) |
 | Pengesahan pengguna | Firebase Authentication (e-mel/kata laluan) | Projek Firebase `sperk-smk-lohan` |
 | Pangkalan data | Cloud Firestore (mod produksi) | Projek Firebase `sperk-smk-lohan` |
-| Fail statik | `logo.svg`, fon Plus Jakarta Sans & Inter (dihos sendiri), dan salinan PDF Panduan Pengguna | `frontend/public/` → `/dist` |
+| Fail statik | `logo.svg` (resit) dan `logo-nav.svg` (bar navigasi, dipotong rapat tanpa ruang kosong), fon Plus Jakarta Sans, Inter & Roboto Mono (dihos sendiri), dan salinan PDF Panduan Pengguna | `frontend/public/` → `/dist` |
 
 Ciri utama seni bina:
 
@@ -152,7 +152,7 @@ Semua perkhidmatan di bawah dimiliki oleh **satu akaun Gmail rasmi: `sperk.smklo
 sprek-smk-lohan/
 ├─ frontend/                  # Laman hadapan (Vite)
 │  ├─ src/                    # Kod SPA: pages/, features/, shared/
-│  ├─ public/                 # logo.svg, fonts/, panduan/Panduan_Pengguna_SPeRK.pdf
+│  ├─ public/                 # logo.svg, logo-nav.svg, fonts/, panduan/Panduan_Pengguna_SPeRK.pdf
 │  ├─ .env.local              # (gitignored) VITE_FIREBASE_* + VITE_API_BASE_URL
 │  └─ wrangler.toml           # name="sperk", assets ./dist, account_id
 ├─ worker/                    # API (Cloudflare Worker)
@@ -428,6 +428,7 @@ Sistem ini direka supaya kekal dalam pelan percuma untuk skala sebuah sekolah:
 | 18 Okt 2026 | Reka bentuk UI "Warm Slate" dimuktamadkan dan didokumentasikan (`docs/Reka_Bentuk_UI-UX_SPeRK.md`). |
 | 18 Okt 2026 | Penempatan semula: **Sebab** kini senarai pilihan rasmi dengan **autofill Catatan**; **Kongsi WhatsApp** memuat turun PDF resit serentak (butang **Kongsi PDF** pada peranti menyokong Web Share); pautan **Panduan Pengguna (PDF)** ditambah pada bar atas, footer dan halaman log masuk. |
 | 18 Okt 2026 | Panduan Pengguna & Panduan Teknikal (dokumen ini) diterbitkan bersama tangkapan skrin. |
+| 18 Okt 2026 | Kemasan UI/UX: bar atas satu baris dengan logo dipotong rapat (tanpa bulatan); menu lungsur boleh dibaca; Papan Pemuka tanpa panel *Kemajuan Hari Pendaftaran*; halaman e-Daftar dinyahsesak (kad statistik, bar kemajuan dan notis bawah senarai dibuang; e-mel penanda tidak lagi dipaparkan); borang murid diratakan (tiada kotak kad dalam borang) dengan radio sejajar; templat import bertanda **(wajib)/(pilihan)** (penghurai mengabaikan penanda ini); fon angka bertukar kepada **Roboto Mono**. Tangkapan skrin manual diambil semula. |
 
 **Sisa pilihan (tidak menjejaskan sistem):** akaun GitHub lama `srpk2026` (tiada repositori) dan pengguna Cloudflare lama `srpk2026` (tiada akaun) masih wujud; boleh dipadamkan oleh pemiliknya pada bila-bila masa.
 

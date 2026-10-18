@@ -20,24 +20,21 @@ export function renderImportData(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Import Data</h1>
-      <p>Muat naik senarai murid daripada fail Excel (.xlsx). Gunakan halaman ini
-        sebelum hari pendaftaran untuk menyediakan senarai murid dalam sistem.</p>
+      <p>Muat naik senarai murid daripada fail Excel (.xlsx) sebelum hari pendaftaran.</p>
     </div>
 
     <div class="import-layout">
       <section class="card">
         <h2>Fail murid</h2>
-        <p class="muted">Lajur wajib: <strong>Nama Murid</strong>, <strong>No. IC</strong> dan
-          <strong>Sekolah Rendah Asal</strong>. Lajur pilihan: <strong>Tingkatan</strong>,
-          <strong>Status OKU</strong>, <strong>Status Daftar</strong>, <strong>Sekolah Dipohon</strong>,
-          <strong>Sebab Penempatan Semula</strong> dan <strong>Catatan</strong>.</p>
-        <p class="muted">Murid yang sudah wujud (IC sama) dilangkau, tidak diganti.</p>
+        <p class="muted">Gunakan templat di bawah — setiap lajur sudah ditanda
+          <strong>(wajib)</strong> atau <strong>(pilihan)</strong>. Murid yang sudah wujud
+          (No. IC sama) dilangkau, tidak diganti.</p>
         <div class="toolbar">
           <input id="file" class="input" type="file" accept=".xlsx">
           <button id="template" class="btn small" type="button">Muat turun templat</button>
         </div>
-        <p class="muted">Selepas import, buka <a href="#/pendaftaran">e-Daftar</a> untuk menanda status
-          daftar murid pada hari pendaftaran.</p>
+        <p class="muted">Selepas import, tanda kehadiran murid dalam
+          <a href="#/pendaftaran">e-Daftar</a>.</p>
       </section>
 
       <section class="card">

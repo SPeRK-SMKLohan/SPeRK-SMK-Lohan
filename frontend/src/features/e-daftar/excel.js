@@ -3,7 +3,10 @@ import { schools } from "./constants.js";
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_ROWS = 2000;
 
-const norm = (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+// Buang penanda "(wajib)"/"(pilihan)" pada kepala lajur templat supaya
+// padanan nama lajur kekal berfungsi.
+const norm = (s) =>
+  String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").replace(/(wajib|pilihan)$/, "");
 
 // Nama lajur yang diterima (selepas membuang huruf besar, titik dan ruang).
 const HEADER_ALIASES = {
@@ -19,15 +22,15 @@ const HEADER_ALIASES = {
 };
 
 const HEADER_LABELS = {
-  name: "Nama Murid",
-  icNumber: "No. IC",
-  school: "Sekolah Rendah Asal",
-  tingkatan: "Tingkatan",
-  oku: "Status OKU",
-  registrationStatus: "Status Daftar",
-  transferSchool: "Sekolah Dipohon",
-  transferReason: "Sebab Penempatan Semula",
-  transferNotes: "Catatan",
+  name: "Nama Murid (wajib)",
+  icNumber: "No. IC (wajib)",
+  school: "Sekolah Rendah Asal (wajib)",
+  tingkatan: "Tingkatan (pilihan)",
+  oku: "Status OKU (pilihan)",
+  registrationStatus: "Status Daftar (pilihan)",
+  transferSchool: "Sekolah Dipohon (pilihan)",
+  transferReason: "Sebab Penempatan Semula (pilihan)",
+  transferNotes: "Catatan (pilihan)",
 };
 
 // Hanya lajur ini wajib ada dalam fail. Selebihnya pilihan.
@@ -112,7 +115,7 @@ export async function downloadStudentTemplate() {
     ["Panduan import data murid (SPeRK SMK Lohan)"],
     [""],
     ["1. Isi data pada helaian 'Murid', satu murid setiap baris. Jangan ubah baris pertama."],
-    ["2. Lajur wajib: Nama Murid, No. IC, Sekolah Rendah Asal. Lajur lain pilihan."],
+    ["2. Lajur bertanda (wajib) mesti diisi; lajur bertanda (pilihan) boleh dikosongkan."],
     ["3. No. IC mesti 12 digit, dengan atau tanpa tanda sempang. Contoh: 140512-12-1234 atau 140512121234."],
     ["4. Format lajur No. IC sebagai Text supaya sifar di hadapan tidak hilang."],
     [""],

@@ -76,7 +76,7 @@ Ciri konteks yang mempengaruhi reka bentuk:
    **toast dengan butang "Batal"** (8 saat) membatalkan tindakan. Pengesahan hanya untuk
    tindakan memusnah (Batal daftar).
 3. **Keterlihatan status sekilas pandang** — warna baris, lencana `✓ Sudah daftar`,
-   kiraan `Sudah / Belum / Hari ini`, masa + siapa yang menanda, bar kemajuan.
+   kiraan `Sudah / Belum / Hari ini` pada Papan Pemuka dan masa menanda pada senarai.
 4. **Perlumbaan data selamat** — UI optimistik (status berubah serta-merta), respons basi
    dibuang (`mutationGen`), auto-refresh dilangkau semasa sibuk/dialog/penaipan.
 5. **Konteks tempatan** — semua teks Bahasa Melayu, RM, masa Malaysia (UTC+8),
@@ -131,16 +131,17 @@ Fail: `frontend/src/main.js`, `frontend/src/style.css`
 
 1. **Devbar** (mod pembangunan sahaja, tersembunyi di produksi, `.no-print`):
    `Mod pembangunan: disambung ke pangkalan data sebenar`.
-2. **Header** (`.topbar`, `position: sticky`, `.no-print`; tinggi 80 px, latar legap
-   `rgba(249,249,249,.92)` + kesan kabur, bayang bawah halus):
-   - Logo bulat putih 44 px (`.brand-badge`) + nama **`SPeRK SMK Lohan`**
+2. **Header** (`.topbar`, `position: sticky`, `.no-print`; **satu baris** sahaja, tinggi ≈72 px,
+   latar legap `rgba(249,249,249,.92)` + kesan kabur, bayang bawah halus):
+   - Logo sekolah 42 px **dipotong rapat tanpa bulatan atau latar** (`logo-nav.svg`;
+     `.brand-badge` + `.brand-logo`) + nama **`SPeRK SMK Lohan`**
      (fon tajuk, 22 px, tebal 600, `.brand-name`).
    - **Navigasi**: pautan `Papan Pemuka` + dua menu lungsur (`e-Daftar`, `e-Resit Koperasi`;
      `.nav-drop`). Menu terbuka melalui hover/fokus dan **klik** (sokongan sentuh);
      pautan aktif ialah pil gelap `#1E2A3A`.
    - Kanan: e-mel pengguna (`.who`) + butang **`Log Keluar`** (latar kelabu lembut, teks
      terracotta; hover terracotta penuh dengan teks putih).
-   - Pada skrin sempit, navigasi melipat ke baris kedua secara automatik (tiada sidebar).
+   - Bawah 1080 px barulah navigasi melipat ke baris kedua secara automatik (tiada sidebar).
 3. **Kandungan** — `main.page` selebar **maks 1120 px**, padding `40px 24px 64px`.
 4. **Footer** (`.footer`, `.no-print`): latar `#F3F3F4`, dua teks — hak cipta
    (`© {tahun} SMK Lohan, Ranau, Sabah. Hak Cipta Terpelihara.`) dan nama penuh sistem.
@@ -158,7 +159,7 @@ Tema daripada eksport Google Stitch (18 Oktober 2026), dilaksanakan sepenuhnya d
 
 | Token | Nilai | Guna |
 |---|---|---|
-| `--primary` | `#1E2A3A` | Butang utama, pil navigasi aktif, bar kemajuan, bulatan langkah |
+| `--primary` | `#1E2A3A` | Butang utama, pil navigasi aktif, bulatan langkah |
 | `--primary-deep` | `#091525` | Hover butang utama, warna tajuk |
 | `--accent` | `#8C322A` | Pautan, teks “Log Keluar”/“Batal daftar”, toast amaran |
 | `--accent-soft` | `#FFDAD5` / teks `#76221B` | Lencana “Sudah daftar” (terracotta lembut) |
@@ -169,17 +170,17 @@ Tema daripada eksport Google Stitch (18 Oktober 2026), dilaksanakan sepenuhnya d
 | `--danger-soft` | `#FFDAD6` / teks `#93000A` | Lencana “Tidak sah”, butang buang |
 | `--background` | `#F9F9F9` | Latar halaman |
 | `--surface` / `--surface-low` | `#FFFFFF` / `#F3F3F4` | Kad & header / footer, kepala jadual, latar input |
-| `--surface-mid` … `--surface-highest` | `#EEEEEE` … `#E2E2E2` | Butang neutral, hover menu, rel kemajuan |
+| `--surface-mid` … `--surface-highest` | `#EEEEEE` … `#E2E2E2` | Butang neutral, hover menu, item menu aktif |
 | `--text-primary` / `--text-secondary` | `#1A1C1C` / `#44474C` | Teks utama / sekunder (`.muted`) |
 | `--border` / `--border-strong` | `#E8E8E8` / `#C5C6CC` | Garis baris jadual / sempadan tegas |
 
-**Tipografi:** tajuk **Plus Jakarta Sans** (100–900) dan teks/UI **Inter** — kedua-duanya
-dihoskan sendiri dari `/fonts/` (Urbanist dibuang). `h1` 28 px/600 · `h2` 18 px/600 ·
-body 14 px/1.45 · label huruf besar kecil 11 px/600 · nilai statistik 32 px/600 ·
-amaun wang guna `--font-mono` (Consolas dsb.) dengan digit tabular.
+**Tipografi:** tajuk **Plus Jakarta Sans** (100–900), teks/UI **Inter** dan angka/nombor
+**Roboto Mono** — semuanya dihoskan sendiri dari `/fonts/` (Urbanist dibuang). `h1` 28 px/600 ·
+`h2` 18 px/600 · body 14 px/1.45 · label huruf besar kecil 11 px/600 · nilai statistik 32 px/600 ·
+amaun wang guna `--font-mono` (Roboto Mono, 13.4 px/500) dengan digit tabular.
 
 **Bentuk, bayang & gerakan:** radius `8 px` (kawalan/butang/input), `12 px` (kad & dialog;
-16 px untuk dialog dan kad log masuk), `999 px` (pil/lencana/bar kemajuan). Bayang satu
+16 px untuk dialog dan kad log masuk), `999 px` (pil/lencana). Bayang satu
 lapis halus untuk kad (`--shadow-card`), bayang lebih tinggi untuk hover kad navigasi
 (`--shadow-raise`), dan bayang besar untuk dialog (`--shadow-modal`).
 Fokus: outline 2 px `#8C322A` offset 2 px. `prefers-reduced-motion` mematikan semua peralihan.
@@ -190,7 +191,6 @@ Fokus: outline 2 px `#8C322A` offset 2 px. `prefers-reduced-motion` mematikan se
 |---|---|---|
 | Kad | `.card` | Latar putih, radius 12 px, bayang halus, padding 20/24 px |
 | Panel metrik | `.cards` + `.card.stat` | **Satu jalur panel** dengan sel berselang latar; nombor 32 px |
-| Kad metrik terapung | `.cards-float` | Varian e-Daftar kaunter: 4 kad berasingan (ikut mock Stitch) |
 | Kad navigasi | `.nav-cards` / `.nav-card` | Grid auto-fit, hover naik sedikit + bayang lebih tinggi |
 | Butang | `.btn` (+ `.primary`, `.ok`, `.danger`, `.wa`, `.small`, `.block`) | Semua sasaran ketuk ≥ 40 px (44 px lalai) |
 | Input | `.input` (+ `.input-lg`, `.input-school`); `.stepper` | Latar abu `#F3F3F4`, fokus putih + cincin gelap; stepper −/＋ untuk kuantiti |
@@ -200,7 +200,6 @@ Fokus: outline 2 px `#8C322A` offset 2 px. `prefers-reduced-motion` mematikan se
 | Lencana status | `.badge` (+ `.done` terracotta, `.cart` hijau, `.indigo`, `.bad`, `.warn`) | “✓ Sudah daftar” terracotta; “Belum daftar” kelabu |
 | Tag kecil | `.tag` (+ `.tag.oku`) | “T1” indigo, “OKU” kuning lembut |
 | Pil ringkasan | `.pill` (+ `.ok`, `.bad`, `.warn`) | Import: nombor besar + label kecil dalam jubin |
-| Bar kemajuan | `.progress` / `.progress-bar` | 10 px, hujung bulat, isian gelap `#1E2A3A` |
 | Langkah bernombor | `.step` / `.step-num` | Bulatan 32 px gelap + tajuk (Jana Resit) |
 | Pilihan bayaran | `.pay-option` | Kad radio; yang dipilih bersempadan cincin gelap |
 | Dialog | `.modal` (dialog natif) | Bar aksen gradien di atas, backdrop 45% + kabur, toolbar bawah kelabu |
@@ -248,17 +247,13 @@ logo sekolah 80 px di atas sekali.
 
 #### S2 · Papan Pemuka — `#/`
 
-**Tujuan:** ringkasan kemajuan pendaftaran + aktiviti resit + pintasan kerja.
-**Susun atur (urut):** tajuk → panel 4 metrik → kad kemajuan → 2 kad navigasi → kad resit terkini.
+**Tujuan:** ringkasan statistik + aktiviti resit + pintasan kerja.
+**Susun atur (urut):** tajuk → panel 4 metrik → 2 kad navigasi → kad resit terkini.
 
 **Kandungan & teks:**
 - Tajuk `Papan Pemuka` + nama penuh sistem.
 - **Panel metrik (4 sel satu panel):** `Belum daftar` · `Sudah daftar` ·
   `Didaftarkan hari ini` · `Keahlian koperasi` (nombor besar, digit tabular).
-- **Kad `Kemajuan Hari Pendaftaran`:** bar + teks
-  `{pct}% sudah daftar · {x} daripada {y} murid aktif`; notis kosong:
-  `Belum ada data murid. Import senarai murid dahulu sebelum hari pendaftaran.`;
-  butang `Tandakan kehadiran murid` (utama) + `Jana resit koperasi`.
 - **Dua kad navigasi:** `e-Daftar` —
   *“Sekolah terdahulu, status OKU, status daftar dan permohonan penempatan semula murid.”*;
   `e-Resit Koperasi` — *“Menjana resit bayaran barangan koperasi untuk murid.”*
@@ -271,15 +266,11 @@ logo sekolah 80 px di atas sekali.
 #### S3 · e-Daftar (kaunter pendaftaran) — `#/pendaftaran` — **skrin paling penting**
 
 **Tujuan:** menanda kehadiran seramai mungkin murid secepat mungkin, dengan pembetulan mudah.
-**Susun atur (urut):** tajuk → panel 4 metrik → bar kemajuan → kad alat kaunter (carian,
-penapis, kiraan) → jadual lebar → dialog borang (tersembunyi).
+**Susun atur (urut):** tajuk → kad alat kaunter (carian, penapis, kiraan) →
+jadual lebar → dialog borang (tersembunyi).
 
 **Kandungan & teks:**
-- Tajuk `e-Daftar` + ayat panduan:
-  `Cari murid, kemudian tekan **Tanda daftar**. Data ini dikongsi dengan e-Resit Koperasi.`
-- **Panel metrik:** `Sudah daftar` · `Belum daftar` · `Didaftarkan hari ini` · `Jumlah murid aktif`
-  (nilai awal `–`).
-- **Bar kemajuan:** `{pct}% sudah daftar ({done} daripada {total} murid)`.
+- Tajuk `e-Daftar` + ayat panduan: `Cari murid, kemudian tekan **Tanda daftar**.`
 - **Carian besar:** placeholder `Cari nama atau No. IC — contoh: ahmad 140512`
   (carian berbilang token: semua perkataan dalam nama + token digit mesti ada dalam IC);
   butang `↻ Muat semula` (tooltip: Muat semula senarai) + `+ Murid baharu` (utama).
@@ -288,18 +279,16 @@ penapis, kiraan) → jadual lebar → dialog borang (tersembunyi).
   dropdown `Semua sekolah rendah` + 10 sekolah (SK Bongkud, SK Kirokot, SK Langsat, SK Lohan,
   SK Nalapak, SK Napong, SK Narawang, SK Perancangan, SK Poring, SK Sagiban).
 - **Baris kiraan:** `Menunjukkan {x} daripada {y} padanan` atau `{y} padanan`,
-  `· dikemas kini {HH:MM:SS}`, petunjuk `· Tekan Enter untuk tanda daftar {nama}`.
+  petunjuk `· Tekan Enter untuk tanda daftar {nama}`.
 - **Jadual (min 720 px, skrol mendatar):** kolum `Murid` · `Sekolah Rendah Asal` ·
   `Status Daftar` · `Penempatan Semula` · `Tindakan`.
 - **Anatomi baris murid:**
   - Nama tebal + tag `T{tingkatan}` + tag `OKU` (jika ada) + No. IC bertopeng di bawah.
-  - Status: `✓ Sudah daftar` (lencana hijau) + baris kecil `{masa} · {e-mel petugas}`;
+  - Status: `✓ Sudah daftar` (lencana hijau) + baris kecil `{masa}`;
     atau `Belum daftar` (lencana kelabu).
   - Penempatan semula: nama sekolah dipohon atau `—`.
   - Tindakan: `Butiran` + `✓ Tanda daftar` (hijau) **atau** `↩ Batal daftar`;
     butang dilumpuhkan sementara (`.row-done` = bar hijau di tepi kiri baris).
-- **Nota bawah jadual:** `No. IC dipaparkan separa. Guna **Butiran** untuk membetulkan
-  maklumat atau merekod permohonan penempatan semula.`
 
 **Interaksi:** debounce carian 250 ms; Enter menanda bila padanan tunggal (status Belum);
 pintasan `/` fokus carian; auto-refresh 30 s (dilangkau bila tab tersembunyi, sibuk,
@@ -323,9 +312,10 @@ dialog terbuka, atau sedang menaip); toast undo `Batal` (8 s).
 
 **Medan (label sebenar):** `Sekolah (SK Terdahulu)` (`— Pilih sekolah —`) · `Nama murid` ·
 `No. IC (12 digit)` (placeholder `140512-12-1234`) · `Tingkatan` (`— Belum ditetapkan —`)
-· radio `Status OKU`: `Ya` / `Tidak` · radio `Status daftar (kehadiran hari pendaftaran)`:
+· radio `Status OKU`: `Ya` / `Tidak` · radio `Status daftar`:
 `Sudah daftar` / `Belum daftar` · checkbox `Mohon penempatan semula ke sekolah lain`
-→ tunjuk medan `Nama sekolah dipohon` · `Sebab` · `Catatan` + nota:
+→ tunjuk medan `Nama sekolah dipohon` · `Sebab` · `Catatan` (kotak borang rata, tanpa
+kad dalam kad) + nota:
 `Murid yang hadir pada hari pendaftaran tetap dikira **sudah daftar**, walaupun memohon penempatan semula.`
 
 **Butang:** `Simpan` (sibuk `Menyimpan…`) · `Kosongkan borang` · `Tutup`.
@@ -337,9 +327,10 @@ dialog terbuka, atau sedang menaip); toast undo `Batal` (8 s).
 **Tujuan:** muat naik senarai murid `.xlsx` (maks 2 MB / 2,000 baris) dengan pratonton sahkan dahulu.
 **Kandungan & teks:**
 - Tajuk `Import Data` + penerangan kegunaan sebelum hari pendaftaran.
-- Kad `Fail murid`: senarai lajur wajib/pilihan; nota
-  `Murid yang sudah wujud (IC sama) dilangkau, tidak diganti.`;
-  input fail + butang `Muat turun templat` (fail `templat-murid.xlsx` — helaian "Murid" + "Panduan").
+- Kad `Fail murid`: satu ayat ringkas (lajur templat sudah ditanda **(wajib)/(pilihan)**);
+  nota `Murid yang sudah wujud (No. IC sama) dilangkau, tidak diganti.`;
+  input fail + butang `Muat turun templat` (fail `templat-murid.xlsx` — helaian "Murid" +
+  "Panduan"; kepala lajur bertanda **(wajib)/(pilihan)**, penghurai mengabaikan penanda ini).
 - **Pratonton** selepas pilih fail (`Membaca dan menyemak fail...`):
   pil: `{n} baris dibaca` · `{n} sah` · `{n} tidak sah` · `{n} pendua dalam fail` ·
   `{n} sudah wujud`; jadual masalah (maks 50): `Baris` · `Nama` · `No. IC` (bertopeng) ·
@@ -503,8 +494,8 @@ Gaya yang dicadangkan untuk dieksperimen (pilih satu atau gabungkan):
 | Skrin | Fungsi kritikal |
 |---|---|
 | Log Masuk | Validasi kosong; sibuk `Sedang log masuk...`; mesej ralat spesifik; sesi tamat tab ditutup |
-| Papan Pemuka | 4 metrik; bar kemajuan + peratus; notis tiada data; 2 pintasan; jadual resit terkini (5 kolum + jumlah harian) |
-| e-Daftar | Carian berbilang token + No. IC; chips tingkatan/status; tapis sekolah; Enter menanda padanan tunggal; pintasan `/`; **Tanda daftar / Batal daftar** dengan toast undo + pengesahan untuk batal; baris tunjuk masa + petugas; walk-in dari carian kosong; auto-refresh 30 s; 3 keadaan kosong; kiraan `Menunjukkan x daripada y` |
+| Papan Pemuka | 4 metrik; 2 kad pintasan navigasi; jadual resit terkini (5 kolum + jumlah harian) |
+| e-Daftar | Carian berbilang token + No. IC; chips tingkatan/status; tapis sekolah; Enter menanda padanan tunggal; pintasan `/`; **Tanda daftar / Batal daftar** dengan toast undo + pengesahan untuk batal; baris tunjuk masa; walk-in dari carian kosong; auto-refresh 30 s; 3 keadaan kosong; kiraan `Menunjukkan x daripada y` |
 | Dialog murid | Semua medan + radio OKU/status + medan penempatan semula bersyarat + nota; butang Simpan/Kosongkan/Tutup; sibuk `Menyimpan…` |
 | Import Data | Pilih fail; pratonton pil (dibaca/sah/tidak sah/pendua/wujud); jadual masalah 5 kolum; butang `Import {n} murid`; Batal; templat; mesej ralat fail |
 | Jana Resit | 3 langkah bernombor + ringkasan sticky; cari murid (Enter pilih pertama); bakul kuantiti 1–99 + badge "{n} dalam resit"; **Tunai lalai**; medan no. rujukan wajib untuk pindahan; checkbox pengesahan sebelum simpan; sebab-simpan (idempoten) |
@@ -986,16 +977,17 @@ Untuk fasa pelaksanaan selepas Stitch: ganti nilai dalam `frontend/src/style.css
 | Bahagian | Kelas CSS utama | Nota pelaksanaan |
 |---|---|---|
 | Rangka | `.devbar`, `.topbar`, `.topbar-in`, `.brand`, `.brand-badge`, `.brand-logo`, `.nav`, `.nav-link`, `.nav-drop`, `.nav-menu`, `.topbar-user`, `.who`, `.page`, `.footer`, `.footer-in` | Header + footer baharu (lihat 2.2); kelas lama `.topbar-main` / `.nav-group*` / `.container` telah dibuang |
-| Kad | `.card`, `.cards`, `.cards-float`, `.card.stat`, `.nav-cards`, `.nav-card`, `.notice`, `.muted`, `.error` | Papan Pemuka = satu jalur panel; e-Daftar kaunter = kad terapung |
+| Kad | `.card`, `.cards`, `.card.stat`, `.nav-cards`, `.nav-card`, `.notice`, `.muted`, `.error` | Papan Pemuka = satu jalur panel; halaman e-Daftar tanpa kad statistik |
 | Borang | `.input`, `.input-lg`, `.input-school`, `.stepper`, `.pay-option`, `.bankref`, `.form-grid`, `.radio-group`, `.radio`, `label.check`, `.login-wrap`, `.login-card`, `.login-crest`, `.login-logo` | Kekalkan id (`#q`, `#f-name`, …) |
 | Butang | `.btn` + `.primary`, `.ok`, `.danger`, `.wa`, `.small`, `.block`; `.toolbar`, `.search-row`, `.filter-row` | Kekalkan kelas aksi (`data-action`) |
 | Jadual | `.table-wrap`, `.table`, `.wide`, `.compact`, `.num`, `.nowrap`, `.row-done`, `.row-in-cart`, `.row-actions` | `.wide` min 880 px; `.num` guna fon mono |
-| Maklum balas | `.badge` (+ `.done`, `.cart`, `.indigo`, `.bad`, `.warn`), `.tag`, `.tag.oku`, `.pill`, `.pill.ok/.bad/.warn`, `.progress`, `.progress-bar`, `.chips`, `.chip`, `.step`, `.step-num`, `.toast-wrap`, `.toast`, `.toast-action`, `.modal` | Toast & dialog struktur JS kekal |
+| Maklum balas | `.badge` (+ `.done`, `.cart`, `.indigo`, `.bad`, `.warn`), `.tag`, `.tag.oku`, `.pill`, `.pill.ok/.bad/.warn`, `.chips`, `.chip`, `.step`, `.step-num`, `.toast-wrap`, `.toast`, `.toast-action`, `.modal` | Toast & dialog struktur JS kekal |
 | Resit | `.receipt`, `.receipt-head`, `.receipt-logo`, `.receipt-org`, `.receipt-title`, `.receipt-meta`, `.receipt-pay`, `.receipt-thanks`; kroma: `.receipt-toolbar`, `.receipt-main`, `.receipt-layout` | Dokumen resit **jangan ubah** (kecuali pemetaan warna `--text`, `--muted`, `--line` yang dikongsi); kroma halaman boleh ikut tema |
 | Utiliti | `.hidden`, `.fixed-qty`, `.sticky`, `.results`, `.result`, `.selected`, `.avatar`, `.receiver`, `.total`, `.sum-row`, `.import-summary`, `.import-layout` | — |
 | Token | `--primary`, `--primary-deep`, `--accent`, `--accent-soft`, `--green*`, `--indigo-soft*`, `--gold-soft*`, `--amber*`, `--danger*`, `--background`, `--surface*`, `--text*`, `--border*`, `--radius-*`, `--shadow-*`, `--font-heading`, `--font-body`, `--font-mono` | Satu tempat ganti = tema baharu |
 
-Fon: tema semasa menggunakan fon Google **Plus Jakarta Sans** (tajuk) + **Inter** (teks),
+Fon: tema semasa menggunakan fon Google **Plus Jakarta Sans** (tajuk), **Inter** (teks) dan
+**Roboto Mono** (angka/nombor),
 fail variable `.ttf` dihos sendiri di `frontend/public/fonts/` (corak sedia ada); kemas kini
 `@font-face` dan token `--font-heading` / `--font-body` jika bertukar tema.
 

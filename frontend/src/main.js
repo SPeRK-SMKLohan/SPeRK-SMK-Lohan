@@ -61,9 +61,12 @@ const isActive = (path, p) =>
   path === p || (p === "/sejarah" && path.startsWith("/resit/"));
 
 function layoutHtml(path) {
-  const navLink = (p, label) => {
-    const state = isActive(path, p) ? " active" : "";
-    return `<a class="nav-link${state}" href="#${p}"${state ? ' aria-current="page"' : ""}>${label}</a>`;
+  const navLink = (p, label, inMenu = false) => {
+    const active = isActive(path, p);
+    const cls = inMenu
+      ? `menu-link${active ? " active" : ""}`
+      : `nav-link${active ? " active" : ""}`;
+    return `<a class="${cls}" href="#${p}"${active ? ' aria-current="page"' : ""}>${label}</a>`;
   };
   const navDrop = ({ label, links }) => {
     const state = links.some(([p]) => isActive(path, p)) ? " active" : "";
@@ -71,7 +74,7 @@ function layoutHtml(path) {
       <div class="nav-drop">
         <button class="nav-link nav-drop-btn${state}" type="button" aria-haspopup="true" aria-expanded="false">${label}</button>
         <div class="nav-menu">
-          ${links.map(([p, l]) => navLink(p, l)).join("")}
+          ${links.map(([p, l]) => navLink(p, l, true)).join("")}
         </div>
       </div>`;
   };
@@ -82,7 +85,7 @@ function layoutHtml(path) {
     <header class="topbar no-print">
       <div class="topbar-in">
         <a class="brand" href="#/">
-          <span class="brand-badge"><img class="brand-logo" src="/logo.svg" alt="" /></span>
+          <span class="brand-badge"><img class="brand-logo" src="/logo-nav.svg" alt="" /></span>
           <span class="brand-name">${APP_NAME} SMK Lohan</span>
         </a>
         <nav class="nav" aria-label="Navigasi utama">${NAV.map(navItem).join("")}

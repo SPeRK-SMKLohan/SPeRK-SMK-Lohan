@@ -75,7 +75,7 @@ Papan Pemuka ialah halaman pertama selepas log masuk. Ia memberi gambaran pantas
 
 ![Papan Pemuka](imej/papan-pemuka.png)
 
-*Papan Pemuka: statistik, kemajuan pendaftaran dan resit terkini.*
+*Papan Pemuka: statistik, pintasan kerja dan resit terkini.*
 
 **Kad statistik (baris atas):**
 
@@ -86,12 +86,10 @@ Papan Pemuka ialah halaman pertama selepas log masuk. Ia memberi gambaran pantas
 | **Didaftarkan hari ini** | Bilangan murid yang ditanda hadir pada hari ini sahaja. |
 | **Keahlian koperasi** | Bilangan murid yang telah membayar barangan keahlian koperasi. |
 
-**Kemajuan Hari Pendaftaran** menunjukkan peratus murid yang sudah daftar dengan bar kemajuan.
+Di bawah kad statistik terdapat dua kad pintasan:
 
-Dua butang pintasan disediakan:
-
-- **Tandakan kehadiran murid** → membuka halaman e-Daftar (kaunter pendaftaran).
-- **Jana resit koperasi** → membuka halaman Jana Resit (kaunter koperasi).
+- **e-Daftar** → kaunter pendaftaran (menanda kehadiran murid).
+- **e-Resit Koperasi** → kaunter koperasi (menjana resit barangan).
 
 Di bawahnya, bahagian **Resit Koperasi** memaparkan ringkasan *"Resit diterbitkan hari ini"* dan senarai resit terkini (No. Resit, Tarikh, Murid, Jumlah, Bayaran). No. resit dan nama murid dalam senarai ini boleh ditekan untuk membuka butiran penuh resit.
 
@@ -103,7 +101,7 @@ Halaman e-Daftar (`Papan Pemuka › e-Daftar › Pendaftaran`) dioptimumkan seba
 
 ![Halaman e-Daftar](imej/pendaftaran.png)
 
-*Senarai murid dengan penapis, statistik dan butang tindakan.*
+*Senarai murid dengan penapis dan butang tindakan.*
 
 ### 4.1 Mencari murid
 
@@ -118,7 +116,7 @@ Halaman e-Daftar (`Papan Pemuka › e-Daftar › Pendaftaran`) dioptimumkan seba
 
 Butang akan bertukar menjadi **↩ Batal daftar**. Jika tersalah tekan, tekan **Batal daftar** untuk membatalkan — status murid akan kembali kepada *Belum daftar*.
 
-Baris yang sudah ditanda akan menunjukkan lencana **✓ Sudah daftar** berserta masa dan e-mel pengguna yang menandanya (contoh: *11:33 PG · sperk.smklohan@gmail.com*).
+Baris yang sudah ditanda akan menunjukkan lencana **✓ Sudah daftar** berserta masa ia ditandakan (contoh: *11:33 PG*).
 
 ### 4.3 Menambah murid baharu atau membetulkan maklumat
 
@@ -161,7 +159,7 @@ Halaman **Import Data** (`Papan Pemuka › e-Daftar › Import Data`) digunakan 
 
 ### 5.1 Menyediakan fail Excel
 
-1. Tekan **Muat turun templat** untuk mendapatkan fail contoh, atau gunakan fail sendiri dengan nama lajur seperti di bawah.
+1. Tekan **Muat turun templat** untuk mendapatkan fail contoh. Kepala lajur dalam templat sudah ditanda **(wajib)** atau **(pilihan)** — isi lajur **(wajib)** sahaja pun sudah cukup.
 2. Isi senarai murid. Saiz maksimum fail ialah **2 MB** dan maksimum **2,000 baris**.
 
 **Lajur yang diterima:**
@@ -178,7 +176,7 @@ Halaman **Import Data** (`Papan Pemuka › e-Daftar › Import Data`) digunakan 
 | **Sebab Penempatan Semula** | – | Perpindahan keluarga | |
 | **Catatan** | – | | |
 
-Nama lajur tidak sensitif kepada huruf besar/kecil, ruang atau titik (contoh: *No.IC*, *No KP*, *sekolah rendah* semuanya diterima).
+Nama lajur tidak sensitif kepada huruf besar/kecil, ruang, titik atau penanda **(wajib)/(pilihan)** (contoh: *No.IC (wajib)*, *No KP* dan *sekolah rendah* semuanya diterima).
 
 ### 5.2 Memuat naik dan pratonton
 
@@ -358,7 +356,7 @@ Harga rasmi yang digunakan oleh sistem (sehingga tarikh dokumen ini):
 1. Kaunter pendaftaran: cari murid → **✓ Tanda daftar** (satu ketukan) → murid bergerak ke kaunter koperasi.
 2. Kaunter koperasi: **Jana Resit** → pilih murid → tambah barangan → pilih **Tunai** atau **Pindahan Bank** (isi No. Rujukan) → tandakan pengesahan → **Simpan Resit**.
 3. Cetak resit (atau hantar melalui WhatsApp) untuk penjaga.
-4. Pantau kemajuan pada **Papan Pemuka**.
+4. Pantau bilangan **Sudah daftar** (dan resit terkini) pada **Papan Pemuka**.
 
 **Selepas hari pendaftaran**
 

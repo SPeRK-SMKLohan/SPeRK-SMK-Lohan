@@ -17,6 +17,13 @@
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: "Roboto Mono";
+  src: url("/fonts/RobotoMono-Variable.ttf") format("truetype");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   /* Warna teras */
@@ -59,7 +66,7 @@
   /* Tipografi */
   --font-heading: "Plus Jakarta Sans", "Inter", sans-serif;
   --font-body: "Inter", sans-serif;
-  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+  --font-mono: "Roboto Mono", ui-monospace, Consolas, "Courier New", monospace;
 
   /* Bentuk dan bayang */
   --radius-control: 8px;
@@ -125,24 +132,19 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
   box-shadow: 0 1px 8px rgba(0, 0, 0, .04);
 }
 .topbar-in {
-  max-width: 1120px; margin: 0 auto; padding: 10px 24px; min-height: 80px;
-  display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap;
+  max-width: 1120px; margin: 0 auto; padding: 10px 24px; min-height: 72px;
+  display: flex; align-items: center; gap: 8px 16px; flex-wrap: nowrap;
 }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--primary-deep); flex: none; }
 .brand:hover { text-decoration: none; color: var(--primary-deep); }
-.brand-badge {
-  width: 44px; height: 44px; padding: 5px; flex: none;
-  display: grid; place-items: center;
-  background: var(--surface); border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
-}
-.brand-logo { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+.brand-badge { width: 42px; height: 42px; flex: none; display: grid; place-items: center; }
+.brand-logo { width: 100%; height: 100%; object-fit: contain; }
 .brand-name { font-family: var(--font-heading); font-size: 1.375rem; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
 
-.nav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.nav { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
 .nav-link {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 10px 16px; border-radius: var(--radius-control);
+  padding: 9px 12px; border-radius: var(--radius-control);
   border: none; background: transparent; cursor: pointer;
   font-family: var(--font-body); font-size: .875rem; font-weight: 600; letter-spacing: .02em;
   color: var(--text-secondary); text-decoration: none;
@@ -169,12 +171,12 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
   box-shadow: 0 12px 28px -8px rgba(9, 21, 37, .25), 0 2px 8px rgba(9, 21, 37, .08);
 }
 .nav-drop:hover .nav-menu, .nav-drop:focus-within .nav-menu, .nav-drop.open .nav-menu { display: flex; }
-.nav-menu a { padding: 10px 12px; border-radius: var(--radius-control); font-size: .85rem; color: var(--text-primary); }
+.nav-menu a { padding: 10px 12px; border-radius: var(--radius-control); font-size: .875rem; font-weight: 500; color: var(--text-primary); }
 .nav-menu a:hover { background: var(--surface-low); text-decoration: none; }
-.nav-menu a.active { background: var(--surface-mid); font-weight: 600; }
+.nav-menu a.active { background: var(--surface-mid); color: var(--primary-deep); font-weight: 600; }
 
-.topbar-user { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-.who { font-size: .8rem; font-weight: 600; color: var(--text-primary); }
+.topbar-user { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.who { font-size: .8rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
 
 /* ---------------- Footer ---------------- */
 .footer { background: var(--surface-low); margin-top: auto; }
@@ -214,10 +216,6 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
   margin: 0; border-radius: 0; box-shadow: none; padding: 18px 22px; background: transparent;
 }
 .cards .card:nth-child(even) { background: rgba(243, 243, 244, .55); }
-/* Varian kad statistik berasingan (e-Daftar kaunter) */
-.cards-float { background: none; box-shadow: none; overflow: visible; gap: 16px; }
-.cards-float .card { border-radius: var(--radius-card); box-shadow: var(--shadow-card); background: var(--surface); padding: 18px 20px; }
-.cards-float .card:nth-child(even) { background: var(--surface); }
 .stat span {
   display: block; margin-bottom: 6px;
   font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
@@ -229,12 +227,6 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
   color: var(--primary-deep); font-variant-numeric: tabular-nums;
 }
 .stat.alert strong { color: var(--accent); }
-
-/* Kemajuan pendaftaran */
-.progress-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.progress { flex: 1; min-width: 200px; height: 10px; background: var(--surface-high); border-radius: 999px; overflow: hidden; }
-.progress-bar { height: 100%; background: var(--primary); border-radius: 999px; transition: width var(--transition-fast); }
-.progress-row .muted strong { color: var(--text-primary); font-weight: 600; }
 
 /* ---------------- Butang ---------------- */
 .btn {
@@ -307,7 +299,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .table thead th:last-child { border-radius: 0 var(--radius-control) var(--radius-control) 0; }
 .table tbody tr:last-child td { border-bottom: none; }
 .table tbody tr:hover { background: rgba(243, 243, 244, .5); }
-.table .num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: .8125rem; white-space: nowrap; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: .84rem; font-weight: 500; white-space: nowrap; }
 .table .nowrap { white-space: nowrap; }
 .table .muted { font-size: .75rem; }
 .table a { font-weight: 600; }
@@ -387,18 +379,13 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .form-grid .input { width: 100%; margin-top: 6px; }
 .form-grid textarea.input { padding: 10px 14px; line-height: 1.5; resize: vertical; }
 .form-grid label.inline { display: flex; gap: 10px; align-items: center; font-size: .875rem; font-weight: 400; letter-spacing: 0; }
-.radio-group {
-  border: none; border-radius: var(--radius-card);
-  background: var(--background); padding: 14px 16px; margin: 0;
-}
+.radio-group { border: none; background: none; padding: 0; margin: 0; }
 .radio-group legend {
-  padding: 0 0 6px; font-size: .6875rem; font-weight: 600; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--text-secondary);
+  padding: 0 0 2px; font-size: .75rem; font-weight: 600; letter-spacing: .04em;
+  color: var(--text-primary);
 }
-#transfer-box {
-  background: var(--background); border-radius: var(--radius-card);
-  padding: 16px; border-left: 3px solid #BBC7DC;
-}
+.radio-group label.radio { gap: 12px; margin: 8px 0 0; min-height: 24px; }
+#transfer-box { background: none; padding: 0; }
 #transfer-box .muted { font-size: .8125rem; }
 
 /* ---------------- Jana Resit (e-Resit Koperasi) ---------------- */
@@ -628,6 +615,10 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .receipt-layout { grid-template-columns: 1fr; }
   .sticky { position: static; }
   .import-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 1080px) {
+  .topbar-in { flex-wrap: wrap; min-height: 0; }
+  .nav { flex-wrap: wrap; }
 }
 @media (max-width: 640px) {
   .page { padding: 24px 16px 48px; }
