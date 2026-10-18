@@ -6,7 +6,7 @@ export async function apiFetch(path, options = {}) {
   const token = await getIdToken();
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
+  const timer = setTimeout(() => controller.abort(), 10000);
 
   let res;
   try {

@@ -2,15 +2,15 @@ import { EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, si
 import { auth } from "./firebase.js";
 
 // Tunggu Firebase memulihkan sesi sebelum memaparkan halaman.
-// Had masa supaya aplikasi tidak tersekat pada "Memuatkan" jika rangkaian
-// disekat (contoh: Brave Shields menyekat domain Google/Firebase).
+// Had masa 5 saat supaya tidak tersekat lama jika rangkaian disekat
+// (contoh: Brave Shields menyekat domain Google/Firebase).
 let ready;
 export function initAuth() {
   ready ??= new Promise((resolve) => {
     const timer = setTimeout(() => {
       unsubscribe();
       resolve();
-    }, 8000);
+    }, 5000);
     const unsubscribe = onAuthStateChanged(auth, () => {
       clearTimeout(timer);
       unsubscribe();

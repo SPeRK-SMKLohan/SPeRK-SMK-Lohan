@@ -187,6 +187,15 @@ function render() {
 // Tunggu Firebase memulihkan sesi dahulu, kemudian mulakan aplikasi.
 app.innerHTML = `<p class="muted" style="padding:1rem">Memuatkan...</p>`;
 initAuth().then(() => {
+  // Semak sesi awal: jika token tamat / tidak sah, terus ke log masuk
+  // tanpa menunggu panggilan API gagal.
+  if (isLoggedIn()) {
+    const user = auth.currentUser;
+    user.getIdToken().catch(() => {
+      // Token tamat / tidak boleh diperbaharui → log keluar bersih
+      signOutUser().then(() => { location.hash = "/login"; });
+    });
+  }
   window.addEventListener("hashchange", render);
   render();
 });
