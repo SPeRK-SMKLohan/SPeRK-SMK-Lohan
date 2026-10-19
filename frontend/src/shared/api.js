@@ -27,38 +27,41 @@ export async function apiFetch(path, options = {}) {
           headers: { ...options.headers, Authorization: `Bearer ${token}` },
           signal: controller.signal,
         });
-      } catch (err) {
-        lastError = err?.name === "AbortError"
-          ? new Error("Pelayan mengambil masa terlalu lama. Sila cuba Muat semula.")
-          : new Error("Tidak dapat menyambung ke pelayan. Semak rangkaian dan cuba Muat semula.");
-        clearTimeout(timer);
-        if (attempt < (isRead ? READ_ATTEMPTS : 1)) {
+
+        if (isRead && retryableStatus(res.status) && attempt < READ_ATTEMPTS) {
+          await res.body?.cancel().catch(() => {});
           await wait(400 * attempt + Math.random() * 300);
           continue;
         }
-        throw lastError;
-      }
-      clearTimeout(timer);
 
-      if (isRead && retryableStatus(res.status) && attempt < READ_ATTEMPTS) {
+        const data = await res.json().catch((err) => {
+          if (err?.name === "AbortError" || err instanceof TypeError) throw err;
+          return {};
+        });
+
+        // Sesi tidak sah, tamat, atau akaun tidak dibenarkan: log keluar dan kembali ke halaman log masuk.
+        if (res.status === 401 || res.status === 403) {
+          await signOutUser();
+          location.hash = "/login";
+        }
+
+        if (!res.ok) {
+          const err = new Error(data.error || `Ralat pelayan (${res.status})`);
+          err.status = res.status;
+          throw err;
+        }
+        return data;
+      } catch (err) {
+        if (err?.status) throw err;
+        lastError = err?.name === "AbortError"
+          ? new Error("Pelayan mengambil masa terlalu lama. Sila cuba Muat semula.")
+          : new Error("Tidak dapat memuatkan data. Semak rangkaian dan cuba Muat semula.");
+        if (attempt >= (isRead ? READ_ATTEMPTS : 1)) throw lastError;
         await wait(400 * attempt + Math.random() * 300);
-        continue;
+      } finally {
+        // Cover the entire response, including its body, rather than only headers.
+        clearTimeout(timer);
       }
-
-      const data = await res.json().catch(() => ({}));
-
-      // Sesi tidak sah, tamat, atau akaun tidak dibenarkan: log keluar dan kembali ke halaman log masuk.
-      if (res.status === 401 || res.status === 403) {
-        await signOutUser();
-        location.hash = "/login";
-      }
-
-      if (!res.ok) {
-        const err = new Error(data.error || `Ralat pelayan (${res.status})`);
-        err.status = res.status;
-        throw err;
-      }
-      return data;
     }
     throw lastError || new Error("Tidak dapat memuatkan data. Sila cuba lagi.");
   })();

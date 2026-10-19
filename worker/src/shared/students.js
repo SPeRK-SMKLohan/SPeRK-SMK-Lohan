@@ -98,7 +98,9 @@ async function loadFull(env) {
 }
 
 async function loadDelta(env, sinceMs) {
-  const boundary = new Date(sinceMs - SLACK_MS).toISOString();
+  // Firestore updatedAt fields are timestamps; send a JS Date so toValue
+  // encodes the query boundary as timestampValue instead of stringValue.
+  const boundary = new Date(sinceMs - SLACK_MS);
   const docs = await runQuery(env, {
     from: [{ collectionId: "students" }],
     where: fieldFilter("updatedAt", "GREATER_THAN_OR_EQUAL", toValue(boundary)),

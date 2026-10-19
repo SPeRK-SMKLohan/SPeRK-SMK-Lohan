@@ -457,16 +457,18 @@ export function renderEDaftar(root) {
   };
   document.addEventListener("keydown", onKey);
 
-  // Kemas kini automatik setiap 30 saat supaya kaunter lain nampak data terkini.
-  const autoRefresh = setInterval(() => {
-    if (!root.isConnected) {
-      clearInterval(autoRefresh);
-      return;
-    }
-    if (document.visibilityState !== "visible" || busy || dialog.open) return;
-    if (document.activeElement === qEl || document.activeElement === schoolEl) return;
-    load({ silent: true });
-  }, 30000);
+  // Jitter penyegaran mula-mula supaya 30–40 peranti tidak meminta data serentak.
+  function scheduleAutoRefresh(delay) {
+    setTimeout(() => {
+      if (!root.isConnected) return;
+      if (
+        document.visibilityState === "visible" && !busy && !dialog.open &&
+        document.activeElement !== qEl && document.activeElement !== schoolEl
+      ) load({ silent: true });
+      scheduleAutoRefresh(30000);
+    }, delay);
+  }
+  scheduleAutoRefresh(Math.random() * 30000);
 
   /* ----- Borang (dialog) ----- */
   const setRadio = (name, value) => {

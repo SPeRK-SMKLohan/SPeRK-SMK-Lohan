@@ -44,7 +44,17 @@ export async function reauthenticate(password) {
 export async function getIdToken() {
   const user = auth.currentUser;
   if (!user) throw new Error("Belum log masuk.");
-  return user.getIdToken();
+  let timer;
+  try {
+    return await Promise.race([
+      user.getIdToken(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Pengesahan mengambil masa terlalu lama. Semak rangkaian dan cuba semula.")), 15000);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Mesej sengaja tidak menyatakan sama ada e-mel atau kata laluan yang salah.

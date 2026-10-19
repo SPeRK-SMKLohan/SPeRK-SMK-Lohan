@@ -1,5 +1,5 @@
 import "./style.css";
-import { initAuth, isLoggedIn, signOutUser, currentEmail, getIdToken } from "./shared/auth.js";
+import { initAuth, isLoggedIn, signOutUser, currentEmail } from "./shared/auth.js";
 import { esc } from "./shared/dom.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
@@ -204,13 +204,6 @@ initAuth().then(() => {
   // Jangan tahan paparan aplikasi sementara pembersihan SW berjalan.
   cleanupLegacySW();
 
-  // Semak sesi awal: jika token tamat / tidak sah, terus ke log masuk
-  // tanpa menunggu panggilan API gagal.
-  if (isLoggedIn()) {
-    getIdToken().catch(() => {
-      signOutUser().then(() => { location.hash = "/login"; });
-    });
-  }
   window.addEventListener("hashchange", render);
   render();
 }).catch((err) => {
