@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { initializeAuth, getAuth, browserSessionPersistence } from "firebase/auth";
+import { initializeAuth, getAuth, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,12 +17,12 @@ if (missing.length) {
 
 export const app = initializeApp(firebaseConfig);
 
-// Sesi tamat apabila tab ditutup (sesuai untuk komputer bersama di sekolah).
+// Kekalkan sesi apabila tab ditutup; guru masih boleh log keluar secara manual.
 // getAuth() sebagai sandaran jika initializeAuth sudah dipanggil sebelum ini
 // (contoh: muat semula modul ketika `vite dev`/HMR), kerana ia hanya boleh dipanggil sekali.
 function createAuth() {
   try {
-    return initializeAuth(app, { persistence: browserSessionPersistence });
+    return initializeAuth(app, { persistence: browserLocalPersistence });
   } catch {
     return getAuth(app);
   }

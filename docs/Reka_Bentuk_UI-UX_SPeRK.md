@@ -230,7 +230,7 @@ Lihat 2.5 S9.
 
 #### S1 · Log Masuk — `#/login`
 
-**Tujuan:** pengesahan staf (e-mel + kata laluan). Sesi tamat bila tab ditutup.
+**Tujuan:** pengesahan staf (e-mel + kata laluan). Sesi kekal selepas tab ditutup; pengguna log keluar melalui butang Log Keluar.
 **Susun atur:** skrin penuh tanpa navigasi; kad tengah (maks 380 px) atas latar lembut;
 logo sekolah 80 px di atas sekali.
 
@@ -493,7 +493,7 @@ Gaya yang dicadangkan untuk dieksperimen (pilih satu atau gabungkan):
 
 | Skrin | Fungsi kritikal |
 |---|---|
-| Log Masuk | Validasi kosong; sibuk `Sedang log masuk...`; mesej ralat spesifik; sesi tamat tab ditutup |
+| Log Masuk | Validasi kosong; sibuk `Sedang log masuk...`; mesej ralat spesifik; sesi kekal selepas tab ditutup; log keluar manual |
 | Papan Pemuka | 4 metrik; 2 kad pintasan navigasi; jadual resit terkini (5 kolum + jumlah harian) |
 | e-Daftar | Carian berbilang token + No. IC; chips tingkatan/status; tapis sekolah; Enter menanda padanan tunggal; pintasan `/`; **Tanda daftar / Batal daftar** dengan toast undo + pengesahan untuk batal; baris tunjuk masa; walk-in dari carian kosong; auto-refresh 30 s; 3 keadaan kosong; kiraan `Menunjukkan x daripada y` |
 | Dialog murid | Semua medan + radio OKU/status + medan penempatan semula bersyarat + nota; butang Simpan/Kosongkan/Tutup; sibuk `Menyimpan…` |

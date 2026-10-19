@@ -65,7 +65,7 @@ Di bawah butang Log Masuk terdapat pautan **Panduan Pengguna (PDF)** — dokumen
 ### 2.2 Log keluar
 
 - Butang **Log Keluar** berada di penjuru kanan atas (di sebelah alamat e-mel anda).
-- **Sesi tamat secara automatik apabila tab pelayar ditutup.** Ini dibuat demi keselamatan kerana komputer koperasi mungkin digunakan bersama oleh beberapa guru. Jika perlu bekerja secara berterusan, biarkan tab SPeRK terbuka.
+- **Menutup tab tidak melog keluar.** Apabila membuka SPeRK semula pada pelayar yang sama, sesi anda akan dipulihkan. Tekan **Log Keluar** apabila selesai, khususnya pada komputer yang dikongsi.
 
 ---
 
@@ -322,8 +322,8 @@ Buka `Papan Pemuka › e-Resit Koperasi › Barangan` untuk melihat senarai harg
 **Saya terlupa kata laluan. Apa perlu saya buat?**
 Hubungi pentadbir sistem SPeRK. Pentadbir boleh menjana e-mel penetapan semula kata laluan daripada konsol Firebase (prosedur dalam *Panduan Teknikal & Operasi*). Kata laluan tidak boleh dilihat oleh sesiapa — hanya boleh ditetapkan semula.
 
-**Mengapa saya perlu log masuk semula setiap kali?**
-Demi keselamatan komputer koperasi yang digunakan bersama, sesi ditamatkan apabila tab pelayar ditutup. Ini memang tingkah laku yang dirancang.
+**Adakah saya perlu log masuk semula selepas menutup tab?**
+Tidak. Sesi dipulihkan apabila SPeRK dibuka semula pada pelayar yang sama. Tekan **Log Keluar** apabila selesai, khususnya pada komputer yang dikongsi.
 
 **Mesej "Akaun tidak dibenarkan" muncul selepas log masuk.**
 E-mel anda belum didaftarkan sebagai pengguna SPeRK. Hubungi pentadbir sistem untuk menambah e-mel anda (senarai pengguna dibenarkan dikawal oleh sistem).
