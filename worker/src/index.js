@@ -65,8 +65,14 @@ async function authenticate(request, env) {
       audience: env.FIREBASE_PROJECT_ID,
       algorithms: ["RS256"],
     }));
-  } catch {
+  } catch (err) {
     tokenCache.delete(token);
+    // Gangguan sementara Google JWKS tidak bermaksud token pengguna tidak sah.
+    // Jangan paksa pengguna log masuk semula apabila pengesahan kunci gagal akibat rangkaian.
+    if (err instanceof TypeError || err?.code === "ERR_JWKS_TIMEOUT" || err?.code === "ERR_JOSE_GENERIC") {
+      console.error("Pengesahan token sementara gagal:", err);
+      return { ok: false, status: 503, error: "Pengesahan sementara terganggu. Sila cuba lagi." };
+    }
     return { ok: false, status: 401, error: "Sesi tidak sah atau tamat. Sila log masuk semula." };
   }
 

@@ -12,6 +12,23 @@ let cachedKey = null;
 let cachedToken = null; // { value, expiresAt }
 let pendingToken = null; // Promise token sedang berjalan (dikongsi)
 
+async function fetchWithRetry(url, options, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (![429, 500, 502, 503, 504].includes(response.status) || attempt === attempts) return response;
+      await response.body?.cancel().catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 250 * attempt + Math.random() * 250));
+    } catch (err) {
+      lastError = err;
+      if (attempt === attempts) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 250 * attempt + Math.random() * 250));
+    }
+  }
+  throw lastError;
+}
+
 function getServiceAccount(env) {
   const raw = env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) throw new HttpError(500, "Pelayan belum dikonfigurasi.");
@@ -38,7 +55,7 @@ async function fetchAccessToken(env) {
     .setExpirationTime("1h")
     .sign(cachedKey);
 
-  const res = await fetch("https://oauth2.googleapis.com/token", {
+  const res = await fetchWithRetry("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -119,11 +136,12 @@ async function fsRequest(env, path, { method = "POST", body, query } = {}) {
     `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents${path}` +
     (query ? `?${query}` : "");
 
-  const res = await fetch(url, {
+  const readOnly = method === "GET" || [":runQuery", ":runAggregationQuery", ":batchGet"].includes(path);
+  const res = await fetchWithRetry(url, {
     method,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
-  });
+  }, readOnly ? 3 : 1);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = new Error(`Firestore: ${data.error?.message || res.status}`);

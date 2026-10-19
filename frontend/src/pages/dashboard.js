@@ -20,7 +20,9 @@ export async function renderDashboard(root) {
   try {
     d = await getDashboard();
   } catch (err) {
-    box.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+    box.innerHTML = `<p class="error">${esc(err.message)}</p>
+      <button id="retry-dashboard" class="btn" type="button">Cuba Muat Semula</button>`;
+    box.querySelector("#retry-dashboard").addEventListener("click", () => renderDashboard(root));
     return;
   }
 
