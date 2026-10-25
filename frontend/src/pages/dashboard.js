@@ -10,7 +10,7 @@ const getDashboard = () => apiFetch("/api/dashboard");
 export async function renderDashboard(root) {
   root.innerHTML = `
     <div class="page-head">
-      <h1>Papan Pemuka</h1>
+      <h1>Utama</h1>
       <p>${esc(APP_LONG_NAME)}</p>
     </div>
     <div id="dash"><p class="muted">Memuatkan...</p></div>`;

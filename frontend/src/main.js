@@ -1,6 +1,5 @@
 import "./style.css";
-import { initAuth, isLoggedIn, signOutUser, currentEmail } from "./shared/auth.js";
-import { esc } from "./shared/dom.js";
+import { initAuth, isLoggedIn, signOutUser } from "./shared/auth.js";
 import { applyTextSizePreference, largeTextEnabled, wireTextSizeControl } from "./shared/accessibility.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
@@ -16,7 +15,7 @@ import { renderReceiptDetail } from "./features/e-resit/receipt-page.js";
 /* SPeRK: dua ciri berkongsi satu pangkalan data murid.
    Navigasi dikelompokkan mengikut ciri. */
 const NAV = [
-  { label: "Papan Pemuka", path: "/" },
+  { label: "Utama", path: "/" },
   {
     label: "e-Daftar",
     links: [
@@ -98,7 +97,6 @@ function layoutHtml(path) {
         </button>
         <nav id="primary-nav" class="nav" aria-label="Navigasi utama">${NAV.map(navItem).join("")}</nav>
         <div class="topbar-user">
-          <span class="who">${esc(currentEmail())}</span>
           <button id="text-size-toggle" class="btn small text-size-toggle" type="button" aria-pressed="${largeTextEnabled()}" aria-label="Saiz teks" title="Saiz teks">A+</button>
           <button id="logout" class="btn small" type="button">Log Keluar</button>
         </div>
@@ -214,7 +212,7 @@ function render() {
   } else if (routes[path]) {
     routes[path](view, params);
   } else {
-    view.innerHTML = `<h1>Halaman tidak dijumpai</h1><p><a href="#/">Kembali ke Papan Pemuka</a></p>`;
+    view.innerHTML = `<h1>Halaman tidak dijumpai</h1><p><a href="#/">Kembali ke Utama</a></p>`;
   }
 
   app.querySelector("#logout").addEventListener("click", async () => {
