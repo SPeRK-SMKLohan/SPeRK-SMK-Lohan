@@ -5,6 +5,7 @@ import { getDeviceStaffName, setDeviceStaffName } from "../shared/staff-name.js"
 
 export function renderLogin(root) {
   root.innerHTML = `
+    <a class="skip-link" href="#login-form">Langkau ke borang log masuk</a>
     <div class="login-wrap">
       <div class="login-tools"><label class="text-size-control">Saiz teks
         <select id="text-size-toggle" class="input" aria-label="Saiz teks">

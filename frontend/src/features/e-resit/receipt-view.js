@@ -9,10 +9,10 @@ export function receiptHtml(r) {
     const variant = i.variant ?? i.size; // sokong resit lama yang menggunakan "size"
     return `
     <tr>
-      <td>${esc(i.itemNameSnapshot)}${variant ? ` (${esc(variant)})` : ""}</td>
-      <td class="num">${i.quantity}</td>
-      <td class="num">${formatAmount(i.unitPriceSen)}</td>
-      <td class="num">${formatAmount(i.subtotalSen)}</td>
+      <td data-label="Barangan">${esc(i.itemNameSnapshot)}${variant ? ` (${esc(variant)})` : ""}</td>
+      <td class="num" data-label="Kuantiti">${i.quantity}</td>
+      <td class="num" data-label="Harga seunit">${formatAmount(i.unitPriceSen)}</td>
+      <td class="num" data-label="Jumlah">${formatAmount(i.subtotalSen)}</td>
     </tr>`;
   }).join("");
 
@@ -32,7 +32,7 @@ export function receiptHtml(r) {
         <div><span>Tarikh</span><strong>${esc(formatDateTime(r.createdAt))}</strong></div>
         <div><span>Nama Murid</span><strong>${esc(r.studentNameSnapshot)}</strong></div>
       </div>
-      <table class="table">
+      <table class="table receipt-print-items">
         <thead>
           <tr>
             <th>Item</th>

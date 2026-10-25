@@ -88,6 +88,7 @@ function layoutHtml(path) {
 
   return `
     ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</div>` : ""}
+    <a class="skip-link" href="#view">Langkau navigasi, ke kandungan</a>
     <header class="topbar no-print">
       <div class="topbar-in">
         <a class="brand" href="#/">
@@ -111,7 +112,7 @@ function layoutHtml(path) {
         </div>
       </div>
     </header>
-    <main id="view" class="page"></main>
+    <main id="view" class="page" tabindex="-1"></main>
     `;
 }
 
@@ -173,6 +174,7 @@ function render() {
   // Panduan boleh dibaca sebelum log masuk, termasuk daripada halaman log masuk.
   if (path === "/panduan" && !isLoggedIn()) {
     app.innerHTML = `
+      <a class="skip-link" href="#view">Langkau navigasi, ke kandungan</a>
       <header class="topbar no-print"><div class="topbar-in guide-public-head">
         <a class="brand" href="#/login">
           <span class="brand-badge"><img class="brand-logo" src="/logo-nav.svg" alt="" /></span>
@@ -185,7 +187,7 @@ function render() {
         </label>
         <a class="btn small" href="#/login">Log Masuk</a>
       </div></header>
-      <main id="view" class="page"></main>
+      <main id="view" class="page" tabindex="-1"></main>
       `;
     renderGuide(app.querySelector("#view"));
     wireTextSizeControl(app);

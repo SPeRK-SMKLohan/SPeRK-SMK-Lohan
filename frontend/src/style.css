@@ -29,13 +29,13 @@
 
 :root {
   /* Warna teras */
-  --primary: #1E2A3A;          /* Indigo Slate: butang, pautan aktif */
-  --primary-deep: #091525;     /* Indigo gelap: hover, tajuk */
-  --accent: #8C322A;           /* Terracotta: pautan, aksen, amaran lembut */
-  --accent-hover: #6F2620;
+  --primary: #17324F;          /* Biru tua: butang dan pautan aktif */
+  --primary-deep: #10263D;
+  --accent: #853128;
+  --accent-hover: #64231D;
   --accent-soft: #FFDAD5;      /* Latar lencana "sudah daftar" */
   --accent-soft-ink: #76221B;
-  --green: #205B3E;            /* Kejayaan / pengesahan */
+  --green: #195331;            /* Kejayaan / pengesahan */
   --green-soft: #E8F3EC;
   --indigo-soft: #D7E3F9;      /* Label tingkatan, pindahan bank */
   --indigo-soft-ink: #101C2C;
@@ -43,12 +43,12 @@
   --gold-soft-ink: #271900;
   --amber: #8C6505;            /* Amaran lembut (pendua, tidak aktif) */
   --amber-soft: #FEF7E6;
-  --danger: #BA1A1A;
+  --danger: #A31919;
   --danger-soft: #FFDAD6;
   --danger-soft-ink: #93000A;
 
   /* Permukaan */
-  --background: #F9F9F9;
+  --background: #F3F5F7;
   --surface: #FFFFFF;
   --surface-low: #F3F3F4;
   --surface-mid: #EEEEEE;
@@ -57,13 +57,14 @@
 
   /* Teks */
   --text-primary: #1A1C1C;
-  --text-secondary: #44474C;
-  --text-muted: #5C6065;
+  --text-secondary: #343C46;
+  --text-muted: #4B5561;
   --text-on-primary: #FFFFFF;
 
   /* Garisan */
-  --border: #E8E8E8;
-  --border-strong: #C5C6CC;
+  --border: #D7DDE4;
+  --border-strong: #AEB8C4;
+  --focus: #005FCC;
 
   /* Tipografi */
   --font-heading: "Plus Jakarta Sans", "Inter", sans-serif;
@@ -90,15 +91,15 @@
 
 * { box-sizing: border-box; }
 
+html { font-size: 112.5%; scroll-behavior: smooth; }
 html, body { margin: 0; padding: 0; }
 
 body {
   font-family: var(--font-body);
   font-size: 1rem;
-  line-height: 1.45;
+  line-height: 1.55;
   background: var(--background);
   color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -110,13 +111,15 @@ h1, h2, h3, h4 {
   letter-spacing: -0.01em;
   color: var(--primary-deep);
 }
-h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 .5rem; }
-h2 { font-size: 1.125rem; font-weight: 600; margin: 0 0 .75rem; }
-h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; font-weight: 650; letter-spacing: -0.015em; margin: 0 0 .5rem; }
+h2 { font-size: 1.35rem; font-weight: 650; margin: 0 0 .75rem; }
+h3 { font-size: 1.125rem; font-weight: 650; margin: 0 0 .4rem; }
 
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-html.text-size-large { font-size: 112.5%; }
-html.text-size-largest { font-size: 125%; }
+:focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+html.text-size-large { font-size: 125%; }
+html.text-size-largest { font-size: 137.5%; }
+.skip-link { position: fixed; top: 8px; left: 8px; z-index: 200; transform: translateY(-160%); padding: 12px 16px; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 700; }
+.skip-link:focus { transform: translateY(0); color: #fff; }
 
 /* Rangka halaman: topbar kekal di atas, footer di bawah. */
 #app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
@@ -175,24 +178,24 @@ html.text-size-largest { font-size: 125%; }
   box-shadow: 0 12px 28px -8px rgba(9, 21, 37, .25), 0 2px 8px rgba(9, 21, 37, .08);
 }
 .nav-drop:hover .nav-menu, .nav-drop:focus-within .nav-menu, .nav-drop.open .nav-menu { display: flex; }
-.nav-menu a { padding: 10px 12px; border-radius: var(--radius-control); font-size: .875rem; font-weight: 500; color: var(--text-primary); }
+.nav-menu a { min-height: 52px; display: flex; align-items: center; padding: 10px 12px; border-radius: var(--radius-control); font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .nav-menu a:hover { background: var(--surface-low); text-decoration: none; }
 .nav-menu a.active { background: var(--surface-mid); color: var(--primary-deep); font-weight: 600; }
 
 .topbar-user { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.who { font-size: .8rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.who { font-size: .9375rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
 .mobile-nav-toggle { display: none; }
-.text-size-control { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: .9375rem; font-weight: 600; white-space: nowrap; }
+.text-size-control { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 1rem; font-weight: 600; white-space: normal; }
 .text-size-control .input { min-height: 48px; min-width: 150px; padding-left: 10px; font-size: .9375rem; }
 
 /* ---------------- Kad dan panel ---------------- */
 .card {
   background: var(--surface);
-  border: none;
-  border-radius: var(--radius-card);
-  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 16px;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 2px rgba(9, 21, 37, .04);
 }
 .card > h2 { margin: 0 0 12px; }
 .muted { color: var(--text-secondary); font-size: .9375rem; }
@@ -202,7 +205,7 @@ html.text-size-largest { font-size: 125%; }
 }
 .notice a { font-weight: 600; }
 .notice.ok { background: var(--green-soft); color: var(--green); }
-.error { color: var(--danger); font-size: .875rem; min-height: 1.2em; margin: .5rem 0; }
+.error { color: var(--danger); font-size: 1rem; min-height: 1.2em; margin: .5rem 0; font-weight: 600; }
 
 /* ---------------- Statistik (Papan Pemuka & e-Daftar) ---------------- */
 .cards {
@@ -216,7 +219,7 @@ html.text-size-largest { font-size: 125%; }
 .cards .card:nth-child(even) { background: rgba(243, 243, 244, .55); }
 .stat span {
   display: block; margin-bottom: 6px;
-  font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  font-size: .9rem; font-weight: 700; letter-spacing: .02em;
   color: var(--text-secondary);
 }
 .stat strong {
@@ -229,11 +232,11 @@ html.text-size-largest { font-size: 125%; }
 /* ---------------- Butang ---------------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  min-height: 44px; padding: 0 16px;
+  min-height: 52px; padding: 8px 18px;
   border: none; border-radius: var(--radius-control);
   background: var(--surface-mid); color: var(--text-primary);
   font-family: var(--font-body); font-size: 1rem; font-weight: 600; letter-spacing: .01em;
-  cursor: pointer; text-decoration: none; white-space: nowrap;
+  cursor: pointer; text-decoration: none; white-space: normal; text-align: center; line-height: 1.25;
   transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .btn:hover { background: var(--surface-highest); color: var(--text-primary); text-decoration: none; }
@@ -247,8 +250,8 @@ html.text-size-largest { font-size: 125%; }
 .btn.danger-solid:hover { background: var(--danger-soft-ink); color: #fff; }
 .btn.wa { background: #25D366; color: #fff; }
 .btn.wa:hover { background: #1FB959; color: #fff; }
-.btn.small { min-height: 44px; padding: 0 14px; font-size: .9375rem; }
-.btn.block { display: flex; width: 100%; min-height: 52px; margin-top: 12px; font-size: 1rem; }
+.btn.small { min-height: 48px; padding: 8px 14px; font-size: 1rem; }
+.btn.block { display: flex; width: 100%; min-height: 56px; margin-top: 12px; font-size: 1rem; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .topbar .btn { background: var(--surface-low); color: var(--accent); }
 .topbar .btn:hover { background: var(--accent); color: #fff; }
@@ -259,15 +262,15 @@ html.text-size-largest { font-size: 125%; }
 
 /* ---------------- Borang ---------------- */
 .input {
-  min-height: 48px; padding: 0 14px; max-width: 100%;
-  border: none; border-radius: var(--radius-control);
+  min-height: 52px; padding: 8px 14px; max-width: 100%;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-control);
   background: var(--surface-low); color: var(--text-primary);
   font-family: var(--font-body); font-size: 1rem;
   transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
 .input::placeholder { color: var(--text-muted); }
-.input:focus { outline: none; background: var(--surface); box-shadow: 0 0 0 2px rgba(30, 42, 58, .22); }
-.input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
+.input:focus { background: var(--surface); box-shadow: none; }
+.input:focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; box-shadow: none; }
 input.input[type="search"], input.input[type="email"], input.input[type="password"], input.input[type="tel"] { width: 100%; }
 #f-name { text-transform: uppercase; }
 input.input[type="file"] { padding: 8px 14px; min-height: 44px; }
@@ -282,7 +285,7 @@ input[type="number"].qty::-webkit-outer-spin-button,
 input[type="number"].qty::-webkit-inner-spin-button,
 input[type="number"].line-qty::-webkit-outer-spin-button,
 input[type="number"].line-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary); flex: none; }
+input[type="radio"], input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--primary); flex: none; }
 
 label.inline { display: flex; gap: 8px; align-items: center; font-size: .9375rem; }
 label.check, label.radio { display: flex; gap: 10px; align-items: center; margin: .5rem 0; font-size: .9375rem; }
@@ -294,7 +297,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .table th, .table td { padding: 14px 16px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--surface-high); }
 .table thead th {
   background: var(--surface-low);
-  font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  font-size: .875rem; font-weight: 700;
   color: var(--text-secondary); white-space: nowrap;
 }
 .table thead th:first-child { border-radius: var(--radius-control) 0 0 var(--radius-control); }
@@ -303,17 +306,17 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .table tbody tr:hover { background: rgba(243, 243, 244, .5); }
 .table .num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-body); font-size: .9375rem; font-weight: 500; white-space: nowrap; }
 .table .nowrap { white-space: nowrap; }
-.table .muted { font-size: .75rem; }
+.table .muted { font-size: .875rem; }
 .table a { font-weight: 600; }
 /* Jadual lebar (e-Daftar): skrol mendatar lebih baik daripada berlipat sesak. */
 .table.wide { min-width: 880px; }
 .table.wide .muted { white-space: nowrap; }
 .table.compact th, .table.compact td { padding: 8px 10px; font-size: .875rem; }
-.table.compact thead th { font-size: .75rem; }
+.table.compact thead th { font-size: .875rem; }
 
 /* ---------------- Laporan koperasi ---------------- */
 .report-filters { display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)) auto; gap: 14px; align-items: end; }
-.report-filters label { display: grid; gap: 6px; color: var(--text-primary); font-size: .875rem; font-weight: 600; }
+.report-filters label { display: grid; gap: 8px; color: var(--text-primary); font-size: 1rem; font-weight: 650; }
 .report-filters .input { width: 100%; min-height: 48px; }
 .report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .report-actions .btn { min-height: 48px; }
@@ -326,8 +329,8 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .report-lines-head h2 { margin: 0; font-size: 1.15rem; }
 .report-table { min-width: 760px; }
 .report-table .num { font-family: var(--font-body); }
-.report-table thead th.num { font-size: .6875rem; letter-spacing: .06em; }
-.report-table tbody td.num { font-size: .875rem; }
+.report-table thead th.num { font-size: .875rem; letter-spacing: 0; }
+.report-table tbody td.num { font-size: 1rem; }
 .report-table td[data-label="Barang"] { min-width: 180px; }
 .report-table-wrap { overflow-x: auto; }
 
@@ -336,7 +339,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 12px; border-radius: 999px;
   background: var(--surface-mid); color: var(--text-secondary);
-  font-size: .875rem; font-weight: 600; white-space: nowrap;
+  font-size: .9375rem; font-weight: 650; white-space: nowrap;
 }
 .badge.done { background: var(--accent-soft); color: var(--accent-soft-ink); }
 .badge.cart { background: var(--green-soft); color: var(--green); }
@@ -347,16 +350,16 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   display: inline-flex; align-items: center; vertical-align: middle;
   margin-left: 6px; padding: 2px 8px; border-radius: 6px;
   background: var(--indigo-soft); color: var(--indigo-soft-ink);
-  font-size: .6875rem; font-weight: 600;
+  font-size: .875rem; font-weight: 700;
 }
 .tag.oku { background: var(--gold-soft); color: var(--gold-soft-ink); }
 
 .chips { display: inline-flex; gap: 2px; padding: 3px; background: var(--surface-low); border-radius: 10px; flex-wrap: wrap; }
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
-  min-height: 38px; padding: 0 14px; border: none; border-radius: var(--radius-control);
+  min-height: 48px; padding: 0 14px; border: none; border-radius: var(--radius-control);
   background: transparent; color: var(--text-secondary);
-  font-family: var(--font-body); font-size: .8125rem; font-weight: 600; cursor: pointer;
+  font-family: var(--font-body); font-size: 1rem; font-weight: 650; cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .chip:hover { background: var(--surface-high); color: var(--text-primary); }
@@ -366,7 +369,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* ---------------- Kolong pilihan & toolbar padam banyak ---------------- */
 .sel-col { width: 40px; text-align: center; }
-.sel-col input { width: 18px; height: 18px; margin: 0; flex: none; }
+.sel-col input { width: 24px; height: 24px; margin: 0; flex: none; }
 .bulk-toolbar {
   display: flex; align-items: center; gap: 10px; padding: 10px 24px;
   background: var(--surface-low); border-bottom: 1px solid var(--border);
@@ -389,7 +392,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 /* Paginasi e-Daftar: Sebelumnya / Seterusnya */
 .pager { display: flex; justify-content: center; align-items: center; gap: 14px; margin: 14px 0 4px; }
 .pager.hidden { display: none !important; }
-.pager #pager-info { font-size: .8125rem; font-weight: 600; }
+.pager #pager-info { font-size: .9375rem; font-weight: 600; }
 
 /* ---------------- Kaunter e-Daftar ---------------- */
 .kaunter-tools { display: grid; gap: 18px; }
@@ -411,13 +414,13 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .filter-group { display: grid; align-content: start; gap: 6px; min-width: 0; }
 .filter-row .filter-caption { margin-bottom: 4px; }
 .filter-row .chips { display: flex; flex-wrap: wrap; width: 100%; gap: 8px; }
-.filter-row .chip { flex: 0 1 auto; justify-content: center; min-width: 150px; min-height: 48px; padding: 8px 16px; font-size: .9375rem; white-space: nowrap; }
+.filter-row .chip { flex: 0 1 auto; justify-content: center; min-width: 150px; min-height: 52px; padding: 8px 16px; font-size: 1rem; white-space: normal; }
 .school-summary { margin-top: 0; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
 .school-summary > .muted { margin: 0; }
-.school-summary-title { margin: 0 0 10px; font-size: 1rem; }
+.school-summary-title { margin: 0 0 12px; font-size: 1.25rem; }
 .school-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .school-stats > div { display: grid; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 8px; background: var(--surface-low); }
-.school-stats span { color: var(--text-secondary); font-size: .8125rem; }
+.school-stats span { color: var(--text-secondary); font-size: .9375rem; font-weight: 600; }
 .school-stats strong { color: var(--primary-deep); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .load-error { display: grid; justify-items: start; gap: 8px; padding: 12px; }
 .load-error strong { color: var(--danger-soft-ink); }
@@ -454,20 +457,20 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .modal .toolbar #clear { order: -1; margin-right: auto; background: transparent; color: var(--accent); padding: 0 10px; }
 .modal .toolbar #clear:hover { background: var(--accent-soft); color: var(--accent-soft-ink); }
 .modal-sm { width: min(460px, 94vw); }
-.modal-sm label { display: block; margin-top: 14px; font-size: .9375rem; font-weight: 600; color: var(--text-primary); }
+.modal-sm label { display: block; margin-top: 14px; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .modal-sm label .input { width: 100%; margin-top: 6px; }
 .modal .toolbar #del-cancel { order: -1; margin-right: auto; background: transparent; color: var(--text-secondary); padding: 0 10px; }
 .modal .toolbar #del-cancel:hover { background: var(--surface-high); color: var(--text-primary); }
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 16px; }
 .form-grid > .full { grid-column: 1 / -1; }
-.form-grid label { display: block; font-size: .9375rem; font-weight: 600; color: var(--text-primary); }
+.form-grid label { display: block; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .form-grid .input { width: 100%; margin-top: 6px; }
 .form-grid textarea.input { padding: 10px 14px; line-height: 1.5; resize: vertical; }
-.form-grid label.inline { display: flex; gap: 10px; align-items: center; font-size: .9375rem; font-weight: 400; letter-spacing: 0; }
+.form-grid label.inline { display: flex; gap: 10px; align-items: center; font-size: 1rem; font-weight: 400; letter-spacing: 0; }
 .radio-group { border: none; background: none; padding: 0; margin: 0; }
 .radio-group legend {
-  padding: 0 0 2px; font-size: .9375rem; font-weight: 600;
+  padding: 0 0 6px; font-size: 1rem; font-weight: 600;
   color: var(--text-primary);
 }
 .radio-group label.radio { gap: 12px; margin: 8px 0 0; min-height: 24px; }
@@ -478,7 +481,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .receipt-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
 .receipt-progress { margin: 0 0 16px; padding: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 600; }
 .receipt-step { margin-bottom: 14px; }
-.step-help { margin: -4px 0 14px; font-size: .9375rem; line-height: 1.5; }
+.step-help { margin: -4px 0 14px; font-size: 1rem; line-height: 1.55; }
 .sticky { position: sticky; top: 96px; }
 
 .step { display: flex; align-items: center; gap: 12px; }
@@ -498,7 +501,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 }
 .result:hover { background: var(--background); border-color: var(--border-strong); }
 .result strong { font-size: 1rem; }
-.result .muted { display: block; font-size: .875rem; }
+.result .muted { display: block; font-size: .9375rem; }
 
 .selected { display: flex; align-items: center; gap: 14px; background: var(--background); border-radius: var(--radius-card); padding: 14px 16px; }
 .selected-info { flex: 1; min-width: 0; }
@@ -524,7 +527,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 2.25rem; padding: 6px 10px; border-radius: 6px;
   background: var(--surface-low); font-family: var(--font-mono);
-  font-size: .8125rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  font-size: .9375rem; font-weight: 600; font-variant-numeric: tabular-nums;
 }
 
 .pay-option {
@@ -541,7 +544,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .bankref .input { width: 100%; margin-top: 6px; }
 
 .receiver { background: var(--surface-low); border-radius: var(--radius-control); padding: 12px 14px; margin-bottom: 12px; }
-.receiver-label { display: block; margin-bottom: 2px; font-size: .8125rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--text-secondary); }
+.receiver-label { display: block; margin-bottom: 4px; font-size: .875rem; font-weight: 700; color: var(--text-secondary); }
 .receiver strong { font-size: .9375rem; }
 
 .sum-row { display: flex; justify-content: space-between; gap: 12px; margin: 6px 0; font-size: .9375rem; color: var(--text-secondary); }
@@ -561,7 +564,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .pill {
   display: flex; flex-direction: column; gap: 2px;
   padding: 12px 14px; border-radius: 10px; background: var(--surface-low); color: var(--text-primary);
-  font-size: .72rem;
+  font-size: .9375rem;
 }
 .pill strong { font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: var(--primary-deep); }
 .pill > span { color: var(--text-secondary); }
@@ -584,13 +587,13 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 }
 .nav-card:hover { box-shadow: var(--shadow-raise); transform: translateY(-2px); color: inherit; text-decoration: none; }
 .nav-card strong { display: block; font-family: var(--font-heading); font-size: 1.0625rem; font-weight: 600; color: var(--primary-deep); }
-.nav-card span { display: block; margin-top: 4px; color: var(--text-secondary); font-size: .8125rem; }
+.nav-card span { display: block; margin-top: 8px; color: var(--text-secondary); font-size: 1rem; line-height: 1.5; }
 
 /* ---------------- Panduan penggunaan ---------------- */
 .guide-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
 .guide-index { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .guide-index strong { color: var(--primary-deep); margin-right: 4px; }
-.guide-index button { min-height: 40px; display: inline-flex; align-items: center; padding: 0; border: 0; background: transparent; color: var(--accent); font: 600 .875rem var(--font-body); cursor: pointer; }
+.guide-index button { min-height: 48px; display: inline-flex; align-items: center; padding: 0 8px; border: 0; background: transparent; color: var(--accent); font: 600 1rem var(--font-body); cursor: pointer; }
 .guide-index button:hover { color: var(--accent-hover); text-decoration: underline; }
 .guide-content { display: grid; gap: 12px; }
 .guide-content .card { margin: 0; scroll-margin-top: 84px; }
@@ -638,15 +641,15 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 }
 .login-logo { width: 100%; height: 100%; object-fit: contain; }
 .login-card h1 { margin: 0 0 6px; }
-.login-card > .muted { margin: 0 0 24px; font-size: .875rem; }
-.login-card label { display: block; margin-bottom: 14px; text-align: left; font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--text-primary); }
+.login-card > .muted { margin: 0 0 24px; font-size: 1rem; }
+.login-card label { display: block; margin-bottom: 14px; text-align: left; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .login-card label .input { width: 100%; margin-top: 6px; }
 .login-card .staff-help { margin: -6px 0 12px; text-align: left; }
 .staff-name-setup { display: grid; gap: 12px; max-width: 520px; }
 .staff-name-setup label { font-size: 1rem; font-weight: 600; }
 .login-card .error { text-align: left; }
 .login-card .btn.block { margin-top: 4px; }
-.login-card .login-guide { margin: 14px 0 0; font-size: .8125rem; text-align: center; }
+.login-card .login-guide { margin: 14px 0 0; font-size: .9375rem; text-align: center; }
 
 /* ---------------- Maklum balas pantas dengan "Batal" ---------------- */
 .toast-wrap {
@@ -815,6 +818,18 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .receipt-heading-short { display: inline; }
   .receipt .table tbody td { padding: .45rem .2rem; font-size: .78rem; overflow-wrap: anywhere; }
   .receipt .table .num { font-size: .75rem; }
+  .receipt .receipt-print-items { display: block; min-width: 0; table-layout: auto; }
+  .receipt .receipt-print-items thead { display: none; }
+  .receipt .receipt-print-items tbody { display: grid; gap: 10px; }
+  .receipt .receipt-print-items tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+  .receipt .receipt-print-items tbody td,
+  .receipt .receipt-print-items tbody td:nth-child(n) { display: block; width: auto; min-width: 0; padding: 5px 2px; border: 0; font-size: .9375rem; line-height: 1.4; overflow-wrap: anywhere; text-align: left; white-space: normal; }
+  .receipt .receipt-print-items tbody td[data-label]::before { display: block; margin-bottom: 3px; content: attr(data-label); color: var(--text-secondary); font-size: .8125rem; font-weight: 700; }
+  .receipt .receipt-print-items tbody td:first-child { grid-column: 1 / -1; font-size: 1rem; font-weight: 700; }
+  .receipt .receipt-print-items tfoot { display: block; margin-top: 10px; }
+  .receipt .receipt-print-items tfoot tr { display: flex; justify-content: space-between; gap: 12px; }
+  .receipt .receipt-print-items tfoot th { width: auto; padding: 8px 2px; font-size: .9375rem; white-space: normal; }
+  .receipt .receipt-print-items tfoot th:last-child { white-space: nowrap; }
   .guide-head { align-items: stretch; flex-direction: column; }
   .guide-head > .btn { align-self: flex-start; }
   .guide-index { align-items: stretch; flex-direction: column; gap: 2px; }
@@ -822,7 +837,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .guide-content .card { padding: 16px; }
   .guide-content p, .guide-content li { font-size: 1rem; }
   .login-tools { top: 12px; right: 12px; }
-  .login-tools .text-size-control { gap: 4px; font-size: .8125rem; }
+  .login-tools .text-size-control { gap: 4px; font-size: .9375rem; }
   .login-tools .text-size-control .input { min-width: 124px; }
   .guide-public-head { justify-content: flex-start; gap: 8px; }
   .guide-public-head .brand { flex: 1 0 100%; }
