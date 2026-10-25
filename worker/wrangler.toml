@@ -8,4 +8,4 @@ account_id = "d38ad14997c2236d1875f7289f774025"
 [vars]
 # Projek Firebase baharu (migrasi ke akaun sperk.smklohan@gmail.com, 18 Okt 2026).
 FIREBASE_PROJECT_ID = "sperk-smk-lohan"
-ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173,https://sperk.smk-lohan.workers.dev,https://sperk-smklohan.pages.dev"
+ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173,https://sperk-smklohan.pages.dev"
