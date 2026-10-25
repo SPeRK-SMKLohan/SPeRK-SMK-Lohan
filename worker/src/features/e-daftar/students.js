@@ -45,7 +45,7 @@ const cleanText = (v, max) =>
 // Mengesahkan satu set medan e-Daftar (borang guru atau baris import).
 // Mengembalikan { reason } jika tidak sah, atau { digits, student }.
 export function readStudentFields(src) {
-  const name = cleanText(src.name, 100);
+  const name = cleanText(src.name, 100).toUpperCase();
   if (name.length < 2) return { reason: "Nama kosong atau terlalu pendek." };
   if (name.length > 100) return { reason: "Nama terlalu panjang (maksimum 100 aksara)." };
 

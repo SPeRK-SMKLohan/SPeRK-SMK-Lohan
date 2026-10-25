@@ -148,7 +148,7 @@ export async function createReceipt(env, user, request) {
         receiptNo: `${year}-${String(next).padStart(6, "0")}`,
         year,
         studentId,
-        studentNameSnapshot: student.name,
+        studentNameSnapshot: String(student.name ?? "").toUpperCase(),
         formerPrimarySchoolSnapshot: student.formerPrimarySchool,
         items: receiptItems,
         totalSen,

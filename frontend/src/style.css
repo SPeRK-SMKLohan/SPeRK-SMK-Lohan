@@ -276,6 +276,7 @@ html.large-text body { font-size: 16px; }
 .input:focus { outline: none; background: var(--surface); box-shadow: 0 0 0 2px rgba(30, 42, 58, .22); }
 .input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
 input.input[type="search"], input.input[type="email"], input.input[type="password"], input.input[type="tel"] { width: 100%; }
+#f-name { text-transform: uppercase; }
 input.input[type="file"] { padding: 8px 14px; min-height: 44px; }
 select.input {
   appearance: none; -webkit-appearance: none; padding-right: 38px;

@@ -6,7 +6,7 @@ import { maskIC } from "../util.js";
 export function studentFromDoc(d) {
   return {
     studentId: d.id,
-    name: d.name ?? "",
+    name: String(d.name ?? "").toUpperCase(),
     icNumber: d.icNumber ?? "",
     formerPrimarySchool: d.formerPrimarySchool ?? "",
     tingkatan: Number.isInteger(d.tingkatan) ? d.tingkatan : null,
@@ -24,7 +24,7 @@ export function studentFromDoc(d) {
 export function publicStudent(s) {
   return {
     studentId: s.studentId,
-    name: s.name,
+    name: String(s.name ?? "").toUpperCase(),
     icMasked: maskIC(s.icNumber),
     formerPrimarySchool: s.formerPrimarySchool,
     tingkatan: s.tingkatan,
