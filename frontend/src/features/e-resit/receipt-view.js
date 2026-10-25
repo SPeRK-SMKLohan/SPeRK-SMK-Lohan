@@ -34,7 +34,12 @@ export function receiptHtml(r) {
       </div>
       <table class="table">
         <thead>
-          <tr><th>Item</th><th class="num">Kuantiti</th><th class="num">Harga (RM)</th><th class="num">Jumlah (RM)</th></tr>
+          <tr>
+            <th>Item</th>
+            <th class="num"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
+            <th class="num"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
+            <th class="num"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
+          </tr>
         </thead>
         <tbody>${rows}</tbody>
         <tfoot>

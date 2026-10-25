@@ -130,7 +130,7 @@ html.large-text body { font-size: 16px; }
 /* ---------------- Topbar dan navigasi ---------------- */
 .topbar {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(249, 249, 249, .92);
+  background: var(--background);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 1px 8px rgba(0, 0, 0, .04);
@@ -656,6 +656,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .receipt .table th:nth-child(3), .receipt .table td:nth-child(3) { width: 21%; }
 .receipt .table th:nth-child(4), .receipt .table td:nth-child(4) { width: 21%; }
 .receipt .table thead th { background: none; color: var(--text); font-size: .8rem; font-weight: 700; border-bottom: 1px solid var(--text); letter-spacing: 0; text-transform: none; }
+.receipt-heading-short { display: none; }
 .receipt .table thead th:first-child, .receipt .table thead th:last-child { border-radius: 0; }
 .receipt .table tbody tr:hover { background: none; }
 .receipt .table .num { white-space: nowrap; font-family: Helvetica, Arial, sans-serif; font-size: .85rem; }
@@ -741,8 +742,22 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .bulk-toolbar .btn.small { min-height: 44px; }
   .import-layout { grid-template-columns: minmax(0, 1fr); }
   .receipt { padding: 1rem; }
+  .receipt-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .receipt-toolbar .btn { min-width: 0; min-height: 48px; padding: 8px; white-space: normal; text-align: center; }
+  .receipt-toolbar .btn.primary { margin-left: 0; }
   .receipt-head { align-items: flex-start; gap: .7rem; }
   .receipt-logo { width: 48px; height: 48px; }
+  .receipt .table { width: 100%; table-layout: fixed; }
+  .receipt .table th:nth-child(1), .receipt .table td:nth-child(1) { width: 40%; }
+  .receipt .table th:nth-child(2), .receipt .table td:nth-child(2) { width: 16%; }
+  .receipt .table th:nth-child(3), .receipt .table td:nth-child(3) { width: 22%; }
+  .receipt .table th:nth-child(4), .receipt .table td:nth-child(4) { width: 22%; }
+  .receipt .table thead th { padding: .4rem .12rem; font-size: .7rem; line-height: 1.2; white-space: normal; }
+  .receipt .table thead .num { text-align: right; }
+  .receipt-heading-full { display: none; }
+  .receipt-heading-short { display: inline; }
+  .receipt .table tbody td { padding: .45rem .2rem; font-size: .78rem; overflow-wrap: anywhere; }
+  .receipt .table .num { font-size: .75rem; }
   .footer-in { padding: 18px 14px; }
   .guide-head { align-items: stretch; flex-direction: column; }
   .guide-head > .btn { align-self: flex-start; }

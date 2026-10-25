@@ -16,8 +16,8 @@ Status: sedia untuk produksi — https://sperk-smklohan.pages.dev
   murid, tekan **Tanda daftar** (satu ketukan), dengan pilihan **Batal**
   pada maklum balas; status dipaparkan serta-merta.
 - **e-Resit Koperasi** — pilih item, kira jumlah, simpan resit, PDF,
-  cetakan dan perkongsian WhatsApp. Tunai diprabilih; butang "Resit Baharu
-  (murid sama)" pada resit lama mempercepat pembelian berulang.
+  cetakan dan perkongsian WhatsApp. Tunai diprabilih; Sejarah Resit
+  memudahkan guru menyemak rekod terdahulu.
 - **Papan Pemuka** — statistik belum daftar / sudah daftar / didaftarkan
   hari ini / keahlian koperasi, bar kemajuan hari pendaftaran, kad navigasi
   dan resit terkini.

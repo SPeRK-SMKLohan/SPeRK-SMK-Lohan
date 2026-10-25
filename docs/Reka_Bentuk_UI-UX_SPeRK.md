@@ -394,8 +394,8 @@ kosong `Tiada resit.`; carian debounce 300 ms.
 **Tujuan:** papar resit tersimpan + cetak, PDF, kongsi WhatsApp.
 **Susun atur (urut):** toolbar → kad kongsi WhatsApp → **kad resit (KEKAL GAYA LAMA)**.
 
-- **Toolbar:** `← Sejarah` · `Resit Baharu` · `Resit Baharu (murid sama)` (jika ada murid) ·
-  `Cetak` · `Muat turun PDF` (sibuk `Menjana PDF...`; ralat `PDF gagal dijana. Sila cuba lagi.`).
+- **Toolbar:** `← Sejarah` · `Resit Baharu` · `Cetak` · `Muat turun PDF`
+  (sibuk `Menjana PDF...`; ralat `PDF gagal dijana. Sila cuba lagi.`).
 - **Kad `Kongsi melalui WhatsApp`:** nota (nombor pilihan, tidak disimpan, IC tidak dimasukkan);
   input `Contoh: 012-3456789` + butang `Buka WhatsApp`; ralat
   `Nombor telefon tidak sah. Gunakan format seperti 012-3456789.`
@@ -405,6 +405,7 @@ kosong `Tiada resit.`; carian debounce 300 ms.
   - Tajuk `Resit Bayaran Koperasi` (Times New Roman, huruf besar, garis tebal atas/bawah).
   - Meta: `No. Resit` · `Tarikh` · `Nama Murid` (label kiri, nilai kanan).
   - Jadual: `Item` (44%) · `Kuantiti` (14%) · `Harga (RM)` (21%) · `Jumlah (RM)` (21%);
+    pada skrin telefon, kepala lajur dipendekkan dan lebar lajur dilaras supaya tidak bertindih;
     footer `Jumlah Keseluruhan`.
   - Bayaran: `Kaedah Pembayaran` (`Tunai` / `Pindahan Bank`) · `No. Rujukan` (jika ada).
   - Penutup tengah: `Terima kasih.`
@@ -764,7 +765,7 @@ with right-aligned numbers, a "Jumlah Keseluruhan" footer row, payment lines
 "Kaedah Pembayaran" ("Tunai"/"Pindahan Bank") and "No. Rujukan", and centered "Terima kasih."
 Design ONLY the surrounding chrome:
 - Toolbar above the receipt: buttons "← Sejarah", "Resit Baharu",
-  "Resit Baharu (murid sama)", "Cetak", "Muat turun PDF" (busy: "Menjana PDF...").
+  "Cetak", "Muat turun PDF" (busy: "Menjana PDF...").
 - Card "Kongsi melalui WhatsApp" with note "Nombor telefon penerima adalah pilihan.
   Jika dikosongkan, WhatsApp akan membenarkan anda memilih penerima. Nombor tidak
   disimpan. No. IC tidak dimasukkan dalam mesej.", an input "Contoh: 012-3456789"

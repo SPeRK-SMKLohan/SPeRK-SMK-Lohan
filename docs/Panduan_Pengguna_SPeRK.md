@@ -272,7 +272,6 @@ Buka `Papan Pemuka › e-Resit Koperasi › Jana Resit`. Borang resit disusun da
 | **Cetak** | Membuka dialog cetakan pelayar (boleh cetak terus atau *Save as PDF*). Dokumen resit menggunakan format rasmi koperasi dan sesuai dicetak pada kertas A4. |
 | **Muat turun PDF** | Memuat turun resit sebagai fail PDF ke komputer. |
 | **Resit Baharu** | Membuka borang resit kosong untuk murid baharu. |
-| **Resit Baharu (murid sama)** | Membuka borang resit dengan murid ini sudah dipilih (untuk pembelian seterusnya). |
 | **← Sejarah** | Kembali ke senarai Sejarah Resit. |
 
 Panel **Kongsikan melalui WhatsApp** membolehkan resit dihantar kepada ibu bapa/penjaga, **berserta fail PDF resit**:
