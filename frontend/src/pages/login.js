@@ -1,6 +1,7 @@
 import { signIn, signOutUser, loginErrorMessage } from "../shared/auth.js";
 import { apiFetch } from "../shared/api.js";
 import { wireTextSizeControl } from "../shared/accessibility.js";
+import { counterNumberOptions, getDeviceCounterNumber, setDeviceCounterNumber } from "../shared/counter.js";
 
 export function renderLogin(root) {
   root.innerHTML = `
@@ -9,7 +10,7 @@ export function renderLogin(root) {
         <select id="text-size-toggle" class="input" aria-label="Saiz teks">
           <option value="normal">Biasa</option><option value="large">Besar</option><option value="largest">Sangat besar</option>
         </select>
-      </label><button id="text-size-plus" class="btn small text-size-plus" type="button" aria-label="Besarkan teks">A+</button></div>
+      </label></div>
       <form id="login-form" class="login-card">
         <span class="login-crest"><img class="login-logo" src="/logo-web.svg" alt="Logo SMK Lohan" /></span>
         <h1>Log Masuk</h1>
@@ -20,6 +21,13 @@ export function renderLogin(root) {
         <label>Kata laluan
           <input id="password" class="input" type="password" autocomplete="current-password">
         </label>
+        <label>Nombor kaunter
+          <select id="counter-number" class="input" aria-describedby="counter-help" required>
+            <option value="">— Pilih nombor kaunter —</option>
+            ${counterNumberOptions(getDeviceCounterNumber())}
+          </select>
+        </label>
+        <p id="counter-help" class="muted counter-help">Nombor ini diingati pada peranti ini. Peranti lain boleh menggunakan nombor kaunter yang berbeza.</p>
         <p id="login-error" class="error"></p>
         <button class="btn primary block" type="submit">Log Masuk</button>
         <p class="login-guide"><a href="#/panduan">Buka Panduan Penggunaan</a></p>
@@ -31,6 +39,7 @@ export function renderLogin(root) {
   const form = root.querySelector("#login-form");
   const errorEl = root.querySelector("#login-error");
   const button = form.querySelector("button[type=submit]");
+  const counterSelect = root.querySelector("#counter-number");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -61,6 +70,9 @@ export function renderLogin(root) {
               ? "Pengesahan akaun gagal. Sila cuba lagi."
               : err.message
         );
+      }
+      if (!setDeviceCounterNumber(counterSelect.value)) {
+        throw new Error("Nombor kaunter tidak dapat disimpan pada peranti ini. Semak tetapan pelayar dan cuba lagi.");
       }
 
       location.hash = "/";

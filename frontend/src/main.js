@@ -106,19 +106,13 @@ function layoutHtml(path) {
               <option value="large"${textSizePreference() === "large" ? " selected" : ""}>Besar</option>
               <option value="largest"${textSizePreference() === "largest" ? " selected" : ""}>Sangat besar</option>
             </select>
-          </label><button id="text-size-plus" class="btn small text-size-plus" type="button" aria-label="Besarkan teks">A+</button>
+          </label>
           <button id="logout" class="btn small" type="button">Log Keluar</button>
         </div>
       </div>
     </header>
     <main id="view" class="page"></main>
-    <footer class="footer no-print">
-      <div class="footer-in">
-        <span>© ${new Date().getFullYear()} SMK Lohan, Ranau, Sabah. Hak Cipta Terpelihara.</span>
-        <span>Sistem Pengurusan Pelajar dan Resit Koperasi (SPeRK) ·
-          <a href="#/panduan">Panduan Penggunaan</a></span>
-      </div>
-    </footer>`;
+    `;
 }
 
 // Menu lungsur navigasi: buka dengan klik (sokongan sentuh), tutup bila klik luar.
@@ -188,11 +182,11 @@ function render() {
           <select id="text-size-toggle" class="input" aria-label="Saiz teks">
             <option value="normal">Biasa</option><option value="large">Besar</option><option value="largest">Sangat besar</option>
           </select>
-        </label><button id="text-size-plus" class="btn small text-size-plus" type="button" aria-label="Besarkan teks">A+</button>
+        </label>
         <a class="btn small" href="#/login">Log Masuk</a>
       </div></header>
       <main id="view" class="page"></main>
-      <footer class="footer no-print"><div class="footer-in"><span>© ${new Date().getFullYear()} SMK Lohan, Ranau, Sabah.</span></div></footer>`;
+      `;
     renderGuide(app.querySelector("#view"));
     wireTextSizeControl(app);
     return;

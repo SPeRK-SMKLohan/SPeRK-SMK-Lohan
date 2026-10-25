@@ -17,6 +17,7 @@ export function receiptSummary(d) {
     studentNameSnapshot: String(d.studentNameSnapshot ?? "").toUpperCase(),
     totalSen: d.totalSen,
     paymentMethod: d.paymentMethod,
+    counterNumber: Number.isInteger(d.counterNumber) ? d.counterNumber : null,
     status: d.status,
   };
 }
@@ -38,11 +39,14 @@ function reportReceipt(d) {
 
 function validateBody(body) {
   if (!body || typeof body !== "object") throw new HttpError(400, "Permintaan tidak sah.");
-  const { requestId, studentId, paymentMethod, lines } = body;
+  const { requestId, studentId, paymentMethod, counterNumber, lines } = body;
 
   if (typeof requestId !== "string" || !UUID_RE.test(requestId)) throw new HttpError(400, "ID permintaan tidak sah.");
   if (typeof studentId !== "string" || !ID_RE.test(studentId)) throw new HttpError(400, "Murid tidak sah.");
   if (!PAYMENT_METHODS.includes(paymentMethod)) throw new HttpError(400, "Kaedah pembayaran tidak sah.");
+  if (!Number.isInteger(counterNumber) || counterNumber < 1 || counterNumber > 24) {
+    throw new HttpError(400, "Nombor kaunter mestilah antara 1 hingga 24. Sila pilih nombor kaunter pada peranti ini.");
+  }
   if (!Array.isArray(lines) || lines.length < 1 || lines.length > 30) {
     throw new HttpError(400, "Sila pilih sekurang-kurangnya satu item.");
   }
@@ -66,14 +70,14 @@ function validateBody(body) {
     return { itemId: l.itemId, quantity: l.quantity };
   });
 
-  return { requestId, studentId, paymentMethod, bankRef, lines: cleanLines };
+  return { requestId, studentId, paymentMethod, counterNumber, bankRef, lines: cleanLines };
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function createReceipt(env, user, request) {
   const body = await readJson(request);
-  const { requestId, studentId, paymentMethod, bankRef, lines } = validateBody(body);
+  const { requestId, studentId, paymentMethod, counterNumber, bankRef, lines } = validateBody(body);
 
   // Permintaan ulangan: pulangkan resit yang sama, jangan cipta yang baharu.
   const already = await getDoc(env, "receipts", requestId);
@@ -157,6 +161,7 @@ export async function createReceipt(env, user, request) {
         items: receiptItems,
         totalSen,
         paymentMethod,
+        counterNumber,
         bankRef: bankRef || undefined,
         status: "ISSUED",
         createdAt: now,

@@ -184,16 +184,6 @@ html.text-size-largest { font-size: 125%; }
 .mobile-nav-toggle { display: none; }
 .text-size-control { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: .9375rem; font-weight: 600; white-space: nowrap; }
 .text-size-control .input { min-height: 48px; min-width: 150px; padding-left: 10px; font-size: .9375rem; }
-.text-size-plus { min-width: 48px; font-size: 1rem !important; }
-
-/* ---------------- Footer ---------------- */
-.footer { background: var(--surface-low); margin-top: auto; }
-.footer-in {
-  max-width: 1120px; margin: 0 auto; padding: 24px;
-  display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap;
-  font-size: .75rem; color: var(--text-secondary);
-}
-.footer-in a { color: var(--text-secondary); }
 
 /* ---------------- Kad dan panel ---------------- */
 .card {
@@ -334,7 +324,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .report-lines-card { min-width: 0; }
 .report-lines-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .report-lines-head h2 { margin: 0; font-size: 1.15rem; }
-.report-table { min-width: 900px; }
+.report-table { min-width: 760px; }
 .report-table .num { font-family: var(--font-body); }
 .report-table thead th.num { font-size: .6875rem; letter-spacing: .06em; }
 .report-table tbody td.num { font-size: .875rem; }
@@ -452,7 +442,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   border: none; border-radius: 16px; background: var(--surface);
   box-shadow: var(--shadow-modal);
 }
-.modal::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, var(--primary) 0%, #9F4037 100%); }
+.modal::before { content: none; }
 .modal > form { padding: 24px 28px 0; }
 .modal::backdrop { background: rgba(9, 21, 37, .45); backdrop-filter: blur(4px); }
 .modal .toolbar {
@@ -486,7 +476,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* ---------------- Jana Resit (e-Resit Koperasi) ---------------- */
 .receipt-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
-.receipt-progress { margin: 0 0 16px; padding: 12px 14px; border-left: 4px solid var(--primary); border-radius: 6px; background: var(--indigo-soft); color: var(--indigo-soft-ink); font-size: 1rem; font-weight: 600; }
+.receipt-progress { margin: 0 0 16px; padding: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 600; }
 .receipt-step { margin-bottom: 14px; }
 .step-help { margin: -4px 0 14px; font-size: .9375rem; line-height: 1.5; }
 .sticky { position: sticky; top: 96px; }
@@ -651,6 +641,9 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .login-card > .muted { margin: 0 0 24px; font-size: .875rem; }
 .login-card label { display: block; margin-bottom: 14px; text-align: left; font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--text-primary); }
 .login-card label .input { width: 100%; margin-top: 6px; }
+.login-card .counter-help { margin: -6px 0 12px; text-align: left; }
+.counter-setup { display: grid; gap: 12px; max-width: 520px; }
+.counter-setup label { font-size: 1rem; font-weight: 600; }
 .login-card .error { text-align: left; }
 .login-card .btn.block { margin-top: 4px; }
 .login-card .login-guide { margin: 14px 0 0; font-size: .8125rem; text-align: center; }
@@ -822,7 +815,6 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .receipt-heading-short { display: inline; }
   .receipt .table tbody td { padding: .45rem .2rem; font-size: .78rem; overflow-wrap: anywhere; }
   .receipt .table .num { font-size: .75rem; }
-  .footer-in { padding: 18px 14px; }
   .guide-head { align-items: stretch; flex-direction: column; }
   .guide-head > .btn { align-self: flex-start; }
   .guide-index { align-items: stretch; flex-direction: column; gap: 2px; }
@@ -872,7 +864,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .report-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
   .report-table tbody td { display: block; min-width: 0; padding: 7px 2px; border: 0; overflow-wrap: anywhere; text-align: left; }
   .report-table tbody td[data-label]::before { display: block; margin-bottom: 3px; content: attr(data-label); color: var(--text-secondary); font-size: .8125rem; font-weight: 600; }
-  .report-table tbody td[data-label="Murid"], .report-table tbody td[data-label="Barang"] { grid-column: 1 / -1; }
+  .report-table tbody td[data-label="Nama murid"] { grid-column: 1 / -1; }
   .report-table tbody td[data-label="Jumlah"] { font-size: 1rem; }
   .report-table tbody td[colspan] { grid-column: 1 / -1; }
   .report-table tbody td[colspan]::before { content: none; }

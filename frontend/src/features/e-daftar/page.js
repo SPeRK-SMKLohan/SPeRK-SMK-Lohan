@@ -233,7 +233,6 @@ export function renderEDaftar(root) {
       <td class="sel-col"><input type="checkbox" class="sel-row" data-id="${esc(s.studentId)}" aria-label="Pilih ${esc(s.name)}"></td>
       <td data-label="Murid">
         <strong>${esc(s.name)}</strong>
-        ${s.tingkatan ? `<span class="tag">T${esc(s.tingkatan)}</span>` : ""}
         ${s.oku === true ? `<span class="tag oku">OKU</span>` : ""}
         <br><span class="muted">${esc(s.icMasked)}</span>
       </td>
