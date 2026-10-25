@@ -1,131 +1,81 @@
-# SPeRK SMK Lohan — Sistem Pengurusan Pelajar dan Resit Koperasi
+# SPeRK SMK Lohan
 
-Aplikasi web untuk pendaftaran murid (e-Daftar) dan merekod bayaran
-koperasi serta menjana resit digital (e-Resit Koperasi). Kedua-dua ciri
-berkongsi satu pangkalan data murid.
-Status: sedia untuk produksi — https://sperk-smklohan.pages.dev
+SPeRK ialah aplikasi sekolah untuk pendaftaran murid Tingkatan 1 dan urusan
+bayaran koperasi. Aplikasi digunakan oleh guru dan kakitangan yang dibenarkan.
 
-## Modul
+**Laman produksi:** [sperk-smklohan.pages.dev](https://sperk-smklohan.pages.dev)
+**API:** `https://sperk-smk-lohan-api.smk-lohan.workers.dev`
 
-- **e-Daftar** — sekolah rendah terdahulu, nama, No. IC, tingkatan, status
-  OKU, status daftar (kehadiran hari pendaftaran) dan penempatan semula.
-  Murid boleh **dipadam** — tunggal atau pilihan sehingga 200 serentak —
-  dengan pengesahan kata laluan akaun (pemadaman kekal). Senarai dipaparkan
-  50 baris/halaman; nama murid dipaparkan HURUF BESAR.
-  Halaman Pendaftaran dioptimumkan sebagai kaunter hari pendaftaran: cari
-  murid, tekan **Tanda daftar** (satu ketukan), dengan pilihan **Batal**
-  pada maklum balas; status dipaparkan serta-merta.
-- **e-Resit Koperasi** — pilih item, kira jumlah, simpan resit, PDF,
-  cetakan dan perkongsian WhatsApp. Tunai diprabilih; Sejarah Resit
-  memudahkan guru menyemak rekod terdahulu.
-- **Papan Pemuka** — statistik belum daftar / sudah daftar / didaftarkan
-  hari ini / keahlian koperasi, bar kemajuan hari pendaftaran, kad navigasi
-  dan resit terkini.
-- **Import Data** — muat naik senarai murid daripada fail Excel `.xlsx`.
-- **Barangan** dan **Sejarah Resit** — senarai item dan rekod resit.
+## Fungsi
 
-## Aliran Hari Pendaftaran
+- **e-Daftar:** pilih sekolah rendah, cari murid, semak status dan tanda
+  kehadiran. Sistem hanya menerima Tingkatan 1.
+- **Import Data:** muat naik senarai murid `.xlsx` sebelum hari pendaftaran.
+- **e-Resit Koperasi:** rekod bayaran, keluarkan resit, dan lihat sejarah.
+- **Laporan Koperasi:** tapis rekod jualan dan eksport laporan.
+- **Panduan:** arahan ringkas untuk guru tersedia dalam aplikasi melalui menu
+  **Panduan**.
 
-1. **Sebelum hari pendaftaran** — Import Data untuk memuat naik senarai
-   murid (semua Tingkatan 1–5). Papan Pemuka memaparkan kemajuan.
-2. **Semasa** — buka **Pendaftaran**: taip nama atau No. IC (`ahmad 140512`
-   juga berfungsi), tekan **Tanda daftar** pada baris murid (atau **Enter**
-   jika hanya satu padanan). Tersalah? Tekan **Batal** pada maklum balas
-   untuk memulihkan status. Murid baharu yang hadir tanpa rekod: cari
-   namanya, kemudian tekan **+ Daftar "..." sebagai murid baharu**.
-3. **Pantau** — angka **Sudah daftar / Belum daftar / Didaftarkan hari ini**
-   dan bar peratus di atas senarai dikemas kini serta-merta dan disegarkan
-   automatik setiap 30 saat (untuk kaunter berbilang). Tekan `/` untuk fokus
-   ke kotak carian.
-4. **Koperasi** — di **Jana Resit**, cari murid, tambah item, pilih
-   pembayaran (Tunai diprabilih) dan simpan; cetak atau kongsi resit.
-5. **Kawalan kaunter** — murid yang memohon penempatan semula tetap dikira
-   **sudah daftar** jika hadir; isi butiran melalui **Butiran**.
+Nama guru dimasukkan semasa log masuk dan disimpan pada peranti tersebut untuk
+resit yang dijana daripada peranti itu. Menutup tab tidak melog keluar; gunakan
+**Log Keluar** selepas menggunakan peranti bersama.
 
-## Struktur
+## Jalankan untuk pembangunan
 
-Kod disusun mengikut ciri: e-Daftar dan e-Resit Koperasi berasingan, dengan
-kod kongsi dalam `shared/`.
+Gunakan Node.js LTS. Pastikan fail konfigurasi setempat disediakan sebelum
+menjalankan aplikasi; jangan kongsi atau commit fail rahsia.
 
-- `frontend/`: antara muka (HTML, CSS, JavaScript, Vite)
-  - `src/pages/`: halaman peringkat sistem (log masuk, papan pemuka)
-  - `src/features/e-daftar/`: pendaftaran murid dan import data
-  - `src/features/e-resit/`: jana resit, barangan, sejarah resit, PDF
-  - `src/shared/`: kod kongsi (API, pengesahan, wang, identiti koperasi)
-- `worker/`: backend API (Cloudflare Workers)
-  - `src/features/e-daftar/`: API murid dan import
-  - `src/features/e-resit/`: API barangan dan resit
-  - `src/shared/students.js`: lapisan data murid yang dikongsi
-  - `src/dashboard.js`: statistik papan pemuka (kedua-dua ciri)
-- `docs/`: dokumentasi
-  - `Panduan_Pengguna_SPeRK.md` — sumber manual pengguna; panduan semasa turut tersedia dalam aplikasi
-  - `Panduan_Teknikal_SPeRK.md` — manual teknikal & operasi untuk pentadbir sistem (juga .pdf dan .docx)
-  - `Dokumentasi_SPeRK_SMK_Lohan.md` — dokumentasi perancangan projek
-  - `Reka_Bentuk_UI-UX_SPeRK.md` — reka bentuk UI/UX (Warm Slate)
-  - `imej/` — tangkapan skrin yang digunakan dalam manual
+Terminal pertama — API:
 
-## Dokumentasi
-
-| Dokumen | Untuk | Format |
-|---|---|---|
-| [Panduan Pengguna](docs/Panduan_Pengguna_SPeRK.md) | Guru & kakitangan koperasi | Markdown; versi ringkas dalam aplikasi |
-| [Panduan Teknikal & Operasi](docs/Panduan_Teknikal_SPeRK.md) | Pentadbir sistem & penyelenggara | Markdown · [PDF](docs/Panduan_Teknikal_SPeRK.pdf) · [Word](docs/Panduan_Teknikal_SPeRK.docx) |
-| [Dokumentasi Projek](docs/Dokumentasi_SPeRK_SMK_Lohan.md) | Latar belakang & perancangan | Markdown |
-| [Reka Bentuk UI/UX](docs/Reka_Bentuk_UI-UX_SPeRK.md) | Sistem reka bentuk | Markdown |
-
-> Panduan Penggunaan boleh dibuka terus dalam aplikasi melalui menu **Panduan Penggunaan**, footer, atau pautan pada halaman log masuk.
-
-## Nama teknikal
-
-- Worker API: `sperk-smk-lohan-api` —
-  https://sperk-smk-lohan-api.smk-lohan.workers.dev
-- Frontend (Cloudflare Pages): `sperk-smklohan` —
-  https://sperk-smklohan.pages.dev
-- Repositori: https://github.com/SPeRK-SMKLohan/SPeRK-SMK-Lohan
-- Projek Firebase: `sperk-smk-lohan` (akaun `sperk.smklohan@gmail.com`,
-  sejak 18 Oktober 2026)
-
-## Menjalankan secara tempatan
-
-Frontend:
-
+```powershell
+cd worker
+npm install
+npx wrangler dev
 ```
+
+Terminal kedua — laman hadapan:
+
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-Worker:
-
-```
-cd worker
-npm install
-npm run dev
-```
+Frontend memerlukan `frontend/.env.local` dengan `VITE_FIREBASE_API_KEY`,
+`VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`
+dan `VITE_API_BASE_URL`. Untuk pembangunan setempat, URL API lazimnya
+`http://127.0.0.1:8787`. Worker menggunakan `worker/.dev.vars` untuk
+`FIREBASE_SERVICE_ACCOUNT` dan `ALLOWED_EMAILS`.
 
 ## Deploy
 
-Worker API (folder `worker/`):
+Frontend diterbitkan sebagai Cloudflare Pages, API sebagai Cloudflare Worker.
+Jalankan arahan dari folder yang dinyatakan:
 
-```
-npx wrangler deploy
-npx wrangler secret put FIREBASE_SERVICE_ACCOUNT   # JSON akaun perkhidmatan
-npx wrangler secret put ALLOWED_EMAILS             # e-mel yang dibenarkan
-```
-
-Frontend (folder `frontend/`, Cloudflare Pages — lihat
-`frontend/wrangler.toml`):
-
-```
+```powershell
+# frontend/
 npm run build
 npx wrangler pages deploy
+
+# worker/ (hanya apabila API berubah)
+npx wrangler deploy
 ```
 
-Selepas deploy, pastikan domain frontend ada dalam `ALLOWED_ORIGINS`
-(`worker/wrangler.toml`) dan `VITE_API_BASE_URL` menunjuk ke URL worker
-API.
+Semak `frontend/wrangler.toml` dan `worker/wrangler.toml` sebelum deploy.
+Pastikan domain Pages dibenarkan dalam `ALLOWED_ORIGINS`, konfigurasi API
+frontend menunjuk kepada Worker produksi, dan Wrangler menggunakan akaun
+Cloudflare sekolah. Selepas deploy API, semak
+`https://sperk-smk-lohan-api.smk-lohan.workers.dev/api/health`.
 
-## Peraturan penting
+## Struktur utama
 
-- Jangan masukkan data murid sebenar ke dalam repositori.
-- Jangan commit kunci rahsia, fail `.env` atau `.dev.vars`.
+- `frontend/` — SPA JavaScript/Vite dan halaman panduan dalam aplikasi.
+- `worker/` — API Cloudflare Worker dan sambungan Firestore.
+- `docs/Panduan_Pengguna_SPeRK.md` — panduan guru/kakitangan.
+- `docs/Panduan_Teknikal_SPeRK.md` — persediaan, deploy, keselamatan dan operasi.
+
+## Keselamatan data
+
+- Jangan commit data murid, `.env.local`, `.dev.vars`, kunci Firebase atau token.
+- Hadkan akses akaun kepada pengguna yang diluluskan sekolah.
+- Data operasi disimpan dalam Firestore; repositori bukan tempat sandaran data.
