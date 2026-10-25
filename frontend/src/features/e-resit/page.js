@@ -47,7 +47,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     String(name).trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
   /* ----- 1. Murid ----- */
-  function renderStudentBox() {
+  function renderStudentBox({ focusSearch = false } = {}) {
     if (student) {
       studentBox.innerHTML = `
         <div class="selected">
@@ -60,7 +60,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         </div>`;
       studentBox.querySelector("#change-student").addEventListener("click", () => {
         student = null;
-        renderStudentBox();
+        renderStudentBox({ focusSearch: true });
         renderSummary();
       });
       return;
@@ -68,6 +68,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
     studentBox.innerHTML = `
       <input id="student-search" class="input" type="search" autocomplete="off"
+             aria-label="Cari murid Tingkatan 1 mengikut nama atau nombor IC"
              placeholder="Cari nama atau no. IC (sekurang-kurangnya 2 aksara)">
       <div id="student-results" class="results"></div>`;
     const input = studentBox.querySelector("#student-search");
@@ -91,7 +92,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         return;
       }
       timer = setTimeout(async () => {
-        results.innerHTML = `<p class="muted">Mencari...</p>`;
+        results.innerHTML = `<p class="muted" role="status">Mencari murid…</p>`;
         try {
           const data = await searchStudents(value, { limit: 8 });
           if (mine !== seq) return;
@@ -103,7 +104,8 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
             </button>`).join("") || `<p class="muted">Tiada padanan.</p>`;
         } catch (err) {
           if (mine !== seq) return;
-          results.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+          const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
+          results.innerHTML = `<div class="load-error" role="alert"><strong>${isConnectionError ? "Sambungan terganggu" : "Carian belum tersedia"}</strong><span>${isConnectionError ? "Semak internet dan cuba semula." : "Pelayan belum dapat mencari murid."}</span><button class="btn" type="button" data-retry-students>Cuba semula carian</button></div>`;
         }
       }, 250);
     });
@@ -116,34 +118,42 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     });
 
     results.addEventListener("click", (e) => {
+      if (e.target.closest("[data-retry-students]")) {
+        input.dispatchEvent(new Event("input"));
+        return;
+      }
       const btn = e.target.closest("[data-id]");
       if (!btn) return;
       const picked = found.find((s) => s.studentId === btn.dataset.id);
       if (picked) choose(picked);
     });
 
-    input.focus();
+    if (focusSearch) input.focus();
   }
 
   /* ----- 2. Barangan ----- */
   function renderItemsBox() {
+    if (!items.length) {
+      itemsBox.innerHTML = `<p class="muted">Tiada barangan aktif untuk dipilih. Hubungi pentadbir koperasi.</p>`;
+      return;
+    }
     itemsBox.innerHTML = `
-      <div class="table-wrap"><table class="table">
+      <div class="table-wrap"><table class="table receipt-item-table">
         <thead><tr><th>Item</th><th class="num">Harga</th><th class="num">Kuantiti</th><th></th></tr></thead>
         <tbody>${items.map((i) => {
           const line = lines.find((l) => l.itemId === i.itemId);
           return `
           <tr data-item="${esc(i.itemId)}"${line ? ' class="row-in-cart"' : ""}>
-            <td>${esc(i.name)}${line ? ` <span class="badge cart">${line.quantity} dalam resit</span>` : ""}</td>
-            <td class="num">${formatRM(i.priceSen)}</td>
-            <td class="num">${i.fixedQuantity
+              <td data-label="Barangan">${esc(i.name)}${line ? ` <span class="badge cart">${line.quantity} dalam resit</span>` : ""}</td>
+            <td class="num" data-label="Harga">${formatRM(i.priceSen)}</td>
+            <td class="num" data-label="Kuantiti">${i.fixedQuantity
               ? `<span class="fixed-qty">${i.fixedQuantity}</span>`
               : `<div class="stepper">
-                   <button class="step-btn qty-minus" type="button" aria-label="Kurangkan kuantiti" disabled>−</button>
-                   <input class="input qty" type="number" min="1" max="99" value="1" aria-label="Kuantiti">
-                   <button class="step-btn qty-plus" type="button" aria-label="Tambah kuantiti">+</button>
+                   <button class="step-btn qty-minus" type="button" aria-label="Kurangkan kuantiti ${esc(i.name)}" disabled>−</button>
+                   <input class="input qty" type="number" min="1" max="99" value="1" aria-label="Kuantiti ${esc(i.name)}">
+                   <button class="step-btn qty-plus" type="button" aria-label="Tambah kuantiti ${esc(i.name)}">+</button>
                  </div>`}</td>
-            <td><button class="btn small add" type="button">${line ? "Tambah lagi" : "Tambah"}</button></td>
+            <td data-label="Tindakan"><button class="btn small primary add" type="button">${line ? "Tambah lagi" : "Tambah"}</button></td>
           </tr>`;
         }).join("")}
         </tbody>
@@ -151,6 +161,10 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   }
 
   itemsBox.addEventListener("click", (e) => {
+    if (e.target.closest("[data-retry-items]")) {
+      loadItems();
+      return;
+    }
     // Butang naik/turun kuantiti (stepper).
     const stepBtn = e.target.closest(".qty-minus, .qty-plus");
     if (stepBtn) {
@@ -232,27 +246,28 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         <strong>${student ? esc(student.name) : "Belum dipilih"}</strong>
       </div>
       ${lines.length ? `
-        <table class="table compact">
+        <table class="table compact receipt-summary-table">
+          <thead class="sr-only"><tr><th scope="col">Barangan</th><th scope="col">Kuantiti</th><th scope="col">Jumlah kecil</th><th scope="col">Tindakan</th></tr></thead>
           <tbody>${lines.map((l) => {
             const item = itemOf(l.itemId);
             const price = unitPrice(item);
             return `
               <tr>
-                <td>${esc(item.name)}<br>
+                <td data-label="Barangan">${esc(item.name)}<br>
                   <span class="muted">${formatRM(price)} setiap satu</span></td>
-                <td>${item.fixedQuantity
-                  ? `<span class="fixed-qty">${item.fixedQuantity}</span>`
+                <td data-label="Kuantiti">${item.fixedQuantity
+                  ? `<span class="fixed-qty" data-label="Kuantiti">${item.fixedQuantity}</span>`
                   : `<input class="input line-qty" type="number" min="1" max="99"
                        value="${l.quantity}" data-key="${esc(keyOf(l))}">`}</td>
-                <td class="num">${formatRM(l.quantity * price)}</td>
-                <td><button class="btn small remove" type="button" data-key="${esc(keyOf(l))}" title="Buang">✕</button></td>
+                <td class="num" data-label="Jumlah kecil">${formatRM(l.quantity * price)}</td>
+                <td><button class="btn small remove" type="button" data-key="${esc(keyOf(l))}" aria-label="Buang ${esc(item.name)}" title="Buang">✕</button></td>
               </tr>`;
           }).join("")}</tbody>
         </table>` : `<p class="muted">Belum ada barangan.</p>`}
       <p class="total">Jumlah <strong>${formatRM(total)}</strong></p>
       <p class="sum-row"><span>Bayaran</span><strong>${payLabel ? esc(payLabel) : "Belum dipilih"}</strong></p>
       ${paymentMethod === "BANK_TRANSFER" ? `<p class="sum-row"><span>No. Rujukan</span><strong>${bankRef.trim() ? esc(bankRef.trim()) : "Belum diisi"}</strong></p>` : ""}
-      <label class="check">
+      <label class="check receipt-confirm">
         <input type="checkbox" id="confirm" ${confirmed ? "checked" : ""}>
         Pembayaran telah disahkan mengikut prosedur koperasi
       </label>
@@ -341,11 +356,17 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     }
   }
 
-  try {
-    const data = await getItems();
-    items = data.items.filter((i) => i.active);
-    renderItemsBox();
-  } catch (err) {
-    itemsBox.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+  await loadItems();
+
+  async function loadItems() {
+    itemsBox.innerHTML = `<p class="muted" role="status">Memuatkan barangan…</p>`;
+    try {
+      const data = await getItems();
+      items = data.items.filter((i) => i.active);
+      renderItemsBox();
+    } catch (err) {
+      const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
+      itemsBox.innerHTML = `<div class="load-error" role="alert"><strong>${isConnectionError ? "Sambungan terganggu" : "Barangan belum tersedia"}</strong><span>${isConnectionError ? "Semak internet dan cuba semula." : "Senarai barangan belum dapat dimuatkan."}</span><button class="btn" type="button" data-retry-items>Cuba semula</button></div>`;
+    }
   }
 }

@@ -74,22 +74,23 @@ async function computeDashboard(env) {
     }),
   ]);
 
-  const registered = students.filter((s) => s.registrationStatus === "SUDAH").length;
-  const koperasiStudents = students.filter((s) => s.koperasiMember === true).length;
+  const tingkatanOne = students.filter((s) => s.tingkatan === 1);
+  const registered = tingkatanOne.filter((s) => s.registrationStatus === "SUDAH").length;
+  const koperasiStudents = tingkatanOne.filter((s) => s.koperasiMember === true).length;
 
   // Kemajuan hari pendaftaran: murid yang ditandakan hadir hari ini (masa Malaysia).
   const startMs = start.getTime();
   const endMs = startMs + DAY_MS;
-  const registeredTodayCount = students.filter((s) => {
+  const registeredTodayCount = tingkatanOne.filter((s) => {
     if (s.registrationStatus !== "SUDAH" || !s.registeredAt) return false;
     const t = new Date(s.registeredAt).getTime();
     return t >= startMs && t < endMs;
   }).length;
 
   return {
-    activeStudents: students.length,
+    activeStudents: tingkatanOne.length,
     registeredStudents: registered,
-    notRegisteredStudents: students.length - registered,
+    notRegisteredStudents: tingkatanOne.length - registered,
     registeredTodayCount,
     koperasiStudents,
     activeItems: activeItems.length,

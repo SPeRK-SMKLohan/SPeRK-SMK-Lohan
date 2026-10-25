@@ -1,9 +1,11 @@
 import { signIn, signOutUser, loginErrorMessage } from "../shared/auth.js";
 import { apiFetch } from "../shared/api.js";
+import { wireTextSizeControl } from "../shared/accessibility.js";
 
 export function renderLogin(root) {
   root.innerHTML = `
     <div class="login-wrap">
+      <div class="login-tools"><button id="text-size-toggle" class="btn small" type="button" aria-pressed="false">A+ Saiz teks besar</button></div>
       <form id="login-form" class="login-card">
         <span class="login-crest"><img class="login-logo" src="/logo-web.svg" alt="Logo SMK Lohan" /></span>
         <h1>Log Masuk</h1>
@@ -16,9 +18,11 @@ export function renderLogin(root) {
         </label>
         <p id="login-error" class="error"></p>
         <button class="btn primary block" type="submit">Log Masuk</button>
-        <p class="login-guide"><a href="/panduan/Panduan_Pengguna_SPeRK.pdf" target="_blank" rel="noopener">Panduan Pengguna (PDF)</a></p>
+        <p class="login-guide"><a href="#/panduan">Buka Panduan Penggunaan</a></p>
       </form>
     </div>`;
+
+  wireTextSizeControl(root);
 
   const form = root.querySelector("#login-form");
   const errorEl = root.querySelector("#login-error");

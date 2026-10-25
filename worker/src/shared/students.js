@@ -50,7 +50,7 @@ export function publicStudent(s) {
  * - Tulisan tunggal (cipta/kemas kini/tanda daftar) digabung terus ke cache
  *   supaya paparan guru segera terkini tanpa menunggu pusingan delta.
  */
-const SYNC_INTERVAL_MS = 10_000;      // selagi ini, cache memori dianggap segar
+const SYNC_INTERVAL_MS = 30_000;      // sejajar penyegaran kaunter; kurangkan bacaan delta serentak
 const SHARED_MAX_AGE_S = 3 * 3600;    // hayat entri Cache API (3 jam)
 const SLACK_MS = 10_000;              // toleransi susunan commit untuk delta
 const SHARED_KEY = "https://sperk-cache.internal/students-active";
@@ -188,9 +188,4 @@ export async function invalidateStudentsCache() {
   } catch {
     /* Cache API tidak tersedia. */
   }
-}
-
-// Kompatibiliti dengan nama lama yang digunakan oleh pemanggil lain.
-export async function clearStudentsCache() {
-  await invalidateStudentsCache();
 }

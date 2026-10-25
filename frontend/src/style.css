@@ -58,7 +58,7 @@
   /* Teks */
   --text-primary: #1A1C1C;
   --text-secondary: #44474C;
-  --text-muted: #75777D;
+  --text-muted: #5C6065;
   --text-on-primary: #FFFFFF;
 
   /* Garisan */
@@ -115,6 +115,8 @@ h2 { font-size: 1.125rem; font-weight: 600; margin: 0 0 .75rem; }
 h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.large-text { font-size: 112.5%; }
+html.large-text body { font-size: 16px; }
 
 /* Rangka halaman: topbar kekal di atas, footer di bawah. */
 #app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
@@ -179,6 +181,7 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
 
 .topbar-user { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 .who { font-size: .8rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.mobile-nav-toggle { display: none; }
 
 /* ---------------- Footer ---------------- */
 .footer { background: var(--surface-low); margin-top: auto; }
@@ -271,6 +274,7 @@ h3 { font-size: .95rem; font-weight: 600; margin: 0 0 .4rem; }
 }
 .input::placeholder { color: var(--text-muted); }
 .input:focus { outline: none; background: var(--surface); box-shadow: 0 0 0 2px rgba(30, 42, 58, .22); }
+.input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
 input.input[type="search"], input.input[type="email"], input.input[type="password"], input.input[type="tel"] { width: 100%; }
 input.input[type="file"] { padding: 8px 14px; min-height: 44px; }
 select.input {
@@ -368,6 +372,19 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .search-row .input-lg { flex: 1; min-width: 260px; }
 .filter-row { display: flex; gap: 12px 16px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
 .input-school { min-width: 220px; }
+.school-filter { display: grid; gap: 5px; min-width: min(260px, 100%); font-size: .8125rem; font-weight: 600; color: var(--text-primary); }
+.grade-scope { min-height: 44px; padding-inline: 16px; font-size: .875rem; }
+.school-summary { margin-top: 12px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
+.school-summary > .muted { margin: 0; }
+.school-summary-title { margin: 0 0 10px; font-size: 1rem; }
+.school-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.school-stats > div { display: grid; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 8px; background: var(--surface-low); }
+.school-stats span { color: var(--text-secondary); font-size: .8125rem; }
+.school-stats strong { color: var(--primary-deep); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.load-error { display: grid; justify-items: start; gap: 8px; padding: 12px; }
+.load-error strong { color: var(--danger-soft-ink); }
+.load-error > span { color: var(--text-secondary); }
+.load-error .btn { min-height: 48px; }
 .count-line { font-size: .75rem; color: var(--text-secondary); margin: 0; }
 .count-line #count { font-weight: 600; color: var(--text-primary); }
 
@@ -470,6 +487,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   padding: 14px 16px; margin: 0 0 10px; cursor: pointer;
   transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
+.pay-option input { width: 22px; height: 22px; }
 .pay-option:hover { background: var(--surface-mid); }
 .pay-option:has(input:checked) { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--primary); }
 .pay-option strong { font-size: .875rem; }
@@ -521,6 +539,22 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .nav-card:hover { box-shadow: var(--shadow-raise); transform: translateY(-2px); color: inherit; text-decoration: none; }
 .nav-card strong { display: block; font-family: var(--font-heading); font-size: 1.0625rem; font-weight: 600; color: var(--primary-deep); }
 .nav-card span { display: block; margin-top: 4px; color: var(--text-secondary); font-size: .8125rem; }
+
+/* ---------------- Panduan penggunaan ---------------- */
+.guide-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.guide-index { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.guide-index strong { color: var(--primary-deep); margin-right: 4px; }
+.guide-index button { min-height: 40px; display: inline-flex; align-items: center; padding: 0; border: 0; background: transparent; color: var(--accent); font: 600 .875rem var(--font-body); cursor: pointer; }
+.guide-index button:hover { color: var(--accent-hover); text-decoration: underline; }
+.guide-content { display: grid; gap: 12px; }
+.guide-content .card { margin: 0; scroll-margin-top: 84px; }
+.guide-content h2 { margin-bottom: 10px; }
+.guide-content h3 { margin-top: 18px; }
+.guide-content p, .guide-content li { line-height: 1.65; }
+.guide-content ol, .guide-content ul { padding-left: 1.5rem; }
+.guide-content li { margin: 0 0 8px; }
+.guide-public-head { justify-content: space-between; }
+.login-tools { position: absolute; top: 16px; right: 16px; z-index: 1; }
 
 /* ---------------- Resit: butiran ---------------- */
 .receipt-toolbar { background: var(--surface-low); border-radius: var(--radius-card); padding: 8px; margin-bottom: 16px; }
@@ -586,6 +620,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* Utiliti */
 .hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* ---- Resit (dikecualikan daripada design system) ----
    Semua teks dan nombor guna Helvetica; hanya nama koperasi dan kepala
@@ -643,16 +678,119 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .import-layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 1080px) {
-  .topbar-in { flex-wrap: wrap; min-height: 0; }
-  .nav { flex-wrap: wrap; }
+  .topbar-in { min-height: 0; flex-wrap: wrap; gap: 0; padding: 8px 16px; }
+  .brand { min-width: 0; gap: 8px; }
+  .brand-badge { width: 36px; height: 36px; }
+  .brand-name { overflow: hidden; text-overflow: ellipsis; font-size: 1.125rem; }
+  .mobile-nav-toggle {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; min-width: 44px; margin-left: auto; padding: 0 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-control);
+    background: var(--surface); color: var(--primary); font: 600 .875rem var(--font-body);
+    cursor: pointer;
+  }
+  .mobile-nav-toggle span[aria-hidden="true"] { font-size: 1.2rem; line-height: 1; }
+  .topbar .nav { display: none; width: 100%; flex-direction: column; align-items: stretch; gap: 2px; padding: 8px 0 4px; }
+  .topbar.menu-open .nav { display: flex; }
+  .topbar .nav-link { width: 100%; min-height: 44px; justify-content: space-between; padding: 9px 12px; }
+  .topbar .nav-drop { width: 100%; }
+  .topbar .nav-drop:hover .nav-menu { display: none; }
+  .topbar .nav-menu { position: static; min-width: 0; margin: 2px 0 4px 12px; padding: 2px 8px; background: transparent; box-shadow: none; }
+  .topbar .nav-drop.open .nav-menu,
+  .topbar .nav-drop:focus-within .nav-menu { display: flex; }
+  .topbar .nav-menu a { min-height: 44px; display: flex; align-items: center; }
+  .topbar-user { display: none; width: 100%; justify-content: flex-end; margin: 4px 0 0; padding: 8px 0 0; border-top: 1px solid var(--border); }
+  .topbar.menu-open .topbar-user { display: flex; }
 }
 @media (max-width: 640px) {
-  .page { padding: 24px 16px 48px; }
-  .topbar-in { padding: 8px 16px; gap: 6px 12px; }
-  .brand-name { font-size: 1.15rem; }
+  .page { padding: 20px 14px 40px; }
+  .topbar-in { padding: 7px 14px; }
+  .brand-name { font-size: 1.05rem; }
   .who { display: none; }
+  h1 { font-size: 1.5rem; }
+  .page-head { margin-bottom: 20px; }
+  .card { padding: 16px; }
   .btn { padding: 0 14px; }
+  .btn.small { min-height: 44px; }
+  .search-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .search-row .input-lg { grid-column: 1 / -1; min-width: 0; width: 100%; }
+  .search-row .btn { min-height: 48px; }
+  .school-stats { gap: 6px; }
+  .school-stats > div { padding: 10px 8px; }
+  .school-stats span { font-size: .75rem; line-height: 1.25; }
+  .registration-list .table tbody td[data-label="Murid"] strong { display: inline-block; padding-right: 8px; font-size: 1.0625rem; line-height: 1.4; }
+  .registration-list .table tbody td[data-label="Sekolah rendah"] strong { font-size: .9375rem; }
+  .registration-list .table tbody td[data-label="Status daftar"] .badge { font-size: .8125rem; }
+  .registration-list .table tbody td[data-label="Tindakan"] .register-action { flex: 1 1 100%; }
+  .registration-list .table tbody td[data-label="Tindakan"] .btn { min-height: 48px; }
+  .filter-row { align-items: stretch; gap: 10px; }
+  .filter-row .school-filter { width: 100%; }
+  .filter-row .input-school { width: 100%; min-height: 48px; }
+  .filter-row .chips { width: 100%; }
+  .filter-row .chip { min-height: 44px; }
+  .pager { flex-wrap: wrap; }
+  .pager .btn { min-height: 48px; }
+  .modal .toolbar { flex-wrap: wrap; }
+  .modal .toolbar .btn { min-height: 48px; }
+  .modal { width: calc(100vw - 20px); max-height: 88dvh; border-radius: 12px; }
+  .modal-sm { width: calc(100vw - 28px); }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid > .full { grid-column: auto; }
+  .bulk-toolbar { flex-wrap: wrap; padding: 12px 14px; }
+  .bulk-toolbar .btn.small { min-height: 44px; }
+  .import-layout { grid-template-columns: minmax(0, 1fr); }
+  .receipt { padding: 1rem; }
+  .receipt-head { align-items: flex-start; gap: .7rem; }
+  .receipt-logo { width: 48px; height: 48px; }
+  .footer-in { padding: 18px 14px; }
+  .guide-head { align-items: stretch; flex-direction: column; }
+  .guide-head > .btn { align-self: flex-start; }
+  .guide-index { align-items: stretch; flex-direction: column; gap: 2px; }
+  .guide-index button { min-height: 44px; border-top: 1px solid var(--border); text-align: left; }
+  .guide-content .card { padding: 16px; }
+  .guide-content p, .guide-content li { font-size: 1rem; }
+  .login-tools { top: 12px; right: 12px; }
+  .receipt-item-table { display: block; min-width: 0; }
+  .receipt-item-table thead { display: none; }
+  .receipt-item-table tbody { display: grid; gap: 10px; }
+  .receipt-item-table tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+  .receipt-item-table tbody td { display: block; min-width: 0; padding: 6px 2px; border: 0; white-space: normal; text-align: left; }
+  .receipt-item-table tbody td[data-label]::before { display: block; margin-bottom: 4px; content: attr(data-label); color: var(--text-secondary); font-size: .75rem; font-weight: 600; }
+  .receipt-item-table tbody td:first-child, .receipt-item-table tbody td:last-child { grid-column: 1 / -1; }
+  .receipt-item-table tbody td:first-child { padding-right: 0; font-size: 1rem; font-weight: 600; }
+  .receipt-item-table tbody td:last-child .btn { width: 100%; min-height: 48px; }
+  .receipt-item-table .stepper .step-btn { width: 44px; height: 44px; }
+  .receipt-item-table .stepper .qty { width: 56px; min-height: 44px; }
+  .receipt-summary-table { display: block; min-width: 0; }
+  .receipt-summary-table tbody { display: grid; gap: 8px; }
+  .receipt-summary-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .receipt-summary-table tbody td { padding: 4px; border: 0; white-space: normal; }
+  .receipt-summary-table tbody td:first-child { grid-column: 1 / -1; }
+  .receipt-summary-table .line-qty { width: 64px; min-height: 44px; }
+  .table.compact.receipt-summary-table .btn.small.remove { min-height: 44px; min-width: 44px; }
+  .receipt-confirm { padding: 12px; border: 1px solid var(--border-strong); border-radius: 10px; font-size: .9375rem; line-height: 1.4; }
+  .receipt-confirm input { width: 22px; height: 22px; }
+  .pay-option { min-height: 56px; }
   .table th, .table td { padding: 12px 12px; }
+  .registration-list .table-wrap { overflow: visible; }
+  .registration-list .table.wide { display: block; min-width: 0; }
+  .registration-list .table thead { display: none; }
+  .registration-list .table tbody { display: grid; gap: 10px; }
+  .registration-list .table tbody tr { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .registration-list .table tbody td { display: block; min-width: 0; padding: 8px 4px; border: 0; white-space: normal; }
+  .registration-list .table tbody td[data-label]::before { display: block; margin-bottom: 3px; color: var(--text-secondary); font-size: .7rem; font-weight: 600; }
+  .registration-list .table tbody td[data-label]::before { content: attr(data-label); }
+  .registration-list .table tbody td[data-label="Murid"],
+  .registration-list .table tbody td[data-label="Penempatan semula"],
+  .registration-list .table tbody td[data-label="Tindakan"] { grid-column: 1 / -1; }
+  .registration-list .table tbody td.sel-col { position: absolute; top: 10px; right: 10px; display: block; padding: 4px; }
+  .registration-list .table tbody td.sel-col input { width: 24px; height: 24px; }
+  .registration-list .table tbody td[data-label="Murid"] { padding-right: 36px; }
+  .registration-list .table tbody td[data-label="Tindakan"] { display: flex; flex-wrap: wrap; gap: 8px; }
+  .registration-list .table tbody td[data-label="Tindakan"]::before { flex-basis: 100%; }
+  .registration-list .table tbody td[data-label="Tindakan"] .btn { min-height: 48px; margin: 0; }
+  .registration-list .table tbody td[colspan] { grid-column: 1 / -1; }
+  .registration-list .table tbody td[colspan]::before { content: none; }
   .modal > form { padding: 20px 18px 0; }
   .modal .toolbar { margin: 20px -18px 0; padding: 14px 18px; }
 }

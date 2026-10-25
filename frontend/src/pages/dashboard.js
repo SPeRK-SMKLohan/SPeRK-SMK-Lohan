@@ -1,6 +1,6 @@
 import { apiFetch } from "../shared/api.js";
 import { formatRM } from "../shared/money.js";
-import { esc, formatTime } from "../shared/dom.js";
+import { esc, formatDate, formatTime } from "../shared/dom.js";
 import { APP_LONG_NAME } from "../shared/config.js";
 import { paymentLabel } from "../features/e-resit/constants.js";
 
@@ -20,8 +20,10 @@ export async function renderDashboard(root) {
   try {
     d = await getDashboard();
   } catch (err) {
-    box.innerHTML = `<p class="error">${esc(err.message)}</p>
-      <button id="retry-dashboard" class="btn" type="button">Cuba Muat Semula</button>`;
+    const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
+    box.innerHTML = `<div class="load-error" role="alert"><strong>${isConnectionError ? "Sambungan terganggu" : "Papan pemuka belum tersedia"}</strong>
+      <span>${isConnectionError ? "Semak sambungan internet dan cuba semula." : "Pelayan belum dapat memuatkan ringkasan. Cuba semula sebentar lagi."}</span>
+      <button id="retry-dashboard" class="btn primary" type="button">Cuba semula</button></div>`;
     box.querySelector("#retry-dashboard").addEventListener("click", () => renderDashboard(root));
     return;
   }
@@ -55,7 +57,7 @@ export async function renderDashboard(root) {
           <tbody>${d.recent.map((r) => `
             <tr>
               <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
-              <td class="nowrap"><strong>${esc(new Date(r.createdAt).toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" }))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>
+              <td class="nowrap"><strong>${esc(formatDate(r.createdAt))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>
               <td>${esc(r.studentNameSnapshot)}</td>
               <td class="num">${formatRM(r.totalSen)}</td>
               <td><span class="badge${r.paymentMethod === "CASH" ? "" : " indigo"}">${esc(paymentLabel(r.paymentMethod))}</span></td>

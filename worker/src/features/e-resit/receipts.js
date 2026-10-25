@@ -83,7 +83,9 @@ export async function createReceipt(env, user, request) {
   ]);
 
   const student = found.get(`students/${studentId}`);
-  if (!student || student.active !== true) throw new HttpError(400, "Murid tidak sah.");
+  if (!student || student.active !== true || student.tingkatan !== 1) {
+    throw new HttpError(400, "Resit hanya boleh dijana untuk murid Tingkatan 1.");
+  }
 
   // Harga diambil daripada pangkalan data. Harga daripada pelayar tidak digunakan.
   const receiptItems = lines

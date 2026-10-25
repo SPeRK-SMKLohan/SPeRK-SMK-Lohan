@@ -58,7 +58,7 @@ kod kongsi dalam `shared/`.
   - `src/shared/students.js`: lapisan data murid yang dikongsi
   - `src/dashboard.js`: statistik papan pemuka (kedua-dua ciri)
 - `docs/`: dokumentasi
-  - `Panduan_Pengguna_SPeRK.md` — manual pengguna untuk guru/kakitangan koperasi (juga .pdf dan .docx)
+  - `Panduan_Pengguna_SPeRK.md` — sumber manual pengguna; panduan semasa turut tersedia dalam aplikasi
   - `Panduan_Teknikal_SPeRK.md` — manual teknikal & operasi untuk pentadbir sistem (juga .pdf dan .docx)
   - `Dokumentasi_SPeRK_SMK_Lohan.md` — dokumentasi perancangan projek
   - `Reka_Bentuk_UI-UX_SPeRK.md` — reka bentuk UI/UX (Warm Slate)
@@ -68,14 +68,12 @@ kod kongsi dalam `shared/`.
 
 | Dokumen | Untuk | Format |
 |---|---|---|
-| [Panduan Pengguna](docs/Panduan_Pengguna_SPeRK.md) | Guru & kakitangan koperasi | Markdown · [PDF](docs/Panduan_Pengguna_SPeRK.pdf) · [Word](docs/Panduan_Pengguna_SPeRK.docx) |
+| [Panduan Pengguna](docs/Panduan_Pengguna_SPeRK.md) | Guru & kakitangan koperasi | Markdown; versi ringkas dalam aplikasi |
 | [Panduan Teknikal & Operasi](docs/Panduan_Teknikal_SPeRK.md) | Pentadbir sistem & penyelenggara | Markdown · [PDF](docs/Panduan_Teknikal_SPeRK.pdf) · [Word](docs/Panduan_Teknikal_SPeRK.docx) |
 | [Dokumentasi Projek](docs/Dokumentasi_SPeRK_SMK_Lohan.md) | Latar belakang & perancangan | Markdown |
 | [Reka Bentuk UI/UX](docs/Reka_Bentuk_UI-UX_SPeRK.md) | Sistem reka bentuk | Markdown |
 
-> Panduan Pengguna juga boleh dibuka terus dalam aplikasi —
-> <https://sperk.smk-lohan.workers.dev/panduan/Panduan_Pengguna_SPeRK.pdf>
-> (pautan **Panduan** pada bar navigasi atas, footer, dan halaman log masuk).
+> Panduan Penggunaan boleh dibuka terus dalam aplikasi melalui menu **Panduan Penggunaan**, footer, atau pautan pada halaman log masuk.
 
 ## Nama teknikal
 

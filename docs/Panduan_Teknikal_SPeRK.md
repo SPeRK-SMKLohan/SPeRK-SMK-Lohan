@@ -55,14 +55,14 @@ Sistem ini dibina sebagai projek sekolah (bukan komersial). Pentadbir utama pada
 | API | Cloudflare Worker (modul ES) | Worker `sperk-smk-lohan-api` (`worker/`) |
 | Pengesahan pengguna | Firebase Authentication (e-mel/kata laluan) | Projek Firebase `sperk-smk-lohan` |
 | Pangkalan data | Cloud Firestore (mod produksi) | Projek Firebase `sperk-smk-lohan` |
-| Fail statik | `logo.svg` (resit) dan `logo-nav.svg` (bar navigasi, dipotong rapat tanpa ruang kosong), fon Plus Jakarta Sans, Inter & Roboto Mono (dihos sendiri), dan salinan PDF Panduan Pengguna | `frontend/public/` → `/dist` |
+| Fail statik | `logo.svg` (resit) dan `logo-nav.svg` (bar navigasi), fon Plus Jakarta Sans, Inter & Roboto Mono (dihos sendiri) | `frontend/public/` → `/dist` |
 
 Ciri utama seni bina:
 
 - **Harga dikira di pelayan.** Pelanggan hanya menghantar `itemId` dan `quantity`; worker menentukan harga seunit dan jumlah akhir daripada koleksi `items`. Ini menghalang manipulasi harga daripada pelayar.
 - **Pengesahan dua lapis.** Firebase mengesahkan kata laluan; worker mengesahkan token ID Firebase pada setiap permintaan API dan menyemak e-mel terhadap senarai `ALLOWED_EMAILS`.
 - **Tiada pangkalan data di pelanggan.** Semua data melalui API worker.
-- **Panduan awam:** salinan PDF *Panduan Pengguna* dihos pada laman hadapan — `https://sperk.smk-lohan.workers.dev/panduan/Panduan_Pengguna_SPeRK.pdf`.
+- **Panduan awam:** halaman panduan dalam aplikasi pada laluan `#/panduan`; boleh dibuka sebelum log masuk.
 
 ---
 
@@ -152,7 +152,7 @@ Semua perkhidmatan di bawah dimiliki oleh **satu akaun Gmail rasmi: `sperk.smklo
 sprek-smk-lohan/
 ├─ frontend/                  # Laman hadapan (Vite)
 │  ├─ src/                    # Kod SPA: pages/, features/, shared/
-│  ├─ public/                 # logo.svg, logo-nav.svg, fonts/, panduan/Panduan_Pengguna_SPeRK.pdf
+│  ├─ public/                 # logo.svg, logo-nav.svg, fonts/
 │  ├─ .env.local              # (gitignored) VITE_FIREBASE_* + VITE_API_BASE_URL
 │  └─ wrangler.toml           # name="sperk", assets ./dist, account_id
 ├─ worker/                    # API (Cloudflare Worker)
@@ -229,7 +229,7 @@ Sebanyak 9 barangan disenaraikan (senarai harga penuh dalam *Panduan Pengguna*, 
 ### 6.5 Peraturan perniagaan penting
 
 - **Harga pelayan:** jumlah resit sentiasa dikira semula oleh worker daripada `items.priceSen`.
-- **Panduan dalam app:** pautan **Panduan** (bar atas), **Panduan Pengguna (PDF)** (footer dan halaman log masuk) merujuk kepada `public/panduan/Panduan_Pengguna_SPeRK.pdf`. Setiap kali manual dijana semula, salin PDF baharu ke folder itu sebelum `npm run build`.
+- **Panduan dalam app:** halaman **Panduan Penggunaan** pada laluan `#/panduan` tersedia daripada navigasi, footer dan halaman log masuk. Kandungannya berada di `frontend/src/pages/guide.js`.
 - **Kongsi WhatsApp:** WhatsApp tidak membenarkan lampiran fail melalui pautan `wa.me`. App memuat turun PDF serentak apabila **Buka WhatsApp** ditekan (kotak *"Muat turun PDF resit supaya boleh dilampirkan"*), dan menyediakan butang **Kongsi PDF (peranti)** melalui Web Share API pada peranti yang menyokong perkongsian fail (Android/iPhone).
 - **Keahlian koperasi** tidak disimpan pada murid; ia *diperoleh* daripada resit yang mengandungi barangan bertanda `koperasiMembership`.
 - **Import murid:** maksimum 2,000 baris / 2 MB fail; baris dengan IC yang sudah wujud **dilangkau** (tidak diganti); penulisan dipecahkan kepada kelompok 400 untuk had Firestore.

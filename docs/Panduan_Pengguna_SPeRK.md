@@ -60,7 +60,7 @@ Sistem ini boleh digunakan serentak pada beberapa komputer atau telefon; semua d
 
 Jika e-mel atau kata laluan salah, mesej ralat akan dipaparkan di bawah medan kata laluan dan anda boleh cuba semula.
 
-Di bawah butang Log Masuk terdapat pautan **Panduan Pengguna (PDF)** — dokumen yang sedang anda baca ini. Selepas log masuk, pautan **Panduan** juga tersedia di bar navigasi atas dan pautan **Panduan Pengguna (PDF)** di bahagian bawah setiap halaman.
+Pada halaman log masuk, tekan **Buka Panduan Penggunaan**. Selepas log masuk, panduan juga boleh dibuka daripada menu navigasi atau pautan di bahagian bawah halaman.
 
 ### 2.2 Log keluar
 
@@ -132,7 +132,7 @@ Tekan **+ Murid baharu** untuk menambah murid, atau tekan **Butiran** pada baris
 | **Sekolah (SK Terdahulu)** | Pilih sekolah rendah asal murid daripada senarai. |
 | **Nama murid** | Nama penuh seperti dalam dokumen rasmi. |
 | **No. IC (12 digit)** | Boleh ditaip dengan atau tanpa tanda sengkang (contoh: `140512-12-1234`). No. IC tidak dipaparkan penuh dalam senarai. |
-| **Tingkatan** | Tingkatan 1 hingga 5 (boleh dikosongkan jika belum ditetapkan). |
+| **Tingkatan** | Tingkatan 1 sahaja. |
 | **Status OKU** | Ya / Tidak. |
 | **Status daftar** | Sudah daftar / Belum daftar. |
 | **Mohon penempatan semula ke sekolah lain** | Tandakan jika murid memohon berpindah; medan **Nama sekolah dipohon**, **Sebab** dan **Catatan** akan muncul. **Sebab** dipilih daripada senarai (**Sekolah lebih dekat / Berpindah rumah / Masalah pengangkutan / Adik-beradik di sekolah sama**) dan **Catatan** akan diisi automatik dengan huraian penuh — catatan itu masih boleh diedit mengikut keperluan. |
@@ -143,9 +143,8 @@ Tekan **Simpan** untuk menyimpan, **Kosongkan borang** untuk memulakan semula, a
 
 ### 4.4 Penapis dan rekod penempatan semula
 
-- Butang **Semua ting.** / **Tingkatan 1–5** menapis senarai mengikut tingkatan.
 - Butang **Semua status** / **Sudah daftar** / **Belum daftar** menapis mengikut status kehadiran.
-- Menu **Semua sekolah rendah** menapis mengikut sekolah rendah asal.
+- Menu **Sekolah rendah** menapis senarai mengikut sekolah rendah asal. Senarai keseluruhan disusun mengikut sekolah rendah.
 - Lajur **Penempatan Semula** pada jadual menunjukkan nama sekolah yang dipohon (jika ada).
 
 ### 4.5 Memadam murid (satu)
@@ -192,7 +191,7 @@ Halaman **Import Data** (`Papan Pemuka › e-Daftar › Import Data`) digunakan 
 | **Nama Murid** | ✔ | Ahmad Danial bin Roslan | Boleh juga dinamakan *Nama*. |
 | **No. IC** | ✔ | 120101-12-0523 | 12 digit; boleh bertanda sengkang. |
 | **Sekolah Rendah Asal** | ✔ | SK Lohan | Mesti salah satu sekolah dalam senarai. |
-| **Tingkatan** | – | 1 | 1 hingga 5. |
+| **Tingkatan** | – | 1 | Sistem menerima Tingkatan 1 sahaja; tingkatan lain ditolak. |
 | **Status OKU** | – | Tidak | Ya / Tidak. |
 | **Status Daftar** | – | Belum | Sudah / Belum. |
 | **Sekolah Dipohon** | – | SMK Ranau | Untuk permohonan penempatan semula. |
@@ -344,7 +343,7 @@ Kad *Keahlian koperasi* mengira **semua murid yang pernah membayar keahlian** (s
 Ya — tekan **Buka WhatsApp**: mesej resit disediakan dan PDF dimuat turun serentak. Kemudian dalam WhatsApp tekan **📎 → Dokumen → pilih fail PDF** tersebut sebelum menghantar. Pada telefon, butang **Kongsi PDF (peranti)** boleh menghantar mesej dan PDF sekali gus.
 
 **Di manakah saya boleh merujuk panduan ini kemudian?**
-Buka pautan **Panduan** pada bar navigasi atas (atau **Panduan Pengguna (PDF)** di bahagian bawah halaman dan pada halaman log masuk). Anda juga boleh menyimpan PDF ini untuk rujukan luar talian.
+Buka **Panduan Penggunaan** daripada menu navigasi, pautan footer, atau pautan pada halaman log masuk.
 
 ---
 

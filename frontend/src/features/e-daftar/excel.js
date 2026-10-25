@@ -119,7 +119,7 @@ export async function downloadStudentTemplate() {
     ["3. No. IC mesti 12 digit, dengan atau tanpa tanda sempang. Contoh: 140512-12-1234 atau 140512121234."],
     ["4. Format lajur No. IC sebagai Text supaya sifar di hadapan tidak hilang."],
     [""],
-    ["Tingkatan: 1 hingga 5. Kosongkan jika tidak berkenaan (data murid tidak terhad kepada Tingkatan 1)."],
+    ["Sistem ini menerima murid Tingkatan 1 sahaja. Jika lajur Tingkatan dikosongkan, murid dianggap Tingkatan 1."],
     ["Status OKU: 'Ya' atau 'Tidak'."],
     ["Status Daftar: 'Sudah daftar' atau 'Belum daftar'. Kosong dianggap belum daftar."],
     ["Penempatan semula: isi Sekolah Dipohon, Sebab dan Catatan jika berkenaan."],

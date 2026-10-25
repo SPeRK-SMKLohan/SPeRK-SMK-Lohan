@@ -1,7 +1,7 @@
 import { listReceipts } from "./api.js";
 import { paymentLabel } from "./constants.js";
 import { formatRM } from "../../shared/money.js";
-import { esc, formatTime } from "../../shared/dom.js";
+import { esc, formatDate, formatTime } from "../../shared/dom.js";
 
 export function renderHistory(root) {
   root.innerHTML = `
@@ -42,7 +42,7 @@ export function renderHistory(root) {
       $("#rows").innerHTML = receipts.map((r) => `
         <tr>
           <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
-          <td class="nowrap"><strong>${esc(new Date(r.createdAt).toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" }))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>
+          <td class="nowrap"><strong>${esc(formatDate(r.createdAt))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>
           <td>${esc(r.studentNameSnapshot)}</td>
           <td class="num">${formatRM(r.totalSen)}</td>
           <td><span class="badge${r.paymentMethod === "CASH" ? "" : " indigo"}">${esc(paymentLabel(r.paymentMethod))}</span></td>

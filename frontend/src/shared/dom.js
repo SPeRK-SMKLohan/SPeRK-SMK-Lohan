@@ -14,10 +14,10 @@ export function formatDateTime(iso) {
   return new Date(iso).toLocaleString("ms-MY", { dateStyle: "medium", timeStyle: "short" });
 }
 
-export function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString("ms-MY", { hour: "numeric", minute: "2-digit" });
+export function formatDate(iso) {
+  return new Date(iso).toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-export function formatClock(date = new Date()) {
-  return date.toLocaleTimeString("ms-MY", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+export function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString("ms-MY", { hour: "numeric", minute: "2-digit" });
 }

@@ -136,7 +136,7 @@ async function fsRequest(env, path, { method = "POST", body, query } = {}) {
     `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents${path}` +
     (query ? `?${query}` : "");
 
-  const readOnly = method === "GET" || [":runQuery", ":runAggregationQuery", ":batchGet"].includes(path);
+  const readOnly = method === "GET" || [":runQuery", ":batchGet"].includes(path);
   const res = await fetchWithRetry(url, {
     method,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -173,23 +173,6 @@ export async function getDoc(env, collection, id, transaction) {
 export async function runQuery(env, structuredQuery) {
   const results = await fsRequest(env, ":runQuery", { body: { structuredQuery } });
   return results.filter((r) => r.document).map((r) => fromDoc(r.document));
-}
-
-// Agregasi (count/sum) jauh lebih murah daripada membaca setiap dokumen:
-// Firestore mengenakan satu bacaan bagi setiap 1,000 dokumen yang diagregatkan.
-// aggregations: [{ alias: "jumlah", sum: { field: { fieldPath: "totalSen" } } }]
-export async function runAggregation(env, structuredQuery, aggregations) {
-  const results = await fsRequest(env, ":runAggregationQuery", {
-    body: { structuredAggregationQuery: { structuredQuery, aggregations } },
-  });
-  const fields = results.find((r) => r.result)?.result?.aggregateFields ?? {};
-  const out = {};
-  for (const [alias, value] of Object.entries(fields)) {
-    if (value.integerValue !== undefined) out[alias] = Number(value.integerValue);
-    else if (value.doubleValue !== undefined) out[alias] = Number(value.doubleValue);
-    else out[alias] = 0;
-  }
-  return out;
 }
 
 // refs: [{ collection, id }] -> Map("collection/id" -> dokumen)

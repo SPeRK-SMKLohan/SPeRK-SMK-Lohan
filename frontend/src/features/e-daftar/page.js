@@ -1,4 +1,4 @@
-import { schools, tingkatanOptions, okuOptions, registrationStatusOptions, transferReasons } from "./constants.js";
+import { schools, okuOptions, registrationStatusOptions, transferReasons } from "./constants.js";
 import {
   createStudent, deleteStudent, deleteStudents, getStudent, searchStudents,
   setStudentStatus, updateStudent,
@@ -15,36 +15,38 @@ export function renderEDaftar(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>e-Daftar</h1>
-      <p class="muted">Cari murid, kemudian tekan <strong>Tanda daftar</strong>.</p>
+      <p class="muted">Pendaftaran Tingkatan 1 mengikut sekolah rendah. Pilih sekolah, cari murid, kemudian tekan <strong>Tanda daftar</strong>.</p>
     </div>
 
     <section class="card kaunter-tools">
       <div class="search-row">
         <input id="q" class="input input-lg" type="search" autocomplete="off"
                placeholder="Cari nama atau No. IC — contoh: ahmad 140512"
-               aria-label="Cari murid">
-        <button id="refresh" class="btn" type="button" title="Muat semula senarai">↻ Muat semula</button>
+               aria-label="Cari murid" disabled>
+        <button id="refresh" class="btn" type="button" title="Muat semula senarai" disabled>↻ Muat semula</button>
         <button id="new" class="btn primary" type="button">+ Murid baharu</button>
       </div>
 
       <div class="filter-row">
-        <div class="chips" id="chips-tingkatan" role="group" aria-label="Tapis tingkatan">
-          <button class="chip active" type="button" data-value="">Semua ting.</button>
-          ${tingkatanOptions.map((t) => `
-            <button class="chip" type="button" data-value="${t}">Tingkatan ${t}</button>`).join("")}
-        </div>
+        <span class="badge indigo grade-scope">Tingkatan 1 sahaja</span>
         <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
           <button class="chip active" type="button" data-value="">Semua status</button>
           ${registrationStatusOptions.map((o) => `
             <button class="chip" type="button" data-value="${o.value}">${o.label}</button>`).join("")}
         </div>
-        <select id="school" class="input input-school" aria-label="Tapis sekolah rendah">
-          <option value="">Semua sekolah rendah</option>
+        <label class="school-filter">Sekolah rendah
+        <select id="school" class="input input-school" aria-label="Pilih sekolah rendah">
+          <option value="">— Pilih satu sekolah —</option>
           ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
         </select>
+        </label>
       </div>
 
-      <p class="muted count-line"><span id="count">Memuatkan…</span>
+      <div id="school-summary" class="school-summary" aria-live="polite">
+        <p class="muted">Pilih sekolah rendah untuk melihat kemajuan pendaftaran.</p>
+      </div>
+
+      <p class="muted count-line"><span id="count" aria-live="polite">Memuatkan…</span>
         <span id="hint"></span></p>
     </section>
 
@@ -54,7 +56,7 @@ export function renderEDaftar(root) {
       <button id="bulk-del" class="btn danger-solid small" type="button">Padam Terpilih</button>
     </div>
 
-    <section class="card">
+    <section class="card registration-list">
       <div class="table-wrap"><table class="table wide">
         <thead><tr>
           <th class="sel-col"><input type="checkbox" id="sel-all" title="Pilih semua"></th>
@@ -89,10 +91,7 @@ export function renderEDaftar(root) {
                    placeholder="140512-12-1234" autocomplete="off" required>
           </label>
           <label>Tingkatan
-            <select id="f-tingkatan" class="input">
-              <option value="">— Belum ditetapkan —</option>
-              ${tingkatanOptions.map((t) => `<option value="${t}">Tingkatan ${t}</option>`).join("")}
-            </select>
+            <input id="f-tingkatan" class="input" type="text" value="Tingkatan 1" readonly aria-readonly="true">
           </label>
 
           <fieldset class="radio-group">
@@ -221,6 +220,7 @@ export function renderEDaftar(root) {
   let seq = 0;
   let mutationGen = 0; // ditambah pada setiap mutasi: muatan lama diabaikan
   let busy = 0;
+  let loading = false;
   let timer;
 
   /* Paginasi halaman (50 baris) — hadkan payload & DOM kepada satu halaman. */
@@ -234,47 +234,52 @@ export function renderEDaftar(root) {
     const statusCell = done
       ? `<span class="badge done">✓ Sudah daftar</span>` +
         (s.registeredAt ? `<br><span class="muted">${esc(formatTime(s.registeredAt))}</span>` : "")
-      : `<span class="badge">Belum daftar</span>`;
+      : `<span class="badge">○ Belum daftar</span>`;
 
     const actions = done
       ? `<button class="btn small danger" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>↩ Batal daftar</button>`
-      : `<button class="btn small ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
+      : `<button class="btn small ok register-action" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
 
     return `<tr data-id="${esc(s.studentId)}"${done ? ' class="row-done"' : ""}>
-      <td class="sel-col"><input type="checkbox" class="sel-row" data-id="${esc(s.studentId)}"></td>
-      <td>
+      <td class="sel-col"><input type="checkbox" class="sel-row" data-id="${esc(s.studentId)}" aria-label="Pilih ${esc(s.name)}"></td>
+      <td data-label="Murid">
         <strong>${esc(s.name)}</strong>
         ${s.tingkatan ? `<span class="tag">T${esc(s.tingkatan)}</span>` : ""}
         ${s.oku === true ? `<span class="tag oku">OKU</span>` : ""}
         <br><span class="muted">${esc(s.icMasked)}</span>
       </td>
-      <td>${esc(s.formerPrimarySchool)}</td>
-      <td class="nowrap">${statusCell}</td>
-      <td>${s.transferSchool ? esc(s.transferSchool) : "—"}</td>
-      <td class="row-actions nowrap">
-        <button class="btn small" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
+      <td data-label="Sekolah rendah"><strong>${esc(s.formerPrimarySchool)}</strong></td>
+      <td class="nowrap" data-label="Status daftar">${statusCell}</td>
+      <td data-label="Penempatan semula">${s.transferSchool ? esc(s.transferSchool) : "—"}</td>
+      <td class="row-actions nowrap" data-label="Tindakan">
         ${actions}
+        <button class="btn small" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
         <button class="btn small danger" type="button" data-action="delete"${s._pending ? " disabled" : ""} title="Padam murid">Padam</button>
       </td>
     </tr>`;
   }
 
   function renderRows() {
+    if (loading) {
+      rowsEl.innerHTML = `<tr><td colspan="6" class="muted" role="status">Memuatkan senarai untuk ${esc(schoolEl.value)}…</td></tr>`;
+      return;
+    }
     if (rows.length) {
       rowsEl.innerHTML = rows.map(rowHtml).join("");
       return;
     }
     const query = qEl.value.trim();
-    const hasFilter = Boolean(filters.tingkatan || filters.status || schoolEl.value);
+    const hasFilter = Boolean(filters.status);
     let message;
-    if (query) {
+    if (!schoolEl.value) {
+      message = `Pilih sekolah rendah di atas untuk memaparkan senarai murid.`;
+    } else if (query) {
       message = `Tiada padanan untuk “${esc(query)}”.
         <button class="btn primary small" type="button" data-action="new-from-search">+ Daftar “${esc(query)}” sebagai murid baharu</button>`;
     } else if (hasFilter) {
-      message = `Tiada murid yang sepadan dengan penapis ini. Klik <strong>Semua ting.</strong> dan
-        <strong>Semua status</strong> untuk melihat senarai penuh.`;
+      message = `Tiada murid yang sepadan. Cuba pilih sekolah lain atau <strong>Semua status</strong>.`;
     } else {
-      message = `Belum ada data murid. <a href="#/import">Import senarai murid</a> dahulu
+      message = `Belum ada data murid Tingkatan 1 untuk ${esc(schoolEl.value)}. <a href="#/import">Import senarai murid</a> dahulu
         (Papan Pemuka &rsaquo; e-Daftar &rsaquo; Import Data).`;
     }
     rowsEl.innerHTML = `<tr><td colspan="6" class="muted">${message}</td></tr>`;
@@ -287,11 +292,50 @@ export function renderEDaftar(root) {
       : "";
   }
 
+  function renderSchoolSummary(data) {
+    const summary = root.querySelector("#school-summary");
+    if (!schoolEl.value) {
+      summary.innerHTML = `<p class="muted">Pilih sekolah rendah untuk melihat kemajuan pendaftaran.</p>`;
+      return;
+    }
+    if (!data) {
+      summary.innerHTML = `<p class="muted">Memuatkan kemajuan ${esc(schoolEl.value)}…</p>`;
+      return;
+    }
+    summary.innerHTML = `
+      <h2 class="school-summary-title">${esc(schoolEl.value)}</h2>
+      <div class="school-stats">
+        <div><span>Jumlah murid</span><strong>${data.schoolTotal}</strong></div>
+        <div><span>Sudah daftar</span><strong>${data.schoolRegisteredTotal}</strong></div>
+        <div><span>Belum daftar</span><strong>${data.schoolNotRegisteredTotal}</strong></div>
+      </div>`;
+  }
+
   /* ----- Muat turun senarai ----- */
   async function load({ silent = false } = {}) {
     const mine = ++seq;
     const gen = mutationGen;
-    if (!silent) countEl.textContent = "Memuatkan…";
+    if (!schoolEl.value) {
+      loading = false;
+      rows = [];
+      hasMore = false;
+      countEl.textContent = "Pilih sekolah rendah untuk mula.";
+      renderSchoolSummary(null);
+      renderRows();
+      renderHint();
+      renderPager();
+      return;
+    }
+    if (!silent) {
+      loading = true;
+      rows = [];
+      selectedIds.clear();
+      selAll.checked = false;
+      updateBulkToolbar();
+      countEl.textContent = "Memuatkan…";
+      renderSchoolSummary(null);
+      renderRows();
+    }
     try {
       const data = await searchStudents(qEl.value.trim(), {
         ...filters,
@@ -301,8 +345,10 @@ export function renderEDaftar(root) {
       });
       // Abaikan respons lapuk: carian lebih baharu, atau mutasi berlaku selepas muatan ini mula.
       if (mine !== seq || gen !== mutationGen) return;
+      loading = false;
       rows = data.students;
       hasMore = data.hasMore ?? false;
+      renderSchoolSummary(data);
       // Pilihan baris tidak lagi sah selepas senarai baharu dipaparkan.
       selectedIds.clear();
       selAll.checked = false;
@@ -322,8 +368,16 @@ export function renderEDaftar(root) {
         : `${data.total} padanan`;
     } catch (err) {
       if (mine !== seq) return;
-      countEl.textContent = "";
-      rowsEl.innerHTML = `<tr><td colspan="6" class="error">${esc(err.message)}</td></tr>`;
+      loading = false;
+      if (!silent || !rows.length) {
+        countEl.textContent = "Senarai belum dapat dimuatkan.";
+        root.querySelector("#school-summary").innerHTML = `<p class="error" role="alert">Kemajuan sekolah belum dapat dimuatkan. Cuba semula selepas sambungan pulih.</p>`;
+        const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
+        const message = isConnectionError
+          ? "Semak sambungan internet, kemudian cuba semula. Sekolah dan carian anda dikekalkan."
+          : "Pelayan belum dapat memuatkan senarai. Cuba semula sebentar lagi.";
+        rowsEl.innerHTML = `<tr><td colspan="6"><div class="load-error" role="alert"><strong>${isConnectionError ? "Sambungan terganggu" : "Data belum tersedia"}</strong><span>${message}</span><button class="btn primary" type="button" data-action="retry">Cuba semula</button></div></td></tr>`;
+      }
     }
   }
 
@@ -350,6 +404,7 @@ export function renderEDaftar(root) {
     };
 
     s._pending = true;
+    let saved = false;
     s.registrationStatus = status;
     s.registeredAt = status === "SUDAH" ? new Date().toISOString() : null;
     s.registeredBy = status === "SUDAH" ? "(anda)" : "";
@@ -358,6 +413,7 @@ export function renderEDaftar(root) {
     try {
       const { student } = await setStudentStatus(s.studentId, status);
       Object.assign(s, student); // nilai sebenar daripada pelayan
+      saved = true;
       showToast(
         status === "SUDAH"
           ? `✓ ${s.name} ditanda sudah daftar.`
@@ -374,6 +430,7 @@ export function renderEDaftar(root) {
       s._pending = false;
       busy -= 1;
       renderRows();
+      if (saved) load({ silent: true });
     }
   }
 
@@ -382,6 +439,8 @@ export function renderEDaftar(root) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
     const action = btn.dataset.action;
+
+    if (action === "retry") return load();
 
     if (action === "new-from-search") {
       openForm(null, { prefillName: qEl.value.trim() });
@@ -423,10 +482,21 @@ export function renderEDaftar(root) {
       load();
     });
   }
-  chipGroup("chips-tingkatan", "tingkatan");
   chipGroup("chips-status", "status");
 
-  schoolEl.addEventListener("change", () => { page = 0; load(); });
+  schoolEl.addEventListener("change", () => {
+    page = 0;
+    rows = [];
+    selectedIds.clear();
+    qEl.value = "";
+    qEl.disabled = !schoolEl.value;
+    root.querySelector("#refresh").disabled = !schoolEl.value;
+    try {
+      if (schoolEl.value) localStorage.setItem("sperk-registration-school", schoolEl.value);
+      else localStorage.removeItem("sperk-registration-school");
+    } catch { /* Simpanan pelayar mungkin disekat; sesi ini masih boleh digunakan. */ }
+    load();
+  });
 
   qEl.addEventListener("input", () => {
     clearTimeout(timer);
@@ -525,7 +595,8 @@ export function renderEDaftar(root) {
       transferNotesEl.value = student.transferNotes;
       showTransfer(Boolean(student.transferSchool || student.transferReason || student.transferNotes));
     } else {
-      root.querySelector("#f-tingkatan").value = filters.tingkatan || "1";
+      root.querySelector("#f-tingkatan").value = "Tingkatan 1";
+      if (schoolEl.value) root.querySelector("#f-school").value = schoolEl.value;
       root.querySelector("#f-name").value = prefillName;
     }
     dialog.showModal();
@@ -741,6 +812,12 @@ export function renderEDaftar(root) {
   });
 
   resetForm();
+  try {
+    const savedSchool = localStorage.getItem("sperk-registration-school");
+    if (schools.includes(savedSchool)) schoolEl.value = savedSchool;
+  } catch { /* Guna pilihan sekolah manual jika simpanan pelayar tidak tersedia. */ }
+  qEl.disabled = !schoolEl.value;
+  root.querySelector("#refresh").disabled = !schoolEl.value;
+  renderSchoolSummary(null);
   load();
-  qEl.focus();
 }

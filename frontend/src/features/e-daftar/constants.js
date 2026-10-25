@@ -6,7 +6,7 @@ export const schools = [
   "SK Napong", "SK Narawang", "SK Perancangan", "SK Poring", "SK Sagiban",
 ];
 
-export const tingkatanOptions = [1, 2, 3, 4, 5];
+export const tingkatanOptions = [1];
 
 export const okuOptions = [
   { value: "true", label: "Ya" },

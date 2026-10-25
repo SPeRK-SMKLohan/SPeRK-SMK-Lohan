@@ -1,12 +1,12 @@
 import { SCHOOL_LOOKUP } from "./schools.js";
 import { batchGet, commit, getDoc, runQuery } from "../../firestore.js";
 import {
-  clearStudentsCache, getActiveStudents, mergeStudentIntoCache, publicStudent, studentFromDoc,
+  getActiveStudents, invalidateStudentsCache, mergeStudentIntoCache, publicStudent, studentFromDoc,
 } from "../../shared/students.js";
 import { HttpError, ID_RE, DAY_MS, clampInt, myDateKey, myDayStart, readJson } from "../../util.js";
 
 /* ---------- e-Daftar: medan murid, pengesahan dan simpan/kemas kini ---------- */
-const TINGKATAN_MAX = 5;
+const TINGKATAN_ONLY = 1;
 
 const YES_WORDS = ["ya", "y", "true", "1"];
 const NO_WORDS = ["tidak", "tak", "t", "false", "0", "bukan", "tiada"];
@@ -22,13 +22,13 @@ function parseYesNo(raw, extraYes = [], extraNo = []) {
   return undefined;
 }
 
-// "1", "Tingkatan 2", "T2" -> 1..5. Kosong -> null, tidak dikenali -> undefined.
+// Sistem pendaftaran sekolah ini menerima Tingkatan 1 sahaja.
 function parseTingkatan(raw) {
-  if (raw === null || raw === undefined || raw === "") return null;
+  if (raw === null || raw === undefined || raw === "") return TINGKATAN_ONLY;
   const m = String(raw).match(/\d+/);
   if (!m) return undefined;
   const t = Number(m[0]);
-  return t >= 1 && t <= TINGKATAN_MAX ? t : undefined;
+  return t === TINGKATAN_ONLY ? t : undefined;
 }
 
 // Kosong bermakna guru belum menanda -> "BELUM".
@@ -68,7 +68,7 @@ export function readStudentFields(src) {
   if (!school) return { reason: "Sekolah rendah asal tiada dalam senarai." };
 
   const tingkatan = parseTingkatan(src.tingkatan);
-  if (tingkatan === undefined) return { reason: `Tingkatan mesti antara 1 dan ${TINGKATAN_MAX}.` };
+  if (tingkatan === undefined) return { reason: "Sistem ini hanya menerima murid Tingkatan 1." };
 
   const oku = parseYesNo(src.oku);
   if (oku === undefined) return { reason: "Status OKU tidak dikenali (guna Ya atau Tidak)." };
@@ -140,7 +140,7 @@ export async function listStudents(env, url) {
   const words = tokens.filter((t) => !/^\d+$/.test(t));
   const digits = tokens.filter((t) => /^\d+$/.test(t)).join("");
 
-  const all = await getActiveStudents(env);
+  const all = (await getActiveStudents(env)).filter((s) => s.tingkatan === TINGKATAN_ONLY);
   const matched = all.filter((s) => {
     if (school && s.formerPrimarySchool !== school) return false;
     if (tingkatan && String(s.tingkatan ?? "") !== tingkatan) return false;
@@ -149,6 +149,11 @@ export async function listStudents(env, url) {
     if (digits.length >= 2 && !String(s.icNumber).replace(/\D/g, "").includes(digits)) return false;
     return true;
   });
+  // Hari pendaftaran disusun mengikut sekolah rendah supaya guru boleh
+  // mengurus satu kumpulan sekolah pada satu masa.
+  matched.sort((a, b) =>
+    a.formerPrimarySchool.localeCompare(b.formerPrimarySchool, "ms") || a.name.localeCompare(b.name, "ms")
+  );
 
   // Ringkasan status daftar bagi keseluruhan senarai aktif (bukan hanya yang
   // ditapis) — digunakan oleh penunjuk angka pada halaman e-Daftar.
@@ -163,11 +168,17 @@ export async function listStudents(env, url) {
     return t >= startMs && t < endMs;
   }).length;
 
+  const schoolStudents = school ? all.filter((s) => s.formerPrimarySchool === school) : [];
+  const schoolRegistered = schoolStudents.filter((s) => s.registrationStatus === "SUDAH").length;
+
   return {
     total: matched.length,
     registeredTotal: registered,
     notRegisteredTotal: all.length - registered,
     registeredTodayCount: registeredToday,
+    schoolTotal: schoolStudents.length,
+    schoolRegisteredTotal: schoolRegistered,
+    schoolNotRegisteredTotal: schoolStudents.length - schoolRegistered,
     students: matched.slice(offset, offset + limit).map(publicStudent),
     offset,
     hasMore: offset + limit < matched.length,
@@ -213,7 +224,7 @@ async function findStudentByIC(env, digits, exceptId = null) {
 export async function getStudent(env, id) {
   if (!ID_RE.test(id)) throw new HttpError(404, "Murid tidak dijumpai.");
   const doc = await getDoc(env, "students", id);
-  if (!doc) throw new HttpError(404, "Murid tidak dijumpai.");
+  if (!doc || doc.tingkatan !== TINGKATAN_ONLY) throw new HttpError(404, "Murid Tingkatan 1 tidak dijumpai.");
   return { student: studentFromDoc(doc) };
 }
 
@@ -241,7 +252,7 @@ export async function createStudent(env, user, request) {
 export async function updateStudent(env, user, id, request) {
   if (!ID_RE.test(id)) throw new HttpError(404, "Murid tidak dijumpai.");
   const existing = await getDoc(env, "students", id);
-  if (!existing) throw new HttpError(404, "Murid tidak dijumpai.");
+  if (!existing || existing.tingkatan !== TINGKATAN_ONLY) throw new HttpError(404, "Murid Tingkatan 1 tidak dijumpai.");
 
   const parsed = readStudentFields(studentSource(await readJson(request)));
   if (parsed.reason) throw new HttpError(400, parsed.reason);
@@ -274,7 +285,7 @@ export async function setRegistrationStatus(env, user, id, request) {
   }
 
   const existing = await getDoc(env, "students", id);
-  if (!existing) throw new HttpError(404, "Murid tidak dijumpai.");
+  if (!existing || existing.tingkatan !== TINGKATAN_ONLY) throw new HttpError(404, "Murid Tingkatan 1 tidak dijumpai.");
 
   const now = new Date();
   const data = {
@@ -293,9 +304,9 @@ export async function setRegistrationStatus(env, user, id, request) {
 export async function deleteStudent(env, user, id) {
   if (!ID_RE.test(id)) throw new HttpError(404, "Murid tidak dijumpai.");
   const existing = await getDoc(env, "students", id);
-  if (!existing) throw new HttpError(404, "Murid tidak dijumpai.");
+  if (!existing || existing.tingkatan !== TINGKATAN_ONLY) throw new HttpError(404, "Murid Tingkatan 1 tidak dijumpai.");
   await commit(env, [{ collection: "students", id, delete: true }]);
-  await clearStudentsCache();
+  await invalidateStudentsCache();
   return { deleted: true, studentId: id };
 }
 
@@ -315,7 +326,10 @@ export async function deleteStudents(env, user, ids) {
 
   // Pastikan semua murid wujud sebelum dipadam (satu panggilan batchGet).
   const found = await batchGet(env, ids.map((id) => ({ collection: "students", id })));
-  const missing = ids.filter((id) => !found.has(`students/${id}`));
+  const missing = ids.filter((id) => {
+    const student = found.get(`students/${id}`);
+    return !student || student.tingkatan !== TINGKATAN_ONLY;
+  });
   if (missing.length) {
     throw new HttpError(404, `Beberapa murid tidak dijumpai (${missing.length} rekod).`);
   }
@@ -325,7 +339,7 @@ export async function deleteStudents(env, user, ids) {
 
   // Semua pemadaman dalam satu commit atomik (Firestore hadkan 500 tulisan; 200 di bawah had).
   await commit(env, writes);
-  await clearStudentsCache();
+  await invalidateStudentsCache();
 
   return { deleted: ids.length, studentIds: ids };
 }
