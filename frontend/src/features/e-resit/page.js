@@ -20,15 +20,17 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   root.innerHTML = `
     <div class="page-head">
       <h1>e-Resit Koperasi</h1>
+      <p class="muted">Pilih murid, tambah barangan, pilih bayaran dan semak sebelum simpan.</p>
     </div>
+    <p id="receipt-progress" class="receipt-progress" role="status" aria-live="polite"></p>
     <div class="receipt-layout">
       <div>
-        <section class="card"><h2 class="step"><span class="step-num">1</span>Murid</h2><div id="student-box"></div></section>
-        <section class="card"><h2 class="step"><span class="step-num">2</span>Barangan</h2><div id="items-box"><p class="muted">Memuatkan...</p></div></section>
-        <section class="card"><h2 class="step"><span class="step-num">3</span>Kaedah pembayaran</h2><div id="payment-box"></div></section>
+        <section class="card receipt-step"><h2 class="step"><span class="step-num">1</span>Pilih murid</h2><p class="muted step-help">Cari nama atau nombor IC. Semak sekolah rendah sebelum memilih.</p><div id="student-box"></div></section>
+        <section id="receipt-step-items" class="card receipt-step hidden"><h2 class="step"><span class="step-num">2</span>Pilih barangan</h2><p class="muted step-help">Tambah setiap barangan yang dibeli. Kuantiti boleh diubah sebelum resit disimpan.</p><div id="items-box"><p class="muted">Memuatkan barangan...</p></div></section>
+        <section id="receipt-step-payment" class="card receipt-step hidden"><h2 class="step"><span class="step-num">3</span>Pilih bayaran</h2><p class="muted step-help">Pilih tunai atau pindahan bank. Pindahan bank memerlukan nombor rujukan.</p><div id="payment-box"></div></section>
       </div>
       <aside>
-        <section class="card sticky"><h2>Ringkasan</h2><div id="summary-box"></div></section>
+        <section id="receipt-step-review" class="card sticky hidden"><h2 class="step"><span class="step-num">4</span>Semak dan simpan</h2><p class="muted step-help">Pastikan nama murid dan jumlah betul sebelum menyimpan resit.</p><div id="summary-box"></div></section>
       </aside>
     </div>`;
 
@@ -36,6 +38,25 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   const itemsBox = root.querySelector("#items-box");
   const paymentBox = root.querySelector("#payment-box");
   const summaryBox = root.querySelector("#summary-box");
+  const itemsStep = root.querySelector("#receipt-step-items");
+  const paymentStep = root.querySelector("#receipt-step-payment");
+  const reviewStep = root.querySelector("#receipt-step-review");
+  const progress = root.querySelector("#receipt-progress");
+
+  function syncReceiptSteps() {
+    const hasStudent = Boolean(student);
+    const hasLines = lines.length > 0;
+    itemsStep.classList.toggle("hidden", !hasStudent);
+    paymentStep.classList.toggle("hidden", !hasStudent || !hasLines);
+    reviewStep.classList.toggle("hidden", !hasStudent || !hasLines);
+    progress.textContent = !hasStudent
+      ? "Langkah 1 daripada 4: pilih murid untuk bermula."
+      : !hasLines
+        ? "Langkah 2 daripada 4: pilih barangan yang dibeli."
+        : !confirmed
+          ? "Langkah 3 daripada 4: pilih kaedah bayaran, kemudian semak jumlah."
+          : "Langkah 4 daripada 4: semak nama dan jumlah, kemudian simpan resit.";
+  }
 
   const itemOf = (id) => items.find((i) => i.itemId === id);
   const keyOf = (l) => l.itemId;
@@ -58,20 +79,29 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
           </div>
           <button class="btn small" id="change-student" type="button">Tukar</button>
         </div>`;
+      studentBox.insertAdjacentHTML("beforeend", `<p class="notice ok">Murid dipilih. Seterusnya, pilih barangan di bawah.</p>`);
       studentBox.querySelector("#change-student").addEventListener("click", () => {
         student = null;
+        lines = [];
+        confirmed = false;
+        bankRef = "";
         renderStudentBox({ focusSearch: true });
+        renderItemsBox();
         renderSummary();
       });
       return;
     }
 
     studentBox.innerHTML = `
-      <input id="student-search" class="input" type="search" autocomplete="off"
-             aria-label="Cari murid Tingkatan 1 mengikut nama atau nombor IC"
-             placeholder="Cari nama atau no. IC (sekurang-kurangnya 2 aksara)">
+      <div class="search-field">
+        <input id="student-search" class="input" type="search" autocomplete="off"
+               aria-label="Cari murid Tingkatan 1 mengikut nama atau nombor IC"
+               placeholder="Nama atau sekurang-kurangnya 2 digit No. IC">
+        <button id="clear-student-search" class="clear-search" type="button" aria-label="Kosongkan carian murid" hidden>Kosongkan</button>
+      </div>
       <div id="student-results" class="results"></div>`;
     const input = studentBox.querySelector("#student-search");
+    const clear = studentBox.querySelector("#clear-student-search");
     const results = studentBox.querySelector("#student-results");
     let found = [];
     let seq = 0;
@@ -79,20 +109,23 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
     const choose = (s) => {
       student = s;
+      confirmed = false;
       renderStudentBox();
       renderSummary();
     };
 
     input.addEventListener("input", () => {
+      clear.hidden = !input.value;
       clearTimeout(timer);
       const value = input.value.trim();
       const mine = ++seq;
+      found = [];
       if (value.length < 2) {
-        results.innerHTML = "";
+        results.innerHTML = value ? `<p class="muted" role="status">Taip sekurang-kurangnya 2 aksara untuk mencari.</p>` : "";
         return;
       }
+      results.innerHTML = `<p class="muted" role="status">Mencari murid…</p>`;
       timer = setTimeout(async () => {
-        results.innerHTML = `<p class="muted" role="status">Mencari murid…</p>`;
         try {
           const data = await searchStudents(value, { limit: 8 });
           if (mine !== seq) return;
@@ -110,11 +143,11 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       }, 250);
     });
 
-    // Enter memilih padanan pertama — lebih pantas di kaunter.
-    input.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      if (found.length) choose(found[0]);
+    clear.addEventListener("click", () => {
+      input.value = "";
+      clear.hidden = true;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
     });
 
     results.addEventListener("click", (e) => {
@@ -198,6 +231,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     } else {
       lines.push({ itemId: item.itemId, quantity });
     }
+    confirmed = false;
     renderItemsBox(); // tanda "dalam resit" pada baris item
     renderSummary();
   });
@@ -220,12 +254,14 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   paymentBox.addEventListener("change", (e) => {
     if (e.target.name === "pay") {
       paymentMethod = e.target.value;
+      confirmed = false;
       bankRefLabel.classList.toggle("hidden", paymentMethod !== "BANK_TRANSFER");
       renderSummary();
     }
   });
   bankRefInput.addEventListener("input", () => {
     bankRef = bankRefInput.value;
+    confirmed = false;
     renderSummary();
   });
 
@@ -275,12 +311,15 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       <button id="save" class="btn primary block" type="button" ${ready ? "" : "disabled"}>
         ${saving ? "Menyimpan..." : "Simpan Resit"}
       </button>`;
+    syncReceiptSteps();
   }
 
   summaryBox.addEventListener("click", (e) => {
     const remove = e.target.closest(".remove");
     if (remove) {
       lines = lines.filter((l) => keyOf(l) !== remove.dataset.key);
+      confirmed = false;
+      renderItemsBox();
       renderSummary();
       return;
     }
@@ -291,6 +330,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     if (e.target.id === "confirm") {
       confirmed = e.target.checked;
       renderSummary();
+      summaryBox.querySelector("#confirm")?.focus({ preventScroll: true });
       return;
     }
     if (e.target.classList.contains("line-qty")) {
@@ -299,6 +339,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       if (line && Number.isInteger(quantity) && quantity >= 1 && quantity <= 99) {
         line.quantity = quantity;
         errorMsg = "";
+        confirmed = false;
       } else {
         errorMsg = "Kuantiti mesti antara 1 dan 99.";
       }

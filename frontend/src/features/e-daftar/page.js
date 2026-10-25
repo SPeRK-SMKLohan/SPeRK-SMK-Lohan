@@ -32,35 +32,43 @@ export function renderEDaftar(root) {
 
       <div class="search-section">
         <label class="filter-caption" for="q"><span class="step-number">2</span> Cari murid</label>
-        <span class="filter-help">Masukkan nama atau nombor IC selepas memilih sekolah.</span>
-      <div class="search-row">
-        <input id="q" class="input input-lg" type="search" autocomplete="off"
-               placeholder="Contoh: Ahmad atau 140512"
-               aria-label="Cari nama atau nombor IC murid" disabled>
-        <button id="refresh" class="btn" type="button" title="Muat semula senarai" disabled>↻ Muat semula senarai</button>
-        <button id="new" class="btn primary" type="button">+ Murid baharu</button>
-      </div>
-      </div>
-
-      <div class="filter-row">
-        <div class="filter-group">
-          <span class="filter-caption">Status pendaftaran</span>
-          <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
-            <button class="chip active" type="button" data-value="" aria-pressed="true">Semua status</button>
-            ${registrationStatusOptions.map((o) => `
-              <button class="chip" type="button" data-value="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
+        <span class="filter-help">Taip nama penuh/sebahagian nama atau sekurang-kurangnya 2 digit No. IC.</span>
+        <div class="search-row">
+          <div class="search-field">
+            <input id="q" class="input input-lg" type="search" autocomplete="off"
+                   placeholder="Contoh: Ahmad atau 140512"
+                   aria-label="Cari nama atau nombor IC murid" disabled>
+            <button id="clear-search" class="clear-search" type="button" aria-label="Kosongkan carian" hidden>Kosongkan</button>
           </div>
+          <button id="refresh" class="btn" type="button" title="Muat semula senarai" disabled>↻ Muat semula</button>
+          <button id="new" class="btn primary" type="button">+ Murid baharu</button>
         </div>
       </div>
 
-      <p class="muted count-line"><span id="count" aria-live="polite">Pilih sekolah rendah untuk bermula.</span>
-        <span id="hint"></span></p>
+      <details class="secondary-filters">
+        <summary id="status-filter-summary">Pilihan lain: tapis status</summary>
+        <div class="filter-row">
+          <div class="filter-group">
+            <span class="filter-caption">Status pendaftaran</span>
+            <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
+              <button class="chip active" type="button" data-value="" aria-pressed="true">Semua status</button>
+              ${registrationStatusOptions.map((o) => `
+                <button class="chip" type="button" data-value="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <p class="muted count-line"><span id="count" aria-live="polite">Pilih sekolah rendah untuk bermula.</span></p>
     </section>
 
     <div id="bulk-toolbar" class="bulk-toolbar hidden">
-      <span id="bulk-count">0 dipilih</span>
-      <button id="sel-none" class="btn small" type="button">Pilih kosongkan</button>
-      <button id="bulk-del" class="btn danger-solid small" type="button">Padam Terpilih</button>
+      <span id="bulk-count" aria-live="polite">0 dipilih</span>
+      <button id="sel-none" class="btn small" type="button">Kosongkan pilihan</button>
+      <details class="bulk-danger">
+        <summary>Tindakan pentadbir</summary>
+        <button id="bulk-del" class="btn danger-solid small" type="button">Padam murid terpilih</button>
+      </details>
     </div>
 
     <section class="card registration-list">
@@ -187,7 +195,7 @@ export function renderEDaftar(root) {
   const qEl = root.querySelector("#q");
   const schoolEl = root.querySelector("#school");
   const countEl = root.querySelector("#count");
-  const hintEl = root.querySelector("#hint");
+  const clearSearchBtn = root.querySelector("#clear-search");
   const rowsEl = root.querySelector("#rows");
   const pagerEl = root.querySelector("#pager");
   const btnPrev = root.querySelector("#btn-prev");
@@ -265,13 +273,6 @@ export function renderEDaftar(root) {
     rowsEl.innerHTML = `<tr><td colspan="6" class="muted">${message}</td></tr>`;
   }
 
-  function renderHint() {
-    const only = rows.length === 1 ? rows[0] : null;
-    hintEl.innerHTML = only && only.registrationStatus === "BELUM"
-      ? ` · <strong>Tekan Enter</strong> untuk tanda daftar ${esc(only.name)}`
-      : "";
-  }
-
   function renderSchoolSummary(data) {
     const summary = root.querySelector("#school-summary");
     if (!schoolEl.value) {
@@ -287,9 +288,9 @@ export function renderEDaftar(root) {
     summary.innerHTML = `
       <h2 class="school-summary-title">${esc(schoolEl.value)}</h2>
       <div class="school-stats">
-        <div><span>Jumlah murid</span><strong>${data.schoolTotal}</strong></div>
-        <div><span>Sudah daftar</span><strong>${data.schoolRegisteredTotal}</strong></div>
         <div><span>Belum daftar</span><strong>${data.schoolNotRegisteredTotal}</strong></div>
+        <div><span>Sudah daftar</span><strong>${data.schoolRegisteredTotal}</strong></div>
+        <div><span>Jumlah murid</span><strong>${data.schoolTotal}</strong></div>
       </div>`;
   }
 
@@ -304,7 +305,6 @@ export function renderEDaftar(root) {
       countEl.textContent = "";
       renderSchoolSummary(null);
       renderRows();
-      renderHint();
       renderPager();
       return;
     }
@@ -340,7 +340,6 @@ export function renderEDaftar(root) {
         return load({ silent });
       }
       renderRows();
-      renderHint();
       renderPager();
       updateBulkToolbar();
       const from = page * pageSize + 1;
@@ -401,7 +400,8 @@ export function renderEDaftar(root) {
           ? `✓ ${s.name} ditanda sudah daftar.`
           : `Status ${s.name} dikembalikan kepada belum daftar.`,
         {
-          actionLabel: "Batal",
+          actionLabel: "Buat asal",
+          timeout: 12000,
           onAction: () => setStatus(s, status === "SUDAH" ? "BELUM" : "SUDAH", { skipConfirm: true }),
         }
       );
@@ -460,6 +460,11 @@ export function renderEDaftar(root) {
         c.setAttribute("aria-pressed", String(active));
       }
       filters[key] = chip.dataset.value;
+      if (id === "chips-status") {
+        root.querySelector("#status-filter-summary").textContent = chip.dataset.value
+          ? `Pilihan lain: status ${chip.textContent.trim()}`
+          : "Pilihan lain: tapis status";
+      }
       page = 0;
       load();
     });
@@ -471,6 +476,7 @@ export function renderEDaftar(root) {
     rows = [];
     selectedIds.clear();
     qEl.value = "";
+    clearSearchBtn.hidden = true;
     qEl.disabled = !schoolEl.value;
     root.querySelector("#refresh").disabled = !schoolEl.value;
     try {
@@ -481,16 +487,16 @@ export function renderEDaftar(root) {
   });
 
   qEl.addEventListener("input", () => {
+    clearSearchBtn.hidden = !qEl.value;
     clearTimeout(timer);
     timer = setTimeout(() => { page = 0; load(); }, 250);
   });
 
-  // Cari murid tunggal -> Enter terus tanda daftar (dengan "Batal" jika tersalah).
-  qEl.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    const only = rows.length === 1 ? rows[0] : null;
-    if (only && only.registrationStatus === "BELUM") setStatus(only, "SUDAH");
+  clearSearchBtn.addEventListener("click", () => {
+    qEl.value = "";
+    clearSearchBtn.hidden = true;
+    qEl.dispatchEvent(new Event("input", { bubbles: true }));
+    qEl.focus();
   });
 
   root.querySelector("#refresh").addEventListener("click", () => load());

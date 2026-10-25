@@ -1,6 +1,6 @@
 import "./style.css";
 import { initAuth, isLoggedIn, signOutUser } from "./shared/auth.js";
-import { applyTextSizePreference, largeTextEnabled, wireTextSizeControl } from "./shared/accessibility.js";
+import { applyTextSizePreference, textSizePreference, wireTextSizeControl } from "./shared/accessibility.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
 import { renderGuide } from "./pages/guide.js";
@@ -25,7 +25,7 @@ const NAV = [
     ],
   },
   {
-    label: "e-Resit Koperasi",
+    label: "e-Resit",
     links: [
       ["/jana-resit", "Jana Resit"],
       ["/barangan", "Barangan"],
@@ -100,7 +100,13 @@ function layoutHtml(path) {
         </button>
         <nav id="primary-nav" class="nav" aria-label="Navigasi utama">${NAV.map(navItem).join("")}</nav>
         <div class="topbar-user">
-          <button id="text-size-toggle" class="btn small text-size-toggle" type="button" aria-pressed="${largeTextEnabled()}" aria-label="Saiz teks" title="Saiz teks">A+</button>
+          <label class="text-size-control">Saiz teks
+            <select id="text-size-toggle" class="input" aria-label="Saiz teks">
+              <option value="normal"${textSizePreference() === "normal" ? " selected" : ""}>Biasa</option>
+              <option value="large"${textSizePreference() === "large" ? " selected" : ""}>Besar</option>
+              <option value="largest"${textSizePreference() === "largest" ? " selected" : ""}>Sangat besar</option>
+            </select>
+          </label><button id="text-size-plus" class="btn small text-size-plus" type="button" aria-label="Besarkan teks">A+</button>
           <button id="logout" class="btn small" type="button">Log Keluar</button>
         </div>
       </div>
@@ -178,11 +184,17 @@ function render() {
           <span class="brand-badge"><img class="brand-logo" src="/logo-nav.svg" alt="" /></span>
           <span class="brand-name">${APP_NAME} SMK Lohan</span>
         </a>
+        <label class="text-size-control">Saiz teks
+          <select id="text-size-toggle" class="input" aria-label="Saiz teks">
+            <option value="normal">Biasa</option><option value="large">Besar</option><option value="largest">Sangat besar</option>
+          </select>
+        </label><button id="text-size-plus" class="btn small text-size-plus" type="button" aria-label="Besarkan teks">A+</button>
         <a class="btn small" href="#/login">Log Masuk</a>
       </div></header>
       <main id="view" class="page"></main>
       <footer class="footer no-print"><div class="footer-in"><span>© ${new Date().getFullYear()} SMK Lohan, Ranau, Sabah.</span></div></footer>`;
     renderGuide(app.querySelector("#view"));
+    wireTextSizeControl(app);
     return;
   }
 

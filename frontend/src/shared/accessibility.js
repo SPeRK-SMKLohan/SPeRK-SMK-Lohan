@@ -1,34 +1,43 @@
-const TEXT_SIZE_KEY = "sperk-large-text";
+const TEXT_SIZE_KEY = "sperk-text-size";
 
-export function largeTextEnabled() {
-  try { return localStorage.getItem(TEXT_SIZE_KEY) === "true"; }
-  catch { return false; }
+export function textSizePreference() {
+  try {
+    const saved = localStorage.getItem(TEXT_SIZE_KEY);
+    if (["normal", "large", "largest"].includes(saved)) return saved;
+    // Kekalkan pilihan A+ daripada versi terdahulu.
+    if (localStorage.getItem("sperk-large-text") === "true") return "large";
+  } catch { /* Gunakan tetapan lalai jika simpanan tidak tersedia. */ }
+  return "normal";
 }
 
 export function applyTextSizePreference() {
-  document.documentElement.classList.toggle("large-text", largeTextEnabled());
+  document.documentElement.classList.remove("text-size-large", "text-size-largest");
+  const preference = textSizePreference();
+  if (preference !== "normal") document.documentElement.classList.add(`text-size-${preference}`);
 }
 
 export function wireTextSizeControl(root) {
-  const button = root.querySelector("#text-size-toggle");
-  if (!button) return;
-  const sync = () => {
-    const enabled = document.documentElement.classList.contains("large-text");
-    button.setAttribute("aria-pressed", String(enabled));
-    if (button.classList.contains("text-size-toggle")) {
-      button.textContent = enabled ? "A−" : "A+";
-      button.setAttribute("aria-label", enabled ? "Kembalikan saiz teks biasa" : "Besarkan saiz teks");
-      button.title = enabled ? "Kembalikan saiz teks biasa" : "Besarkan saiz teks";
-    } else {
-      button.textContent = enabled ? "A− Saiz teks biasa" : "A+ Saiz teks besar";
+  const select = root.querySelector("#text-size-toggle");
+  if (!select) return;
+  const plus = root.querySelector("#text-size-plus");
+  const levels = ["normal", "large", "largest"];
+  const save = (preference) => {
+    select.value = preference;
+    try {
+      localStorage.setItem(TEXT_SIZE_KEY, preference);
+      localStorage.removeItem("sperk-large-text");
+    } catch { /* Tetapan masih terpakai untuk tab ini. */ }
+    applyTextSizePreference();
+    if (plus) {
+      plus.setAttribute("aria-pressed", String(preference !== "normal"));
+      plus.title = preference === "largest" ? "Saiz teks paling besar" : "Besarkan teks";
     }
   };
-  sync();
-  button.addEventListener("click", () => {
-    const enabled = !document.documentElement.classList.contains("large-text");
-    document.documentElement.classList.toggle("large-text", enabled);
-    try { localStorage.setItem(TEXT_SIZE_KEY, String(enabled)); }
-    catch { /* Tetapan masih terpakai untuk tab ini. */ }
-    sync();
+  save(textSizePreference());
+  select.addEventListener("change", () => {
+    save(levels.includes(select.value) ? select.value : "normal");
+  });
+  plus?.addEventListener("click", () => {
+    save(textSizePreference() === "normal" ? "large" : "normal");
   });
 }

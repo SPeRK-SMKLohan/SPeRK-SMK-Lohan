@@ -5,7 +5,11 @@ import { wireTextSizeControl } from "../shared/accessibility.js";
 export function renderLogin(root) {
   root.innerHTML = `
     <div class="login-wrap">
-      <div class="login-tools"><button id="text-size-toggle" class="btn small" type="button" aria-pressed="false">A+ Saiz teks besar</button></div>
+      <div class="login-tools"><label class="text-size-control">Saiz teks
+        <select id="text-size-toggle" class="input" aria-label="Saiz teks">
+          <option value="normal">Biasa</option><option value="large">Besar</option><option value="largest">Sangat besar</option>
+        </select>
+      </label><button id="text-size-plus" class="btn small text-size-plus" type="button" aria-label="Besarkan teks">A+</button></div>
       <form id="login-form" class="login-card">
         <span class="login-crest"><img class="login-logo" src="/logo-web.svg" alt="Logo SMK Lohan" /></span>
         <h1>Log Masuk</h1>
