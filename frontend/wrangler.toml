@@ -1,10 +1,7 @@
-# Frontend SPeRK: fail statik sahaja (SPA, penghalaan berasaskan hash).
-# Deploy: npm run build && npx wrangler deploy
-name = "sperk"
+# Frontend SPeRK: Cloudflare Pages (SPA, penghalaan berasaskan hash).
+# Deploy: npm run build && npx wrangler pages deploy
+name = "sperk-smklohan"
 compatibility_date = "2026-10-01"
 # Akaun sekolah (d38ad14997c2236d1875f7289f774025).
 account_id = "d38ad14997c2236d1875f7289f774025"
-
-[assets]
-directory = "./dist"
-not_found_handling = "single-page-application"
+pages_build_output_dir = "./dist"

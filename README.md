@@ -3,7 +3,7 @@
 Aplikasi web untuk pendaftaran murid (e-Daftar) dan merekod bayaran
 koperasi serta menjana resit digital (e-Resit Koperasi). Kedua-dua ciri
 berkongsi satu pangkalan data murid.
-Status: sedia untuk produksi — https://sperk.smk-lohan.workers.dev
+Status: sedia untuk produksi — https://sperk-smklohan.pages.dev
 
 ## Modul
 
@@ -79,8 +79,8 @@ kod kongsi dalam `shared/`.
 
 - Worker API: `sperk-smk-lohan-api` —
   https://sperk-smk-lohan-api.smk-lohan.workers.dev
-- Frontend (fail statik): `sperk` —
-  https://sperk.smk-lohan.workers.dev
+- Frontend (Cloudflare Pages): `sperk-smklohan` —
+  https://sperk-smklohan.pages.dev
 - Repositori: https://github.com/SPeRK-SMKLohan/SPeRK-SMK-Lohan
 - Projek Firebase: `sperk-smk-lohan` (akaun `sperk.smklohan@gmail.com`,
   sejak 18 Oktober 2026)
@@ -113,12 +113,12 @@ npx wrangler secret put FIREBASE_SERVICE_ACCOUNT   # JSON akaun perkhidmatan
 npx wrangler secret put ALLOWED_EMAILS             # e-mel yang dibenarkan
 ```
 
-Frontend (folder `frontend/`, fail statik sahaja — lihat
+Frontend (folder `frontend/`, Cloudflare Pages — lihat
 `frontend/wrangler.toml`):
 
 ```
 npm run build
-npx wrangler deploy
+npx wrangler pages deploy
 ```
 
 Selepas deploy, pastikan domain frontend ada dalam `ALLOWED_ORIGINS`
