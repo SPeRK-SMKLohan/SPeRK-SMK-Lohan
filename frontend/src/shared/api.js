@@ -1,8 +1,8 @@
 import { getIdToken, signOutUser } from "./auth.js";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8787").replace(/\/$/, "");
-const READ_TIMEOUT_MS = 10000;
-const READ_ATTEMPTS = 3;
+const READ_TIMEOUT_MS = 15000;
+const READ_ATTEMPTS = 2;
 const readRequests = new Map();
 
 const retryableStatus = (status) => [408, 425, 429, 500, 502, 503, 504].includes(status);

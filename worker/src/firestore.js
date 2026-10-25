@@ -12,17 +12,23 @@ let cachedKey = null;
 let cachedToken = null; // { value, expiresAt }
 let pendingToken = null; // Promise token sedang berjalan (dikongsi)
 
-async function fetchWithRetry(url, options, attempts = 3) {
+async function fetchWithRetry(url, options, attempts = 3, timeoutMs = 10_000) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt++) {
+    let response;
     try {
-      const response = await fetch(url, options);
-      if (![429, 500, 502, 503, 504].includes(response.status) || attempt === attempts) return response;
-      await response.body?.cancel().catch(() => {});
-      await new Promise((resolve) => setTimeout(resolve, 250 * attempt + Math.random() * 250));
+      response = await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
     } catch (err) {
       lastError = err;
-      if (attempt === attempts) throw err;
+    }
+
+    if (response) {
+      if (![429, 500, 502, 503, 504].includes(response.status) || attempt === attempts) return response;
+      await response.body?.cancel().catch(() => {});
+    } else if (attempt === attempts) {
+      throw lastError;
+    }
+    if (attempt < attempts) {
       await new Promise((resolve) => setTimeout(resolve, 250 * attempt + Math.random() * 250));
     }
   }
@@ -62,8 +68,11 @@ async function fetchAccessToken(env) {
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
       assertion,
     }),
+  }, 2, 5_000);
+  const data = await res.json().catch((err) => {
+    if (err?.name === "AbortError" || err?.name === "TimeoutError" || err instanceof TypeError) throw err;
+    return {};
   });
-  const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`Token Google gagal: ${data.error_description || data.error || res.status}`);
 
   cachedToken = { value: data.access_token, expiresAt: now + (data.expires_in || 3600) };
@@ -141,8 +150,11 @@ async function fsRequest(env, path, { method = "POST", body, query } = {}) {
     method,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
-  }, readOnly ? 3 : 1);
-  const data = await res.json().catch(() => ({}));
+  }, readOnly ? 2 : 1, readOnly ? 8_000 : 20_000);
+  const data = await res.json().catch((err) => {
+    if (err?.name === "AbortError" || err?.name === "TimeoutError" || err instanceof TypeError) throw err;
+    return {};
+  });
   if (!res.ok) {
     const err = new Error(`Firestore: ${data.error?.message || res.status}`);
     err.httpStatus = res.status;

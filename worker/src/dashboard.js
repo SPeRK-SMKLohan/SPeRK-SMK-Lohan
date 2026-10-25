@@ -1,4 +1,4 @@
-import { fieldFilter, getDoc, runQuery, toValue } from "./firestore.js";
+import { getDoc, runQuery } from "./firestore.js";
 import { receiptSummary } from "./features/e-resit/receipts.js";
 import { getActiveStudents } from "./shared/students.js";
 import { DAY_MS, myDateKey, myDayStart } from "./util.js";
@@ -56,16 +56,12 @@ async function computeDashboard(env) {
   const start = myDayStart(dateKey);
   const end = new Date(start.getTime() + DAY_MS);
 
-  // Profil murid (cache delta) + item aktif + kaunter resit hari ini (1 bacaan)
-  // + resit terkini. Ahli koperasi disimpan sebagai medan murid (koperasiMember),
-  // jadi tiada lagi imbasan penuh koleksi resit.
-  const [students, activeItems, dailyCounter, recentDocs] = await Promise.all([
+  // Profil murid (cache delta) + kaunter resit hari ini + resit terkini.
+  // Ahli koperasi disimpan sebagai medan murid (koperasiMember),
+  // jadi tiada lagi imbasan penuh koleksi resit. Bilangan item tidak dipaparkan
+  // pada papan pemuka, jadi jangan tambah satu lagi bacaan Firestore untuknya.
+  const [students, dailyCounter, recentDocs] = await Promise.all([
     getActiveStudents(env),
-    runQuery(env, {
-      from: [{ collectionId: "items" }],
-      where: fieldFilter("active", "EQUAL", toValue(true)),
-      select: { fields: [{ fieldPath: "name" }] },
-    }),
     getDoc(env, "counters", `daily-${dateKey}`),
     runQuery(env, {
       from: [{ collectionId: "receipts" }],
@@ -93,7 +89,6 @@ async function computeDashboard(env) {
     notRegisteredStudents: tingkatanOne.length - registered,
     registeredTodayCount,
     koperasiStudents,
-    activeItems: activeItems.length,
     todayCount: dailyCounter?.count ?? 0,
     todayTotalSen: dailyCounter?.totalSen ?? 0,
     recent: recentDocs.map(receiptSummary),
