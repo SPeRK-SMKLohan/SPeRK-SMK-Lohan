@@ -1,5 +1,11 @@
 # Phase 2 feature-preservation checklist
 
+> **Status note (25 Oct 2026).** This checklist was produced during an earlier
+> Phase 2 attempt and remains a valid *source-review* record. The feature IDs now
+> match the re-verified inventory in [feature-inventory.md](feature-inventory.md)
+> (F-01…F-25). Runtime regression status is unchanged: still untested, because no
+> authorised session was available then or during the current audit.
+
 This checklist is based on the Phase 1 inventory (`feature-inventory.md`).
 “Source review” means the Phase 2 diff was checked to ensure the existing
 route, data contract, validation, permissions, and business rules remain in

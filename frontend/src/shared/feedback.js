@@ -1,8 +1,11 @@
 import { esc } from "./dom.js";
 
+/* Shared loading and failure presentation. Every data page uses these so the
+   same situation always looks and reads the same way. */
+
 export function loadingState(message) {
-  return `<p class="loading-state muted" role="status" aria-live="polite">
-    <span class="loading-indicator" aria-hidden="true"></span><span>${esc(message)}</span>
+  return `<p class="loading" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span><span>${esc(message)}</span>
   </p>`;
 }
 
@@ -11,14 +14,14 @@ export function readErrorState(error, subject = "Maklumat", retryLabel = "Cuba s
   const connectionIssue = !error?.status || /rangkaian|internet|terlalu lama|sambungan/i.test(message);
   const title = connectionIssue ? "Sambungan terganggu" : `${subject} belum dapat dimuatkan`;
   const guidance = connectionIssue
-    ? "Semak sambungan internet anda. Maklumat yang telah dipilih dikekalkan."
+    ? "Semak sambungan internet anda. Pilihan yang telah dibuat masih disimpan."
     : "Cuba semula. Jika masalah berterusan, maklumkan pentadbir sistem.";
 
-  return `<div class="load-error" role="alert">
-    <strong>${title}</strong>
-    <span>${esc(guidance)}</span>
-    <span class="load-error-detail">${esc(message)}</span>
-    <button class="btn primary" type="button" data-retry-load>${esc(retryLabel)}</button>
+  return `<div class="fail" role="alert">
+    <strong class="fail-title">${esc(title)}</strong>
+    <span class="fail-text">${esc(guidance)}</span>
+    <span class="fail-detail">${esc(message)}</span>
+    <button class="btn secondary" type="button" data-retry-load>${esc(retryLabel)}</button>
   </div>`;
 }
 

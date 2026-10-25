@@ -1,5 +1,14 @@
 # Phase 2 implementation status
 
+> **Status note (25 Oct 2026).** Historical record of an earlier Phase 2 attempt.
+> Its screenshot references (`before/`, `after/`) are no longer present in the
+> working tree. The current Phase 1 audit re-verified the source claims below
+> against `main` @ `6c347c7` and re-captured both baselines into
+> `before/production/` and `before/repo/`. Two items changed materially:
+> the "no horizontal overflow" result is now **confirmed by measurement at nine
+> widths on two builds**, and the previously reported clipping defect has been
+> **withdrawn as a capture artefact**. See [README](README.md).
+
 ## Implemented
 
 - Unified loading and retryable read-error presentation across the dashboard,

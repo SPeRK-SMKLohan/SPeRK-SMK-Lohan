@@ -3,38 +3,50 @@ import { formatRM } from "../../shared/money.js";
 import { esc } from "../../shared/dom.js";
 import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedback.js";
 
+/* Item catalogue — read only. Prices come from the approved school list. */
+
 export function renderItems(root) {
   root.innerHTML = `
     <div class="page-head">
-      <h1>Barangan</h1>
+      <h1>Barangan koperasi</h1>
+      <p class="lede">Senarai harga yang diluluskan pihak sekolah. Harga ini digunakan
+        secara automatik semasa menjana resit.</p>
     </div>
-    <p class="notice">Harga daripada senarai yang diluluskan pihak sekolah. Sesetengah item mempunyai jenis dengan harga berbeza.</p>
     <div id="box">${loadingState("Sedang mendapatkan senarai barangan…")}</div>`;
+
   const box = root.querySelector("#box");
 
   async function load() {
     box.innerHTML = loadingState("Sedang mendapatkan senarai barangan…");
     try {
       const { items } = await getItems();
+
+      if (!items.length) {
+        box.innerHTML = `<div class="record-empty"><p>Tiada barangan dalam senarai.</p></div>`;
+        return;
+      }
+
       box.innerHTML = `
-      <section class="card">
-        <div class="table-wrap"><table class="table">
-          <caption class="sr-only">Senarai barangan dan harga koperasi</caption>
-          <thead><tr><th scope="col">Item</th><th scope="col" class="num">Harga</th><th scope="col">Kuantiti</th><th scope="col">Status</th></tr></thead>
-          <tbody>${items.map((i) => `
-            <tr>
-              <td>${esc(i.name)}</td>
-              <td class="num">${formatRM(i.priceSen)}</td>
-              <td>${i.fixedQuantity ? `<span class="badge">Tetap (${i.fixedQuantity})</span>` : `<span class="badge">Boleh pilih</span>`}</td>
-              <td>${i.active ? `<span class="badge">Aktif</span>` : `<span class="badge warn">Tidak aktif</span>`}</td>
-            </tr>`).join("") || `<tr><td colspan="4" class="muted">Tiada barangan.</td></tr>`}
-          </tbody>
-        </table></div>
-      </section>`;
+        <ul class="record-list">
+          ${items.map((i) => `
+            <li class="record"${i.active ? "" : ' style="opacity:.75"'}>
+              <div class="record-main">
+                <p class="record-name">${esc(i.name)}</p>
+                <div class="record-meta">
+                  <span>${i.fixedQuantity ? `Kuantiti tetap ${i.fixedQuantity}` : "Kuantiti boleh dipilih"}</span>
+                  ${i.active ? "" : `<span class="pill warn">Tidak aktif</span>`}
+                </div>
+              </div>
+              <div class="record-actions">
+                <strong class="num" style="font-size:1.0625rem">${formatRM(i.priceSen)}</strong>
+              </div>
+            </li>`).join("")}
+        </ul>`;
     } catch (err) {
       box.innerHTML = readErrorState(err, "Senarai barangan");
       wireReadRetry(box, load);
     }
   }
+
   load();
 }

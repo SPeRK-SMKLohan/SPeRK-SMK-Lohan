@@ -5,380 +5,508 @@ import {
 } from "./api.js";
 import { esc, formatTime } from "../../shared/dom.js";
 import { loginErrorMessage, reauthenticate } from "../../shared/auth.js";
-import { showToast } from "../../shared/toast.js";
+import { showStatus } from "../../shared/status.js";
 
-/* Halaman e-Daftar dioptimumkan sebagai kaunter hari pendaftaran:
-   cari murid -> tekan "Tanda daftar" (satu ketukan) -> selesai, dengan "Batal".
-   Borang penuh (untuk pembetulan atau murid baharu) berada dalam dialog. */
+/* Registration counter.
+   The screen is built around one repeated action: choose a primary school,
+   find the child, tap Tanda daftar. Everything administrative is deliberately
+   out of the way until someone opens it. */
 
-export function renderEDaftar(root) {
+const PAGE_SIZE = 50;
+const PASSWORD_ERR_CODES = new Set([
+  "auth/wrong-password", "auth/invalid-credential", "auth/user-mismatch", "auth/invalid-email",
+]);
+
+export function renderRegistration(root) {
   root.innerHTML = `
     <div class="page-head">
-      <h1>e-Daftar</h1>
-      <p class="muted">Pilih sekolah rendah dahulu. Kemudian cari murid Tingkatan 1 dan tekan <strong>Tanda daftar</strong>.</p>
+      <h1>Pendaftaran murid</h1>
+      <p class="lede">Pilih sekolah rendah, cari murid Tingkatan 1, kemudian tekan
+        <strong>Tanda daftar</strong>.</p>
     </div>
 
-    <section class="card kaunter-tools">
-      <label class="filter-group school-filter">
-        <span class="filter-caption"><span class="step-number">1</span> Sekolah rendah</span>
-        <span class="filter-help">Pilih satu sekolah untuk memaparkan senarai murid.</span>
-        <select id="school" class="input input-school" aria-label="Pilih sekolah rendah">
-          <option value="">— Pilih sekolah rendah —</option>
-          ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
-        </select>
-      </label>
+    <section class="card school-step">
+      <h2 class="label">1. Pilih sekolah rendah</h2>
+      <p class="hint" style="margin-top:0;margin-bottom:var(--s3)">
+        Senarai murid akan dipaparkan selepas sekolah dipilih.
+      </p>
+      <div class="school-grid" id="schools" role="group" aria-label="Sekolah rendah asal">
+        ${schools.map((s) => `
+          <button class="chip" type="button" data-school="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join("")}
+      </div>
+    </section>
 
-      <div id="school-summary" class="school-summary hidden" aria-live="polite"></div>
+    <div id="school-summary" class="school-summary" hidden></div>
 
-      <div class="search-section">
-        <label class="filter-caption" for="q"><span class="step-number">2</span> Cari murid</label>
-        <span class="filter-help">Taip nama penuh/sebahagian nama atau sekurang-kurangnya 2 digit No. IC.</span>
-        <div class="search-row">
-          <div class="search-field">
-            <input id="q" class="input input-lg" type="search" autocomplete="off"
-                   placeholder="Contoh: Ahmad atau 140512"
-                   aria-label="Cari nama atau nombor IC murid" disabled>
-            <button id="clear-search" class="clear-search" type="button" aria-label="Kosongkan carian" hidden>Kosongkan</button>
-          </div>
-          <button id="refresh" class="btn" type="button" title="Muat semula senarai" disabled>↻ Muat semula</button>
-          <button id="new" class="btn primary" type="button">+ Murid baharu</button>
+    <section class="card" id="list-card" hidden>
+      <div class="list-toolbar">
+        <label class="search">
+          <span class="sr-only">Cari murid</span>
+          <input id="q" class="input" type="search" autocomplete="off"
+                 placeholder="Nama atau No. IC"
+                 aria-label="Cari nama atau nombor IC murid">
+          <button id="clear-search" class="clear" type="button" hidden>Kosongkan</button>
+        </label>
+        <div class="seg" id="status-filter" role="group" aria-label="Tapis status daftar">
+          <button type="button" data-status="" aria-pressed="true">Semua</button>
+          ${registrationStatusOptions.map((o) => `
+            <button type="button" data-status="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
         </div>
+        <button id="refresh" class="btn secondary" type="button">Muat semula</button>
+        <button id="new" class="btn primary" type="button">+ Murid baharu</button>
       </div>
 
-      <details class="secondary-filters">
-        <summary id="status-filter-summary">Pilihan lain: tapis status</summary>
-        <div class="filter-row">
-          <div class="filter-group">
-            <span class="filter-caption">Status pendaftaran</span>
-            <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
-              <button class="chip active" type="button" data-value="" aria-pressed="true">Semua status</button>
-              ${registrationStatusOptions.map((o) => `
-                <button class="chip" type="button" data-value="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
-            </div>
-          </div>
-        </div>
-      </details>
+      <p class="list-count" id="count" role="status" aria-live="polite"></p>
 
-      <p class="muted count-line"><span id="count" aria-live="polite">Pilih sekolah rendah untuk bermula.</span></p>
+      <div id="bulk-bar" class="bulk-bar" hidden>
+        <span id="bulk-count">0 dipilih</span>
+        <span class="spacer"></span>
+        <button id="sel-none" class="btn secondary sm" type="button">Batal pilihan</button>
+        <button id="bulk-del" class="btn danger sm" type="button">Padam murid terpilih</button>
+      </div>
+
+      <ul class="record-list" id="rows" aria-label="Senarai murid"></ul>
+
+      <div id="pager" class="pager" hidden>
+        <button id="btn-prev" class="btn secondary" type="button">‹ Sebelumnya</button>
+        <span id="pager-info" class="muted"></span>
+        <button id="btn-next" class="btn secondary" type="button">Seterusnya ›</button>
+      </div>
     </section>
 
-    <div id="bulk-toolbar" class="bulk-toolbar hidden">
-      <span id="bulk-count" aria-live="polite">0 dipilih</span>
-      <button id="sel-none" class="btn small" type="button">Kosongkan pilihan</button>
-      <details class="bulk-danger">
-        <summary>Tindakan pentadbir</summary>
-        <button id="bulk-del" class="btn danger-solid small" type="button">Padam murid terpilih</button>
-      </details>
-    </div>
-
-    <section class="card registration-list">
-      <div class="table-wrap"><table class="table wide">
-        <caption class="sr-only">Senarai murid Tingkatan 1 mengikut sekolah rendah</caption>
-        <thead><tr>
-          <th scope="col" class="sel-col"><input type="checkbox" id="sel-all" aria-label="Pilih semua murid pada halaman ini" title="Pilih semua"></th>
-          <th scope="col">Murid</th><th scope="col">Sekolah Rendah Asal</th><th scope="col">Status Daftar</th>
-          <th scope="col">Penempatan Semula</th><th scope="col">Tindakan</th>
-        </tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="muted">Pilih sekolah rendah untuk memaparkan senarai murid.</td></tr></tbody>
-      </table></div>
-    </section>
-
-    <div id="pager" class="pager hidden">
-      <button id="btn-prev" class="btn small" type="button">‹ Sebelumnya</button>
-      <span id="pager-info" class="muted"></span>
-      <button id="btn-next" class="btn small" type="button">Seterusnya ›</button>
-    </div>
+    <details class="admin-panel" id="admin">
+      <summary>Tetapan pentadbir</summary>
+      <div class="admin-body">
+        <p class="muted tiny">Padam murid yang salah dimasukkan. Tindakan ini
+          <strong>kekal</strong> dan memerlukan kata laluan anda.</p>
+        <button id="start-select" class="btn secondary" type="button">Pilih murid untuk dipadam</button>
+      </div>
+    </details>
 
     <dialog id="form-dialog" class="modal" aria-labelledby="form-title">
-      <form id="student-form">
-        <h2 id="form-title">Daftar murid baharu</h2>
-        <div class="form-grid">
-          <label>Sekolah (SK Terdahulu)
-            <select id="f-school" class="input" required>
+      <form id="student-form" method="dialog" novalidate>
+        <div class="modal-head">
+          <h2 id="form-title">Daftar murid baharu</h2>
+          <p>Tingkatan ditetapkan kepada Tingkatan 1.</p>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label class="label" for="f-name">Nama murid</label>
+            <input id="f-name" class="input" type="text" maxlength="100" autocomplete="off" required>
+            <span class="err" id="f-name-err"></span>
+          </div>
+
+          <div class="field">
+            <label class="label" for="f-ic">No. IC <span class="optional">(12 digit)</span></label>
+            <input id="f-ic" class="input" type="text" inputmode="numeric" maxlength="14"
+                   placeholder="140512-12-1234" autocomplete="off"
+                   aria-describedby="f-ic-help f-ic-err" required>
+            <p class="hint" id="f-ic-help">Boleh taip dengan atau tanpa tanda sempang.</p>
+            <span class="err" id="f-ic-err"></span>
+          </div>
+
+          <div class="field">
+            <label class="label" for="f-school">Sekolah rendah asal</label>
+            <select id="f-school" class="select" required>
               <option value="">— Pilih sekolah —</option>
               ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
             </select>
-          </label>
-          <label>Nama murid
-            <input id="f-name" class="input" type="text" maxlength="100" autocomplete="off" required>
-          </label>
-          <label>No. IC (12 digit)
-            <input id="f-ic" class="input" type="text" inputmode="numeric" maxlength="14"
-                   placeholder="140512-12-1234" autocomplete="off" required>
-          </label>
-          <label>Tingkatan
-            <input id="f-tingkatan" class="input" type="text" value="Tingkatan 1" readonly aria-readonly="true">
-          </label>
-
-          <fieldset class="radio-group">
-            <legend>Status OKU</legend>
-            ${okuOptions.map((o, i) => `<label class="radio">
-              <input type="radio" name="oku" value="${o.value}"${i === 0 ? " required" : ""}> ${o.label}
-            </label>`).join("")}
-          </fieldset>
-
-          <fieldset class="radio-group">
-            <legend>Status daftar</legend>
-            ${registrationStatusOptions.map((o) => `<label class="radio">
-              <input type="radio" name="status" value="${o.value}"${o.value === "BELUM" ? " checked" : ""}> ${o.label}
-            </label>`).join("")}
-          </fieldset>
-
-          <label class="inline full"><input id="f-transfer" type="checkbox"> Mohon penempatan semula ke sekolah lain</label>
-
-          <div id="transfer-box" class="form-grid full hidden">
-            <label>Nama sekolah dipohon
-              <input id="f-transfer-school" class="input" type="text" maxlength="100" autocomplete="off">
-            </label>
-            <label>Sebab
-              <select id="f-transfer-reason" class="input">
-                <option value="">— Pilih sebab —</option>
-                ${transferReasons.map((r) => `<option value="${esc(r.value)}">${esc(r.value)}</option>`).join("")}
-              </select>
-            </label>
-            <label class="full">Catatan
-              <textarea id="f-transfer-notes" class="input" maxlength="300" rows="2"></textarea>
-            </label>
-            <p class="muted full">Murid yang hadir pada hari pendaftaran tetap dikira
-              <strong>sudah daftar</strong>, walaupun memohon penempatan semula.</p>
+            <span class="err" id="f-school-err"></span>
           </div>
-        </div>
 
-        <p id="form-msg" class="error" role="alert" aria-live="assertive"></p>
-        <div class="toolbar">
+          <fieldset>
+            <legend>Status OKU</legend>
+            <div class="choice-grid">
+              ${okuOptions.map((o, i) => `
+                <label class="choice">
+                  <input type="radio" name="oku" value="${o.value}"${i === 0 ? " required" : ""}>
+                  <span class="choice-body"><span class="choice-title">${o.label}</span></span>
+                </label>`).join("")}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Status daftar</legend>
+            <div class="choice-grid">
+              ${registrationStatusOptions.map((o) => `
+                <label class="choice">
+                  <input type="radio" name="status" value="${o.value}"${o.value === "BELUM" ? " checked" : ""}>
+                  <span class="choice-body"><span class="choice-title">${o.label}</span></span>
+                </label>`).join("")}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Penempatan semula <span class="optional">(jika berkenaan)</span></legend>
+            <label class="choice" style="margin-bottom:var(--s3)">
+              <input id="f-transfer" type="checkbox">
+              <span class="choice-body">
+                <span class="choice-title">Murid memohon pindah ke sekolah lain</span>
+                <span class="choice-note">Murid yang hadir tetap dikira sudah daftar.</span>
+              </span>
+            </label>
+
+            <div id="transfer-box" hidden>
+              <div class="field">
+                <label class="label" for="f-transfer-school">Sekolah dipohon</label>
+                <input id="f-transfer-school" class="input" type="text" maxlength="100" autocomplete="off">
+                <span class="err" id="f-transfer-err"></span>
+              </div>
+              <div class="field">
+                <label class="label" for="f-transfer-reason">Sebab</label>
+                <select id="f-transfer-reason" class="select">
+                  <option value="">— Pilih sebab —</option>
+                  ${transferReasons.map((r) => `<option value="${esc(r.value)}">${esc(r.value)}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label class="label" for="f-transfer-notes">Catatan <span class="optional">(boleh diedit)</span></label>
+                <textarea id="f-transfer-notes" class="input" maxlength="300" rows="3"></textarea>
+              </div>
+            </div>
+          </fieldset>
+
+          <div id="form-msg" role="alert" aria-live="assertive"></div>
+        </div>
+        <div class="modal-foot">
+          <button id="close" class="btn secondary" type="button">Tutup</button>
           <button id="save" class="btn primary" type="submit">Simpan</button>
-          <button id="clear" class="btn" type="button">Kosongkan borang</button>
-          <button id="close" class="btn" type="button">Tutup</button>
         </div>
       </form>
     </dialog>
 
-    <dialog id="bulk-delete-dialog" class="modal modal-sm" aria-labelledby="bulk-delete-title" aria-describedby="bulk-delete-description">
-      <form id="bulk-delete-form">
-        <h2 id="bulk-delete-title">Padam Murid Terpilih</h2>
-        <p id="bulk-delete-description" class="muted">Anda pasti mahu memadam <strong id="bulk-del-count"></strong> murid? Tindakan ini
-          <strong>kekal</strong> — semua rekod dipilih akan dibuang daripada pangkalan data. Resit lama masih
-          memaparkan nama murid, tetapi murid ini tidak lagi boleh dicari. No. IC yang sama boleh
-          diimport semula kemudian.</p>
-        <label>Kata laluan (pengesahan)
-          <input id="bulk-del-password" class="input" type="password" autocomplete="current-password">
-        </label>
-        <p id="bulk-del-msg" class="error" role="alert" aria-live="assertive"></p>
-        <div class="toolbar">
-          <button id="bulk-del-cancel" class="btn" type="button">Batal</button>
-          <button id="bulk-del-confirm" class="btn danger-solid" type="submit">Padam Semua Terpilih</button>
+    <dialog id="confirm-dialog" class="modal" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <form method="dialog">
+        <div class="modal-head">
+          <h2 id="confirm-title">Sahkan</h2>
+          <p id="confirm-text"></p>
+        </div>
+        <div class="modal-foot">
+          <button id="confirm-cancel" class="btn secondary" type="button">Batal</button>
+          <button id="confirm-ok" class="btn danger" type="button">Teruskan</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="bulk-delete-dialog" class="modal" aria-labelledby="bulk-delete-title">
+      <form id="bulk-delete-form" method="dialog" novalidate>
+        <div class="modal-head">
+          <h2 id="bulk-delete-title">Padam murid terpilih</h2>
+          <p>Anda akan memadam <strong id="bulk-del-count">0</strong> murid. Tindakan ini
+            <strong>kekal</strong> dan tidak boleh dibatalkan. Resit lama masih menyimpan
+            nama murid.</p>
+        </div>
+        <div class="modal-body">
+          <div class="field" style="margin-bottom:0">
+            <label class="label" for="bulk-del-password">Kata laluan anda</label>
+            <input id="bulk-del-password" class="input" type="password" autocomplete="current-password">
+            <p class="hint">Diperlukan untuk mengesahkan tindakan ini.</p>
+          </div>
+          <div id="bulk-del-msg" role="alert" aria-live="assertive"></p>
+        </div>
+        <div class="modal-foot">
+          <button id="bulk-del-cancel" class="btn secondary" type="button">Batal</button>
+          <button id="bulk-del-confirm" class="btn danger" type="submit">Padam semua terpilih</button>
         </div>
       </form>
     </dialog>`;
 
-  const dialog = root.querySelector("#form-dialog");
-  const form = root.querySelector("#student-form");
-  const formTitle = root.querySelector("#form-title");
-  const msg = root.querySelector("#form-msg");
-  const saveBtn = root.querySelector("#save");
-  const transferToggle = root.querySelector("#f-transfer");
-  const transferBox = root.querySelector("#transfer-box");
-  const transferReasonEl = root.querySelector("#f-transfer-reason");
-  const transferNotesEl = root.querySelector("#f-transfer-notes");
+  /* ----- element references ----- */
+  const $ = (sel) => root.querySelector(sel);
+  const dialog = $("#form-dialog");
+  const form = $("#student-form");
+  const formTitle = $("#form-title");
+  const formMsg = $("#form-msg");
+  const saveBtn = $("#save");
+  const transferToggle = $("#f-transfer");
+  const transferBox = $("#transfer-box");
+  const transferReasonEl = $("#f-transfer-reason");
+  const transferNotesEl = $("#f-transfer-notes");
 
-  const bulkToolbar = root.querySelector("#bulk-toolbar");
-  const bulkCount = root.querySelector("#bulk-count");
-  const selAll = root.querySelector("#sel-all");
-  const bulkDelBtn = root.querySelector("#bulk-del");
-  const selNoneBtn = root.querySelector("#sel-none");
-  const bulkDeleteDialog = root.querySelector("#bulk-delete-dialog");
-  const bulkDeleteForm = root.querySelector("#bulk-delete-form");
-  const bulkDelCount = root.querySelector("#bulk-del-count");
-  const bulkDelPassword = root.querySelector("#bulk-del-password");
-  const bulkDelMsg = root.querySelector("#bulk-del-msg");
-  const bulkDelConfirmBtn = root.querySelector("#bulk-del-confirm");
+  const listCard = $("#list-card");
+  const rowsEl = $("#rows");
+  const countEl = $("#count");
+  const schoolEl = $("#schools");
+  const qEl = $("#q");
+  const clearSearchBtn = $("#clear-search");
+  const statusFilter = $("#status-filter");
+  const pagerEl = $("#pager");
+  const btnPrev = $("#btn-prev");
+  const btnNext = $("#btn-next");
+  const pagerInfo = $("#pager-info");
+  const summaryEl = $("#school-summary");
+  const bulkBar = $("#bulk-bar");
+  const bulkCount = $("#bulk-count");
+  const adminPanel = $("#admin");
+  const startSelectBtn = $("#start-select");
 
-  const qEl = root.querySelector("#q");
-  const schoolEl = root.querySelector("#school");
-  const countEl = root.querySelector("#count");
-  const clearSearchBtn = root.querySelector("#clear-search");
-  const rowsEl = root.querySelector("#rows");
-  const pagerEl = root.querySelector("#pager");
-  const btnPrev = root.querySelector("#btn-prev");
-  const btnNext = root.querySelector("#btn-next");
-  const pagerInfo = root.querySelector("#pager-info");
+  const confirmDialog = $("#confirm-dialog");
+  const confirmTitle = $("#confirm-title");
+  const confirmText = $("#confirm-text");
+  const confirmOk = $("#confirm-ok");
 
-  let filters = { tingkatan: "", status: "" };
+  const bulkDeleteDialog = $("#bulk-delete-dialog");
+  const bulkDeleteForm = $("#bulk-delete-form");
+  const bulkDelCount = $("#bulk-del-count");
+  const bulkDelPassword = $("#bulk-del-password");
+  const bulkDelMsg = $("#bulk-del-msg");
+  const bulkDelConfirmBtn = $("#bulk-del-confirm");
+
+  /* ----- state ----- */
+  let selectedSchool = "";
+  let status = "";
   let rows = [];
   let editingId = null;
   let selectedIds = new Set();
+  let selecting = false;
   let seq = 0;
-  let mutationGen = 0; // ditambah pada setiap mutasi: muatan lama diabaikan
+  let mutationGen = 0;
   let busy = 0;
   let loading = false;
   let timer;
+  let page = 0;
+  let hasMore = false;
 
-  /* Paginasi halaman (50 baris) — hadkan payload & DOM kepada satu halaman. */
-  let page = 0;            // halaman semasa (0-based)
-  let hasMore = false;     // ada halaman seterusnya
-  const pageSize = 50;     // baris setiap halaman
+  /* ----- confirm helper ----- */
+  function askConfirm({ title, message, confirmLabel = "Teruskan", danger = true }) {
+    return new Promise((resolve) => {
+      confirmTitle.textContent = title;
+      confirmText.textContent = message;
+      confirmOk.textContent = confirmLabel;
+      confirmOk.className = `btn ${danger ? "danger" : "primary"}`;
 
-  /* ----- Jadual murid ----- */
+      const done = (value) => {
+        confirmOk.removeEventListener("click", onOk);
+        $("#confirm-cancel").removeEventListener("click", onCancel);
+        confirmDialog.removeEventListener("cancel", onCancel);
+        if (confirmDialog.open) confirmDialog.close();
+        resolve(value);
+      };
+      const onOk = () => done(true);
+      const onCancel = (e) => { e?.preventDefault?.(); done(false); };
+
+      confirmOk.addEventListener("click", onOk);
+      $("#confirm-cancel").addEventListener("click", onCancel);
+      confirmDialog.addEventListener("cancel", onCancel);
+      confirmDialog.showModal();
+      $("#confirm-cancel").focus();
+    });
+  }
+
+  /* ----- school choice ----- */
+  function paintSchools() {
+    for (const btn of schoolEl.querySelectorAll("[data-school]")) {
+      const on = btn.dataset.school === selectedSchool;
+      btn.setAttribute("aria-pressed", String(on));
+    }
+  }
+
+  schoolEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-school]");
+    if (!btn) return;
+    selectedSchool = btn.dataset.school === selectedSchool ? "" : btn.dataset.school;
+    paintSchools();
+
+    page = 0;
+    rows = [];
+    qEl.value = "";
+    clearSearchBtn.hidden = true;
+    try {
+      if (selectedSchool) localStorage.setItem("sperk-registration-school", selectedSchool);
+      else localStorage.removeItem("sperk-registration-school");
+    } catch { /* storage may be blocked; the session still works */ }
+
+    listCard.hidden = !selectedSchool;
+    if (!selectedSchool) {
+      summaryEl.hidden = true;
+      rowsEl.innerHTML = "";
+      countEl.textContent = "";
+      return;
+    }
+    load();
+    qEl.focus();
+  });
+
+  /* ----- list rendering ----- */
+  function statusCell(s) {
+    const done = s.registrationStatus === "SUDAH";
+    // The time is a separate item so a long status never forces the row wider
+    // than the screen at the largest text size.
+    return done
+      ? `<span class="pill ok">✓ Sudah daftar</span>${s.registeredAt ? `<span>${esc(formatTime(s.registeredAt))}</span>` : ""}`
+      : `<span class="pill warn">○ Belum daftar</span>`;
+  }
+
   function rowHtml(s) {
     const done = s.registrationStatus === "SUDAH";
-    const statusCell = done
-      ? `<span class="badge done">✓ Sudah daftar</span>` +
-        (s.registeredAt ? `<br><span class="muted">${esc(formatTime(s.registeredAt))}</span>` : "")
-      : `<span class="badge">○ Belum daftar</span>`;
+    const action = done
+      ? `<button class="btn secondary" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>Batal daftar</button>`
+      : `<button class="btn ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
 
-    const actions = done
-      ? `<button class="btn small danger" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>↩ Batal daftar</button>`
-      : `<button class="btn small ok register-action" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
-
-    return `<tr data-id="${esc(s.studentId)}"${done ? ' class="row-done"' : ""}>
-      <td class="sel-col"><input type="checkbox" class="sel-row" data-id="${esc(s.studentId)}" aria-label="Pilih ${esc(s.name)}"></td>
-      <td data-label="Murid">
-        <strong>${esc(s.name)}</strong>
-        ${s.oku === true ? `<span class="tag oku">OKU</span>` : ""}
-        <br><span class="muted">${esc(s.icMasked)}</span>
-      </td>
-      <td data-label="Sekolah rendah"><strong>${esc(s.formerPrimarySchool)}</strong></td>
-      <td class="nowrap" data-label="Status daftar">${statusCell}</td>
-      <td data-label="Penempatan semula">${s.transferSchool ? esc(s.transferSchool) : "—"}</td>
-      <td class="row-actions nowrap" data-label="Tindakan">
-        ${actions}
-        <button class="btn small" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
-      </td>
-    </tr>`;
+    return `<li class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
+      <input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
+             aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}>
+      <div class="record-main">
+        <p class="record-name">${esc(s.name)}${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</p>
+        <div class="record-meta">
+          <span class="num">${esc(s.icMasked)}</span>
+          <span>${esc(s.formerPrimarySchool)}</span>
+          ${s.transferSchool ? `<span>Pindah: ${esc(s.transferSchool)}</span>` : ""}
+          ${statusCell(s)}
+        </div>
+      </div>
+      <div class="record-actions">
+        ${action}
+        <button class="btn secondary" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
+      </div>
+    </li>`;
   }
 
   function renderRows() {
     if (loading) {
-      rowsEl.innerHTML = `<tr><td colspan="6" class="muted" role="status">Memuatkan senarai untuk ${esc(schoolEl.value)}…</td></tr>`;
+      rowsEl.innerHTML = `<li class="loading" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Memuatkan senarai untuk ${esc(selectedSchool)}…</span></li>`;
       return;
     }
     if (rows.length) {
       rowsEl.innerHTML = rows.map(rowHtml).join("");
       return;
     }
+
     const query = qEl.value.trim();
-    const hasFilter = Boolean(filters.status);
-    let message;
-    if (!schoolEl.value) {
-      message = `Pilih sekolah rendah di atas untuk memaparkan senarai murid.`;
-    } else if (query) {
-      message = `Tiada padanan untuk “${esc(query)}”.
-        <button class="btn primary small" type="button" data-action="new-from-search">+ Daftar “${esc(query)}” sebagai murid baharu</button>`;
-    } else if (hasFilter) {
-      message = `Tiada murid yang sepadan. Cuba pilih sekolah lain atau <strong>Semua status</strong>.`;
+    let body;
+    if (query) {
+      body = `<p>Tiada murid sepadan dengan “<strong>${esc(query)}</strong>”.</p>
+        <p><button class="btn primary" type="button" data-action="new-from-search">
+          Daftar “${esc(query)}” sebagai murid baharu</button></p>`;
+    } else if (status) {
+      body = `<p>Tiada murid dengan status ini untuk ${esc(selectedSchool)}.</p>
+        <p><button class="btn secondary" type="button" data-action="clear-filter">Tunjuk semua status</button></p>`;
     } else {
-      message = `Belum ada data murid Tingkatan 1 untuk ${esc(schoolEl.value)}. <a href="#/import">Import senarai murid</a> dahulu
-        (Papan Pemuka &rsaquo; e-Daftar &rsaquo; Import Data).`;
+      body = `<p>Belum ada senarai murid untuk ${esc(selectedSchool)}.</p>
+        <p><a class="btn secondary" href="#/import">Import senarai murid</a></p>`;
     }
-    rowsEl.innerHTML = `<tr><td colspan="6" class="muted">${message}</td></tr>`;
+    rowsEl.innerHTML = `<li class="record-empty">${body}</li>`;
   }
 
-  function renderSchoolSummary(data) {
-    const summary = root.querySelector("#school-summary");
-    if (!schoolEl.value) {
-      summary.innerHTML = "";
-      summary.classList.add("hidden");
-      return;
-    }
-    summary.classList.remove("hidden");
+  function renderSummary(data) {
+    if (!selectedSchool) { summaryEl.hidden = true; return; }
+    summaryEl.hidden = false;
     if (!data) {
-      summary.innerHTML = `<p class="muted">Memuatkan kemajuan ${esc(schoolEl.value)}…</p>`;
+      summaryEl.innerHTML = `<p class="muted" style="margin:0">Memuatkan kemajuan ${esc(selectedSchool)}…</p>`;
       return;
     }
-    summary.innerHTML = `
-      <h2 class="school-summary-title">${esc(schoolEl.value)}</h2>
-      <div class="school-stats">
-        <div><span>Belum daftar</span><strong>${data.schoolNotRegisteredTotal}</strong></div>
-        <div><span>Sudah daftar</span><strong>${data.schoolRegisteredTotal}</strong></div>
-        <div><span>Jumlah murid</span><strong>${data.schoolTotal}</strong></div>
+    const total = data.schoolTotal ?? 0;
+    const done = data.schoolRegisteredTotal ?? 0;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    summaryEl.innerHTML = `
+      <div>
+        <h2>${esc(selectedSchool)}</h2>
+        <span class="pill ${pct === 100 ? "ok" : "brand"}">${pct}% selesai</span>
+      </div>
+      <div class="meter-row" style="flex:1 1 200px">
+        <div class="meter" role="img" aria-label="${pct}% murid sudah daftar">
+          <span style="width:${pct}%"></span>
+        </div>
+      </div>
+      <div class="counts">
+        <div><span>Belum daftar</span><strong>${data.schoolNotRegisteredTotal ?? 0}</strong></div>
+        <div><span>Sudah daftar</span><strong>${done}</strong></div>
+        <div><span>Jumlah</span><strong>${total}</strong></div>
       </div>`;
   }
 
-  /* ----- Muat turun senarai ----- */
-  async function load({ silent = false } = {}) {
-    const mine = ++seq;
-    const gen = mutationGen;
-    if (!schoolEl.value) {
-      loading = false;
-      rows = [];
-      hasMore = false;
-      countEl.textContent = "";
-      renderSchoolSummary(null);
-      renderRows();
-      renderPager();
-      return;
-    }
-    if (!silent) {
-      loading = true;
-      rows = [];
-      selectedIds.clear();
-      selAll.checked = false;
-      updateBulkToolbar();
-      countEl.textContent = "Memuatkan…";
-      renderSchoolSummary(null);
-      renderRows();
-    }
-    try {
-      const data = await searchStudents(qEl.value.trim(), {
-        ...filters,
-        school: schoolEl.value,
-        offset: page * pageSize,
-        limit: pageSize,
-      });
-      // Abaikan respons lapuk: carian lebih baharu, atau mutasi berlaku selepas muatan ini mula.
-      if (mine !== seq || gen !== mutationGen) return;
-      loading = false;
-      rows = data.students;
-      hasMore = data.hasMore ?? false;
-      renderSchoolSummary(data);
-      // Pilihan baris tidak lagi sah selepas senarai baharu dipaparkan.
-      selectedIds.clear();
-      selAll.checked = false;
-      // Halaman terakhir kosong (murid dipadam/selesai) → kembali ke halaman 1.
-      if (!rows.length && page > 0) {
-        page = 0;
-        return load({ silent });
-      }
-      renderRows();
-      renderPager();
-      updateBulkToolbar();
-      const from = page * pageSize + 1;
-      const to = page * pageSize + rows.length;
-      countEl.textContent = data.total > rows.length
-        ? `Menunjukkan ${from}–${to} daripada ${data.total} padanan`
-        : `${data.total} padanan`;
-    } catch (err) {
-      if (mine !== seq) return;
-      loading = false;
-      if (!silent || !rows.length) {
-        countEl.textContent = "Senarai belum dapat dimuatkan.";
-        root.querySelector("#school-summary").innerHTML = "";
-        root.querySelector("#school-summary").classList.add("hidden");
-        const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
-        const message = isConnectionError
-          ? "Semak sambungan internet, kemudian cuba semula. Sekolah dan carian anda dikekalkan."
-          : "Pelayan belum dapat memuatkan senarai. Cuba semula sebentar lagi.";
-        rowsEl.innerHTML = `<tr><td colspan="6"><div class="load-error" role="alert"><strong>${isConnectionError ? "Sambungan terganggu" : "Data belum tersedia"}</strong><span>${message}</span><button class="btn primary" type="button" data-action="retry">Cuba semula</button></div></td></tr>`;
-      }
-    }
-  }
-
   function renderPager() {
-    pagerEl.classList.toggle("hidden", page === 0 && !hasMore);
+    pagerEl.hidden = page === 0 && !hasMore;
     btnPrev.disabled = page === 0;
     btnNext.disabled = !hasMore;
     pagerInfo.textContent = `Halaman ${page + 1}`;
   }
 
-  /* ----- Tanda daftar / batal daftar (dengan undo) ----- */
-  async function setStatus(s, status, { skipConfirm = false } = {}) {
-    if (
-      status === "BELUM" && !skipConfirm &&
-      !confirm(`Kembalikan status ${s.name} kepada "Belum daftar"?`)
-    ) return;
+  /* ----- loading ----- */
+  async function load({ silent = false } = {}) {
+    const mine = ++seq;
+    const gen = mutationGen;
 
-    mutationGen += 1; // muatan senarai yang bermula sebelum ini akan diabaikan
+    if (!selectedSchool) {
+      loading = false;
+      rows = [];
+      renderRows();
+      return;
+    }
+
+    if (!silent) {
+      loading = true;
+      rows = [];
+      countEl.textContent = "Memuatkan…";
+      renderSummary(null);
+      renderRows();
+    }
+
+    try {
+      const data = await searchStudents(qEl.value.trim(), {
+        status,
+        school: selectedSchool,
+        offset: page * PAGE_SIZE,
+        limit: PAGE_SIZE,
+      });
+      if (mine !== seq || gen !== mutationGen) return;
+
+      loading = false;
+      rows = data.students;
+      hasMore = data.hasMore ?? false;
+      renderSummary(data);
+      selectedIds.clear();
+      renderBulkBar();
+
+      if (!rows.length && page > 0) {
+        page = 0;
+        return load({ silent });
+      }
+
+      renderRows();
+      renderPager();
+
+      const from = page * PAGE_SIZE + 1;
+      const to = page * PAGE_SIZE + rows.length;
+      countEl.textContent = data.total > rows.length
+        ? `Menunjukkan ${from}–${to} daripada ${data.total} murid`
+        : `${data.total} murid`;
+    } catch (err) {
+      if (mine !== seq) return;
+      loading = false;
+      if (!silent || !rows.length) {
+        countEl.textContent = "";
+        summaryEl.hidden = true;
+        const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
+        rowsEl.innerHTML = `<li class="record-empty">
+          <div class="fail" role="alert">
+            <strong class="fail-title">${isConnectionError ? "Sambungan terganggu" : "Senarai belum dapat dimuatkan"}</strong>
+            <span class="fail-text">${isConnectionError
+              ? "Semak sambungan internet, kemudian cuba semula. Sekolah dan carian anda masih tersimpan."
+              : "Cuba semula sebentar lagi. Jika berterusan, maklumkan pentadbir sistem."}</span>
+            <button class="btn primary" type="button" data-action="retry">Cuba semula</button>
+          </div>
+        </li>`;
+      }
+    }
+  }
+
+  /* ----- mark / unmark ----- */
+  async function setStatus(s, next, { skipConfirm = false } = {}) {
+    if (next === "BELUM" && !skipConfirm) {
+      const ok = await askConfirm({
+        title: "Batal daftar murid",
+        message: `Kembalikan status ${s.name} kepada "Belum daftar"?`,
+        confirmLabel: "Ya, batal daftar",
+      });
+      if (!ok) return;
+    }
+
+    mutationGen += 1;
     busy += 1;
+
     const prev = {
       registrationStatus: s.registrationStatus,
       registeredAt: s.registeredAt,
@@ -386,52 +514,61 @@ export function renderEDaftar(root) {
     };
 
     s._pending = true;
-    let saved = false;
-    s.registrationStatus = status;
-    s.registeredAt = status === "SUDAH" ? new Date().toISOString() : null;
-    s.registeredBy = status === "SUDAH" ? "(anda)" : "";
+    s.registrationStatus = next;
+    s.registeredAt = next === "SUDAH" ? new Date().toISOString() : null;
+    s.registeredBy = next === "SUDAH" ? "(anda)" : "";
     renderRows();
 
     try {
-      const { student } = await setStudentStatus(s.studentId, status);
-      Object.assign(s, student); // nilai sebenar daripada pelayan
-      saved = true;
-      showToast(
-        status === "SUDAH"
-          ? `✓ ${s.name} ditanda sudah daftar.`
-          : `Status ${s.name} dikembalikan kepada belum daftar.`,
-        {
-          actionLabel: "Buat asal",
-          timeout: 12000,
-          onAction: () => setStatus(s, status === "SUDAH" ? "BELUM" : "SUDAH", { skipConfirm: true }),
-        }
-      );
+      const { student } = await setStudentStatus(s.studentId, next);
+      Object.assign(s, student);
+
+      showStatus({
+        type: "ok",
+        title: next === "SUDAH" ? "Murid ditanda sudah daftar" : "Status dikembalikan",
+        message: next === "SUDAH"
+          ? `${s.name} direkodkan hadir pada ${formatTime(s.registeredAt)}.`
+          : `${s.name} kini berstatus belum daftar.`,
+        actionLabel: "Buat asal",
+        timeout: 12000,
+        onAction: () => setStatus(s, next === "SUDAH" ? "BELUM" : "SUDAH", { skipConfirm: true }),
+      });
     } catch (err) {
       Object.assign(s, prev);
-      showToast(err.message, { type: "danger" });
+      showStatus({
+        type: "bad",
+        title: "Status tidak dapat disimpan",
+        message: err.message,
+      });
     } finally {
       s._pending = false;
       busy -= 1;
       renderRows();
-      if (saved) load({ silent: true });
+      if (s.registrationStatus === next) load({ silent: true });
     }
   }
 
-  /* ----- Tindakan pada baris ----- */
+  /* ----- row actions ----- */
   rowsEl.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
     const action = btn.dataset.action;
 
     if (action === "retry") return load();
-
+    if (action === "clear-filter") {
+      status = "";
+      for (const b of statusFilter.querySelectorAll("button")) {
+        b.setAttribute("aria-pressed", String(b.dataset.status === ""));
+      }
+      return load();
+    }
     if (action === "new-from-search") {
       openForm(null, { prefillName: qEl.value.trim() });
       return;
     }
 
-    const tr = btn.closest("tr");
-    const s = rows.find((x) => x.studentId === tr?.dataset.id);
+    const li = btn.closest("li.record");
+    const s = rows.find((x) => x.studentId === li?.dataset.id);
     if (!s) return;
 
     if (action === "mark") return setStatus(s, "SUDAH");
@@ -442,48 +579,59 @@ export function renderEDaftar(root) {
         const { student } = await getStudent(s.studentId);
         openForm(student);
       } catch (err) {
-        showToast(err.message, { type: "danger" });
+        showStatus({ type: "bad", title: "Butiran tidak dapat dibuka", message: err.message });
       } finally {
         btn.disabled = false;
       }
     }
   });
 
-  /* ----- Penapis dan carian ----- */
-  function chipGroup(id, key) {
-    const group = root.querySelector(`#${id}`);
-    group.addEventListener("click", (e) => {
-      const chip = e.target.closest(".chip");
-      if (!chip) return;
-      for (const c of group.querySelectorAll(".chip")) {
-        const active = c === chip;
-        c.classList.toggle("active", active);
-        c.setAttribute("aria-pressed", String(active));
-      }
-      filters[key] = chip.dataset.value;
-      if (id === "chips-status") {
-        root.querySelector("#status-filter-summary").textContent = chip.dataset.value
-          ? `Pilihan lain: status ${chip.textContent.trim()}`
-          : "Pilihan lain: tapis status";
-      }
-      page = 0;
-      load();
-    });
-  }
-  chipGroup("chips-status", "status");
+  /* ----- selection ----- */
+  rowsEl.addEventListener("change", (e) => {
+    const cb = e.target.closest(".record-select");
+    if (!cb) return;
+    if (cb.checked) selectedIds.add(cb.dataset.id);
+    else selectedIds.delete(cb.dataset.id);
+    renderBulkBar();
+  });
 
-  schoolEl.addEventListener("change", () => {
-    page = 0;
-    rows = [];
+  function renderBulkBar() {
+    const n = selectedIds.size;
+    bulkBar.hidden = n === 0;
+    bulkCount.textContent = `${n} murid dipilih`;
+  }
+
+  startSelectBtn.addEventListener("click", () => {
+    if (!selectedSchool) {
+      showStatus({ type: "warn", title: "Pilih sekolah dahulu", message: "Pilih sekolah rendah sebelum memilih murid untuk dipadam." });
+      return;
+    }
+    selecting = true;
+    rowsEl.classList.add("selecting");
+    adminPanel.open = false;
+    showStatus({
+      type: "info",
+      title: "Mod pilih",
+      message: "Tandakan kotak di sebelah kiri murid, kemudian tekan “Padam murid terpilih”.",
+    });
+    rowsEl.querySelector(".record-select")?.focus();
+  });
+
+  $("#sel-none").addEventListener("click", () => {
     selectedIds.clear();
-    qEl.value = "";
-    clearSearchBtn.hidden = true;
-    qEl.disabled = !schoolEl.value;
-    root.querySelector("#refresh").disabled = !schoolEl.value;
-    try {
-      if (schoolEl.value) localStorage.setItem("sperk-registration-school", schoolEl.value);
-      else localStorage.removeItem("sperk-registration-school");
-    } catch { /* Simpanan pelayar mungkin disekat; sesi ini masih boleh digunakan. */ }
+    for (const cb of rowsEl.querySelectorAll(".record-select")) cb.checked = false;
+    renderBulkBar();
+  });
+
+  /* ----- filters and search ----- */
+  statusFilter.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-status]");
+    if (!btn) return;
+    for (const b of statusFilter.querySelectorAll("button")) {
+      b.setAttribute("aria-pressed", String(b === btn));
+    }
+    status = btn.dataset.status;
+    page = 0;
     load();
   });
 
@@ -500,36 +648,40 @@ export function renderEDaftar(root) {
     qEl.focus();
   });
 
-  root.querySelector("#refresh").addEventListener("click", () => load());
+  $("#refresh").addEventListener("click", () => load());
 
-  // Pintasan "/" untuk fokus carian (bila tidak menaip dalam medan lain).
+  btnPrev.addEventListener("click", () => {
+    if (page > 0) { page -= 1; load(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  });
+  btnNext.addEventListener("click", () => {
+    if (hasMore) { page += 1; load(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  });
+
+  // "/" jumps to search when the user is not already typing.
   const onKey = (e) => {
-    if (!root.isConnected) {
-      document.removeEventListener("keydown", onKey);
-      return;
-    }
+    if (!root.isConnected) { document.removeEventListener("keydown", onKey); return; }
     if (e.key !== "/" || e.ctrlKey || e.metaKey) return;
     const tag = document.activeElement?.tagName;
     if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || dialog.open) return;
+    if (!selectedSchool) return;
     e.preventDefault();
     qEl.focus();
   };
   document.addEventListener("keydown", onKey);
 
-  // Jitter penyegaran mula-mula supaya 30–40 peranti tidak meminta data serentak.
+  /* ----- quiet refresh ----- */
   function scheduleAutoRefresh(delay) {
     setTimeout(() => {
       if (!root.isConnected) return;
-      if (
-        document.visibilityState === "visible" && !busy && !dialog.open &&
-        document.activeElement !== qEl && document.activeElement !== schoolEl
-      ) load({ silent: true });
+      const idle = document.visibilityState === "visible" && !busy && !dialog.open &&
+        !selecting && document.activeElement !== qEl;
+      if (idle) load({ silent: true });
       scheduleAutoRefresh(30000);
     }, delay);
   }
   scheduleAutoRefresh(Math.random() * 30000);
 
-  /* ----- Borang (dialog) ----- */
+  /* ----- student form ----- */
   const setRadio = (name, value) => {
     for (const el of form.querySelectorAll(`input[name="${name}"]`)) el.checked = el.value === value;
   };
@@ -537,11 +689,10 @@ export function renderEDaftar(root) {
 
   function showTransfer(on) {
     transferToggle.checked = on;
-    transferBox.classList.toggle("hidden", !on);
+    transferBox.hidden = !on;
   }
 
-  // Sebab dipilih daripada senarai rasmi. Rekod lama (teks bebas) tetap
-  // dipaparkan sebagai pilihan tambahan supaya tidak hilang semasa dikemas kini.
+  // Old records may hold free-text reasons; keep them visible and selectable.
   function setTransferReason(value) {
     const v = value ?? "";
     for (const o of transferReasonEl.querySelectorAll("option[data-legacy]")) o.remove();
@@ -550,21 +701,32 @@ export function renderEDaftar(root) {
       o.value = v;
       o.textContent = `${v} (rekod lama)`;
       o.dataset.legacy = "1";
-      transferReasonEl.appendChild(o);
+      transferReasonEl.append(o);
     }
     transferReasonEl.value = v;
   }
 
   transferReasonEl.addEventListener("change", () => {
     const found = transferReasons.find((r) => r.value === transferReasonEl.value);
-    if (found) transferNotesEl.value = found.notes; // catatan masih boleh diedit
+    if (found) transferNotesEl.value = found.notes;
   });
+
+  transferToggle.addEventListener("change", () => showTransfer(transferToggle.checked));
+
+  function clearFormErrors() {
+    formMsg.innerHTML = "";
+    for (const id of ["f-name", "f-ic", "f-school", "f-transfer"]) {
+      const slot = $(`#${id}-err`);
+      if (slot) slot.textContent = "";
+      $(`#${id}`)?.removeAttribute("aria-invalid");
+    }
+  }
 
   function resetForm() {
     editingId = null;
     form.reset();
     formTitle.textContent = "Daftar murid baharu";
-    msg.textContent = "";
+    clearFormErrors();
     showTransfer(false);
   }
 
@@ -572,53 +734,55 @@ export function renderEDaftar(root) {
     resetForm();
     if (student) {
       editingId = student.studentId;
-      formTitle.textContent = `Kemaskini murid: ${student.name}`;
-      root.querySelector("#f-school").value = student.formerPrimarySchool;
-      root.querySelector("#f-name").value = student.name;
-      root.querySelector("#f-ic").value = student.icNumber;
-      root.querySelector("#f-tingkatan").value =
-        student.tingkatan ? `Tingkatan ${student.tingkatan}` : "Tingkatan 1";
+      formTitle.textContent = `Butiran: ${student.name}`;
+      $("#f-school").value = student.formerPrimarySchool;
+      $("#f-name").value = student.name;
+      $("#f-ic").value = student.icNumber;
       setRadio("oku", student.oku === true ? "true" : student.oku === false ? "false" : "");
       setRadio("status", student.registrationStatus);
-      root.querySelector("#f-transfer-school").value = student.transferSchool;
+      $("#f-transfer-school").value = student.transferSchool;
       setTransferReason(student.transferReason);
       transferNotesEl.value = student.transferNotes;
       showTransfer(Boolean(student.transferSchool || student.transferReason || student.transferNotes));
     } else {
-      root.querySelector("#f-tingkatan").value = "Tingkatan 1";
-      if (schoolEl.value) root.querySelector("#f-school").value = schoolEl.value;
-      root.querySelector("#f-name").value = prefillName;
+      if (selectedSchool) $("#f-school").value = selectedSchool;
+      $("#f-name").value = prefillName;
     }
     dialog.showModal();
-    root.querySelector(student ? "#f-name" : "#f-ic").focus();
+    (student ? $("#f-name") : $("#f-ic")).focus();
   }
 
-  root.querySelector("#new").addEventListener("click", () => openForm(null));
-  root.querySelector("#close").addEventListener("click", () => dialog.close());
+  $("#new").addEventListener("click", () => openForm(null));
+  $("#close").addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", resetForm);
-  root.querySelector("#clear").addEventListener("click", () => {
-    const title = editingId ? formTitle.textContent : "";
-    resetForm();
-    if (title) root.querySelector("#f-ic").focus();
-  });
-  transferToggle.addEventListener("change", () => showTransfer(transferToggle.checked));
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    msg.textContent = "";
+    clearFormErrors();
 
+    const name = $("#f-name").value.trim();
+    const ic = $("#f-ic").value.trim();
+    const school = $("#f-school").value;
     const transfer = transferToggle.checked;
-    const transferSchool = root.querySelector("#f-transfer-school").value.trim();
-    if (transfer && !transferSchool) {
-      msg.textContent = "Sila isi nama sekolah dipohon, atau nyahpilih penempatan semula.";
+    const transferSchool = $("#f-transfer-school").value.trim();
+
+    let bad = false;
+    if (name.length < 2) { $("#f-name-err").textContent = "Sila isi nama penuh murid."; $("#f-name").setAttribute("aria-invalid", "true"); bad = true; }
+    if (!ic) { $("#f-ic-err").textContent = "Sila isi nombor IC."; $("#f-ic").setAttribute("aria-invalid", "true"); bad = true; }
+    else if (ic.replace(/\D/g, "").length !== 12) { $("#f-ic-err").textContent = "No. IC mesti 12 digit."; $("#f-ic").setAttribute("aria-invalid", "true"); bad = true; }
+    if (!school) { $("#f-school-err").textContent = "Sila pilih sekolah rendah asal."; $("#f-school").setAttribute("aria-invalid", "true"); bad = true; }
+    if (transfer && !transferSchool) { $("#f-transfer-err").textContent = "Sila isi nama sekolah dipohon."; $("#f-transfer-school").setAttribute("aria-invalid", "true"); bad = true; }
+
+    if (bad) {
+      form.querySelector("[aria-invalid='true']")?.focus();
       return;
     }
 
     const payload = {
-      formerPrimarySchool: root.querySelector("#f-school").value,
-      name: root.querySelector("#f-name").value.trim(),
-      icNumber: root.querySelector("#f-ic").value.trim(),
-      tingkatan: root.querySelector("#f-tingkatan").value || null,
+      formerPrimarySchool: school,
+      name,
+      icNumber: ic,
+      tingkatan: "Tingkatan 1",
       oku: checkedRadio("oku") === "true",
       registrationStatus: checkedRadio("status") || "BELUM",
       transferSchool: transfer ? transferSchool : "",
@@ -633,133 +797,88 @@ export function renderEDaftar(root) {
       if (updating) await updateStudent(editingId, payload);
       else await createStudent(payload);
       dialog.close();
-      showToast(updating ? `Maklumat ${payload.name} dikemas kini.` : `${payload.name} telah didaftarkan.`);
+      showStatus({
+        type: "ok",
+        title: updating ? "Maklumat dikemas kini" : "Murid didaftarkan",
+        message: `${name} telah ${updating ? "dikemas kini" : "ditambah ke senarai"}.`,
+      });
       await load();
     } catch (err) {
-      msg.textContent = err.message;
+      formMsg.innerHTML = `<div class="status bad"><div class="status-body">
+        <strong class="status-title">Tidak dapat disimpan</strong>
+        <span class="status-text"></span></div></div>`;
+      formMsg.querySelector(".status-text").textContent = err.message;
     } finally {
       saveBtn.disabled = false;
       saveBtn.textContent = "Simpan";
     }
   });
 
-  /* ----- Padam banyak (pilih lalu padam dengan kata laluan) ----- */
-  const PASSWORD_ERR_CODES = new Set([
-    "auth/wrong-password", "auth/invalid-credential", "auth/user-mismatch", "auth/invalid-email",
-  ]);
-
-  function updateBulkToolbar() {
-    const n = selectedIds.size;
-    if (n === 0) {
-      bulkToolbar.classList.add("hidden");
-      selectedIds.clear();
-    } else {
-      bulkToolbar.classList.remove("hidden");
-      bulkCount.textContent = `${n} dipilih`;
-    }
-    // Sinkrimin status kotak semak baris dengan set pilihan.
-    rowsEl.querySelectorAll(".sel-row").forEach((cb) => {
-      cb.checked = selectedIds.has(cb.dataset.id);
-    });
-    selAll.checked = rowsEl.querySelectorAll(".sel-row").length > 0 &&
-      [...rowsEl.querySelectorAll(".sel-row")].every((cb) => cb.checked);
-  }
-
-  selAll.addEventListener("change", () => {
-    rowsEl.querySelectorAll(".sel-row").forEach((cb) => {
-      cb.checked = selAll.checked;
-      if (cb.checked) selectedIds.add(cb.dataset.id);
-      else selectedIds.delete(cb.dataset.id);
-    });
-    updateBulkToolbar();
-  });
-
-  rowsEl.addEventListener("change", (e) => {
-    const cb = e.target.closest(".sel-row");
-    if (!cb) return;
-    if (cb.checked) selectedIds.add(cb.dataset.id);
-    else selectedIds.delete(cb.dataset.id);
-    updateBulkToolbar();
-  });
-
-  selNoneBtn.addEventListener("click", () => {
-    selectedIds.clear();
-    rowsEl.querySelectorAll(".sel-row").forEach((cb) => (cb.checked = false));
-    selAll.checked = false;
-    updateBulkToolbar();
-  });
-
-  bulkDelBtn.addEventListener("click", () => {
+  /* ----- bulk delete ----- */
+  $("#bulk-del").addEventListener("click", () => {
+    if (selectedIds.size === 0) return;
     bulkDelCount.textContent = selectedIds.size;
-    bulkDelMsg.textContent = "";
+    bulkDelMsg.innerHTML = "";
     bulkDeleteForm.reset();
     bulkDeleteDialog.showModal();
     bulkDelPassword.focus();
   });
 
+  $("#bulk-del-cancel").addEventListener("click", () => bulkDeleteDialog.close());
   bulkDeleteDialog.addEventListener("close", () => {
-    bulkDelMsg.textContent = "";
+    bulkDelMsg.innerHTML = "";
     bulkDeleteForm.reset();
   });
-  root.querySelector("#bulk-del-cancel").addEventListener("click", () =>
-    bulkDeleteDialog.close()
-  );
 
   bulkDeleteForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    bulkDelMsg.textContent = "";
+    bulkDelMsg.innerHTML = "";
     if (selectedIds.size === 0) return;
 
     const password = bulkDelPassword.value;
     if (!password) {
-      bulkDelMsg.textContent = "Sila isi kata laluan untuk pengesahan.";
+      bulkDelMsg.innerHTML = `<p class="err">Sila isi kata laluan untuk pengesahan.</p>`;
+      bulkDelPassword.focus();
       return;
     }
 
     bulkDelConfirmBtn.disabled = true;
-    bulkDelConfirmBtn.textContent = "Memadam...";
+    bulkDelConfirmBtn.textContent = "Memadam…";
     try {
       await reauthenticate(password);
-      await deleteStudents([...selectedIds]);
       const n = selectedIds.size;
+      await deleteStudents([...selectedIds]);
       selectedIds.clear();
       bulkDeleteDialog.close();
-      updateBulkToolbar();
-      showToast(`${n} murid telah dipadam.`);
+      renderBulkBar();
+      selecting = false;
+      rowsEl.classList.remove("selecting");
+      showStatus({ type: "ok", title: "Murid dipadam", message: `${n} murid telah dibuang daripada senarai.` });
       await load();
     } catch (err) {
-      bulkDelMsg.textContent = err.code
+      bulkDelMsg.innerHTML = `<p class="err"></p>`;
+      bulkDelMsg.querySelector(".err").textContent = err.code
         ? (PASSWORD_ERR_CODES.has(err.code) ? "Kata laluan tidak betul." : loginErrorMessage(err))
         : err.message;
     } finally {
       bulkDelConfirmBtn.disabled = false;
-      bulkDelConfirmBtn.textContent = "Padam Semua Terpilih";
+      bulkDelConfirmBtn.textContent = "Padam semua terpilih";
     }
   });
 
-  /* ----- Paginasi: butang Sebelumnya / Seterusnya ----- */
-  btnPrev.addEventListener("click", () => {
-    if (page > 0) {
-      page -= 1;
-      load();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  });
-  btnNext.addEventListener("click", () => {
-    if (hasMore) {
-      page += 1;
-      load();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  });
-
+  /* ----- initial state ----- */
   resetForm();
   try {
-    const savedSchool = localStorage.getItem("sperk-registration-school");
-    if (schools.includes(savedSchool)) schoolEl.value = savedSchool;
-  } catch { /* Guna pilihan sekolah manual jika simpanan pelayar tidak tersedia. */ }
-  qEl.disabled = !schoolEl.value;
-  root.querySelector("#refresh").disabled = !schoolEl.value;
-  renderSchoolSummary(null);
-  load();
+    const saved = localStorage.getItem("sperk-registration-school");
+    if (schools.includes(saved)) selectedSchool = saved;
+  } catch { /* use manual choice */ }
+
+  paintSchools();
+  if (selectedSchool) {
+    listCard.hidden = false;
+    load();
+  } else {
+    listCard.hidden = true;
+    summaryEl.hidden = true;
+  }
 }
