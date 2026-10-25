@@ -15,43 +15,45 @@ export function renderEDaftar(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>e-Daftar</h1>
-      <p class="muted">Pendaftaran Tingkatan 1 mengikut sekolah rendah. Pilih sekolah, cari murid, kemudian tekan <strong>Tanda daftar</strong>.</p>
+      <p class="muted">Pilih sekolah rendah dahulu. Kemudian cari murid Tingkatan 1 dan tekan <strong>Tanda daftar</strong>.</p>
     </div>
 
     <section class="card kaunter-tools">
+      <label class="filter-group school-filter">
+        <span class="filter-caption"><span class="step-number">1</span> Sekolah rendah</span>
+        <span class="filter-help">Pilih satu sekolah untuk memaparkan senarai murid.</span>
+        <select id="school" class="input input-school" aria-label="Pilih sekolah rendah">
+          <option value="">— Pilih sekolah rendah —</option>
+          ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
+        </select>
+      </label>
+
+      <div id="school-summary" class="school-summary hidden" aria-live="polite"></div>
+
+      <div class="search-section">
+        <label class="filter-caption" for="q"><span class="step-number">2</span> Cari murid</label>
+        <span class="filter-help">Masukkan nama atau nombor IC selepas memilih sekolah.</span>
       <div class="search-row">
         <input id="q" class="input input-lg" type="search" autocomplete="off"
-               placeholder="Cari nama atau No. IC — contoh: ahmad 140512"
-               aria-label="Cari murid" disabled>
-        <button id="refresh" class="btn" type="button" title="Muat semula senarai" disabled>↻ Muat semula</button>
+               placeholder="Contoh: Ahmad atau 140512"
+               aria-label="Cari nama atau nombor IC murid" disabled>
+        <button id="refresh" class="btn" type="button" title="Muat semula senarai" disabled>↻ Muat semula senarai</button>
         <button id="new" class="btn primary" type="button">+ Murid baharu</button>
+      </div>
       </div>
 
       <div class="filter-row">
         <div class="filter-group">
-          <span class="filter-caption">Skop tingkatan</span>
-          <span class="badge indigo grade-scope">Tingkatan 1 sahaja</span>
-        </div>
-        <div class="filter-group">
           <span class="filter-caption">Status pendaftaran</span>
           <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
-            <button class="chip active" type="button" data-value="">Semua status</button>
+            <button class="chip active" type="button" data-value="" aria-pressed="true">Semua status</button>
             ${registrationStatusOptions.map((o) => `
-              <button class="chip" type="button" data-value="${o.value}">${o.label}</button>`).join("")}
+              <button class="chip" type="button" data-value="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
           </div>
         </div>
-        <label class="filter-group school-filter">
-          <span class="filter-caption">Sekolah rendah</span>
-          <select id="school" class="input input-school" aria-label="Pilih sekolah rendah">
-            <option value="">— Pilih satu sekolah —</option>
-            ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
-          </select>
-        </label>
       </div>
 
-      <div id="school-summary" class="school-summary hidden" aria-live="polite"></div>
-
-      <p class="muted count-line"><span id="count" aria-live="polite">Memuatkan…</span>
+      <p class="muted count-line"><span id="count" aria-live="polite">Pilih sekolah rendah untuk bermula.</span>
         <span id="hint"></span></p>
     </section>
 
@@ -452,7 +454,11 @@ export function renderEDaftar(root) {
     group.addEventListener("click", (e) => {
       const chip = e.target.closest(".chip");
       if (!chip) return;
-      for (const c of group.querySelectorAll(".chip")) c.classList.toggle("active", c === chip);
+      for (const c of group.querySelectorAll(".chip")) {
+        const active = c === chip;
+        c.classList.toggle("active", active);
+        c.setAttribute("aria-pressed", String(active));
+      }
       filters[key] = chip.dataset.value;
       page = 0;
       load();

@@ -10,6 +10,7 @@ import { renderImportData } from "./features/e-daftar/import-page.js";
 import { renderNewReceipt } from "./features/e-resit/page.js";
 import { renderItems } from "./features/e-resit/items-page.js";
 import { renderHistory } from "./features/e-resit/history-page.js";
+import { renderCoopReport } from "./features/e-resit/report-page.js";
 import { renderReceiptDetail } from "./features/e-resit/receipt-page.js";
 
 /* SPeRK: dua ciri berkongsi satu pangkalan data murid.
@@ -29,6 +30,7 @@ const NAV = [
       ["/jana-resit", "Jana Resit"],
       ["/barangan", "Barangan"],
       ["/sejarah", "Sejarah Resit"],
+      ["/laporan-koperasi", "Laporan Koperasi"],
     ],
   },
   { label: "Panduan", path: "/panduan" },
@@ -41,6 +43,7 @@ const routes = {
   "/jana-resit": renderNewReceipt,
   "/barangan": renderItems,
   "/sejarah": renderHistory,
+  "/laporan-koperasi": renderCoopReport,
   "/panduan": renderGuide,
 };
 

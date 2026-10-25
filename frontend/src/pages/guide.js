@@ -14,6 +14,7 @@ export function renderGuide(root) {
       <button type="button" data-guide-target="guide-register">Pendaftaran murid</button>
       <button type="button" data-guide-target="guide-import">Import senarai</button>
       <button type="button" data-guide-target="guide-receipt">Resit koperasi</button>
+      <button type="button" data-guide-target="guide-report">Laporan koperasi</button>
       <button type="button" data-guide-target="guide-help">Jika ada masalah</button>
     </nav>
 
@@ -63,8 +64,19 @@ export function renderGuide(root) {
         <p>Resit boleh dibuka semula melalui Sejarah Resit untuk dicetak atau dikongsi.</p>
       </section>
 
+      <section class="card" id="guide-report">
+        <h2>5. Laporan koperasi</h2>
+        <p>Buka <strong>e-Resit Koperasi → Laporan Koperasi</strong> untuk melihat ringkasan jualan yang direkod melalui resit.</p>
+        <ol>
+          <li>Pilih tarikh mula dan tarikh akhir. Laporan dibuka dengan rekod dari awal tahun hingga hari ini.</li>
+          <li>Pilih semua bayaran, tunai atau pindahan bank untuk menapis transaksi.</li>
+          <li>Semak jumlah jualan, jumlah mengikut kaedah bayaran dan butiran item.</li>
+          <li>Gunakan <strong>Muat turun CSV</strong> untuk membuka butiran dalam hamparan atau <strong>Cetak laporan</strong> untuk salinan bercetak.</li>
+        </ol>
+      </section>
+
       <section class="card" id="guide-help">
-        <h2>5. Jika ada masalah</h2>
+        <h2>6. Jika ada masalah</h2>
         <ul>
           <li><strong>Senarai masih memuatkan:</strong> semak sambungan internet, tunggu sebentar, kemudian tekan <strong>Muat semula</strong>. Jika berulang, maklumkan pentadbir.</li>
           <li><strong>Murid tidak dijumpai:</strong> semak nama atau nombor IC, pilih sekolah rendah yang betul, dan pastikan data murid telah diimport.</li>

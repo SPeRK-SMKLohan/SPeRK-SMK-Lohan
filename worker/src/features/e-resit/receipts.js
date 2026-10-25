@@ -32,6 +32,10 @@ function publicReceipt(d) {
   };
 }
 
+function reportReceipt(d) {
+  return { ...receiptSummary(d), items: d.items ?? [] };
+}
+
 function validateBody(body) {
   if (!body || typeof body !== "object") throw new HttpError(400, "Permintaan tidak sah.");
   const { requestId, studentId, paymentMethod, lines } = body;
@@ -215,7 +219,8 @@ export async function listReceipts(env, url) {
   const q = (url.searchParams.get("q") || "").trim().slice(0, 100).toLowerCase();
   const from = parseDateKey(url.searchParams.get("from"));
   const to = parseDateKey(url.searchParams.get("to"));
-  const limit = clampInt(url.searchParams.get("limit"), 1, 200, 100);
+  const limit = clampInt(url.searchParams.get("limit"), 1, 500, 100);
+  const includeItems = url.searchParams.get("includeItems") === "true";
 
   const filters = [];
   if (from) filters.push(fieldFilter("createdAt", "GREATER_THAN_OR_EQUAL", toValue(myDayStart(from))));
@@ -238,7 +243,7 @@ export async function listReceipts(env, url) {
     : docs;
 
   return {
-    receipts: list.slice(0, limit).map(receiptSummary),
+    receipts: list.slice(0, limit).map(includeItems ? reportReceipt : receiptSummary),
     truncated: list.length > limit || (!!q && docs.length === cap),
   };
 }
