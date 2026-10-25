@@ -1,7 +1,7 @@
 import { signIn, signOutUser, loginErrorMessage } from "../shared/auth.js";
 import { apiFetch } from "../shared/api.js";
 import { wireTextSizeControl } from "../shared/accessibility.js";
-import { getDeviceStaffName, setDeviceStaffName } from "../shared/staff-name.js";
+import { getDeviceStaffName, isValidStaffName, setDeviceStaffName } from "../shared/staff-name.js";
 
 export function renderLogin(root) {
   root.innerHTML = `
@@ -50,6 +50,10 @@ export function renderLogin(root) {
       errorEl.textContent = "Sila isi e-mel dan kata laluan.";
       return;
     }
+    if (!isValidStaffName(staffNameInput.value)) {
+      errorEl.textContent = "Nama guru mesti 2 hingga 80 aksara.";
+      return;
+    }
 
     button.disabled = true;
     button.textContent = "Sedang log masuk...";
@@ -70,10 +74,7 @@ export function renderLogin(root) {
               : err.message
         );
       }
-      if (!setDeviceStaffName(staffNameInput.value)) {
-        throw new Error("Nama guru mesti 2 hingga 80 aksara dan boleh disimpan pada peranti ini. Sila semak nama dan tetapan pelayar.");
-      }
-
+      setDeviceStaffName(staffNameInput.value);
       location.hash = "/";
     } catch (err) {
       errorEl.textContent = err.code ? loginErrorMessage(err) : err.message;

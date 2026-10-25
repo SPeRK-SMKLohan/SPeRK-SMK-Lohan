@@ -574,7 +574,8 @@ export function renderEDaftar(root) {
       root.querySelector("#f-school").value = student.formerPrimarySchool;
       root.querySelector("#f-name").value = student.name;
       root.querySelector("#f-ic").value = student.icNumber;
-      root.querySelector("#f-tingkatan").value = student.tingkatan ?? "";
+      root.querySelector("#f-tingkatan").value =
+        student.tingkatan ? `Tingkatan ${student.tingkatan}` : "Tingkatan 1";
       setRadio("oku", student.oku === true ? "true" : student.oku === false ? "false" : "");
       setRadio("status", student.registrationStatus);
       root.querySelector("#f-transfer-school").value = student.transferSchool;

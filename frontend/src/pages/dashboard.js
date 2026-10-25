@@ -49,12 +49,12 @@ export async function renderDashboard(root) {
 
     <section class="card">
       <h2>Resit Koperasi</h2>
-      <p class="muted">Resit diterbitkan hari ini: <strong>${d.todayCount}</strong>
-        · Jumlah: <strong>${formatRM(d.todayTotalSen)}</strong></p>
-      ${d.recent.length ? `
+      <p class="muted">Resit diterbitkan hari ini: <strong>${d.todayCount ?? 0}</strong>
+        · Jumlah: <strong>${formatRM(d.todayTotalSen ?? 0)}</strong></p>
+      ${(d.recent ?? []).length ? `
         <div class="table-wrap"><table class="table">
           <thead><tr><th>No. Resit</th><th>Tarikh</th><th>Murid</th><th class="num">Jumlah</th><th>Bayaran</th></tr></thead>
-          <tbody>${d.recent.map((r) => `
+          <tbody>${(d.recent ?? []).map((r) => `
             <tr>
               <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
               <td class="nowrap"><strong>${esc(formatDate(r.createdAt))}</strong><br><span class="muted">${esc(formatTime(r.createdAt))}</span></td>

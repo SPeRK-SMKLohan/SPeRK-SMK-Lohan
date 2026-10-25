@@ -54,7 +54,6 @@ export async function getDashboard(env) {
 async function computeDashboard(env) {
   const dateKey = myDateKey();
   const start = myDayStart(dateKey);
-  const end = new Date(start.getTime() + DAY_MS);
 
   // Profil murid (cache delta) + kaunter resit hari ini + resit terkini.
   // Ahli koperasi disimpan sebagai medan murid (koperasiMember),

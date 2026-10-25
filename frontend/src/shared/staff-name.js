@@ -4,6 +4,11 @@ export function normalizeStaffName(value) {
   return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().toUpperCase();
 }
 
+export function isValidStaffName(value) {
+  const name = normalizeStaffName(value);
+  return name.length >= 2 && name.length <= 80;
+}
+
 export function getDeviceStaffName() {
   try { return normalizeStaffName(localStorage.getItem(STAFF_NAME_STORAGE_KEY)); }
   catch { return ""; }

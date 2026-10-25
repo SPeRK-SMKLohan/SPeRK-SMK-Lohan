@@ -56,7 +56,7 @@ const SLACK_MS = 10_000;              // toleransi susunan commit untuk delta
 const SHARED_KEY = "https://sperk-cache.internal/students-active";
 const sharedRequest = () => new Request(SHARED_KEY);
 
-let mem = { data: null, checkedAt: 0 };
+let mem = { data: null, checkedAt: 0, gen: 0 };
 let pending = null;
 
 function sortStudents(list) {
@@ -68,8 +68,10 @@ async function readShared() {
     const hit = await caches.default.match(sharedRequest());
     if (!hit) return null;
     const parsed = await hit.json();
-    if (!Array.isArray(parsed?.data)) return null;
-    return { data: parsed.data, checkedAt: typeof parsed.checkedAt === "number" ? parsed.checkedAt : 0 };
+    const gen = typeof parsed?.gen === "number" ? parsed.gen : 0;
+    const checkedAt = typeof parsed?.checkedAt === "number" ? parsed.checkedAt : 0;
+    const data = Array.isArray(parsed?.data) ? parsed.data : null;
+    return { data, checkedAt, gen };
   } catch {
     return null;
   }
@@ -80,7 +82,7 @@ async function writeShared(state) {
     await caches.default.put(
       sharedRequest(),
       Response.json(
-        { data: state.data, checkedAt: state.checkedAt },
+        { data: state.data, checkedAt: state.checkedAt, gen: state.gen ?? 0 },
         { headers: { "Cache-Control": `max-age=${SHARED_MAX_AGE_S}` } }
       )
     );
@@ -112,29 +114,48 @@ function mergeList(base, changed) {
   const map = new Map(base.map((s) => [s.studentId, s]));
   for (const d of changed) {
     const s = studentFromDoc(d);
-    if (s.studentId) map.set(s.studentId, s);
+    if (!s.studentId) continue;
+    if (d.active === false) map.delete(s.studentId);
+    else map.set(s.studentId, s);
   }
   return sortStudents([...map.values()]);
 }
 
 async function syncOne(env) {
   const now = Date.now();
-  let state = mem.data ? { data: mem.data, checkedAt: mem.checkedAt } : await readShared();
+  const shared = await readShared();
+
+  // Isolate lain telah melupuskan cache (import/padam). Jangan gabungkan delta ke senarai lapuk.
+  if (shared && shared.gen !== (mem.gen ?? 0)) {
+    mem = {
+      data: Array.isArray(shared.data) ? shared.data : null,
+      checkedAt: Array.isArray(shared.data) ? shared.checkedAt : 0,
+      gen: shared.gen,
+    };
+  }
+
+  if (mem.data && now - mem.checkedAt < SYNC_INTERVAL_MS) return mem.data;
+
+  let state = mem.data
+    ? { data: mem.data, checkedAt: mem.checkedAt, gen: mem.gen ?? 0 }
+    : shared?.data
+      ? shared
+      : null;
 
   if (state?.data && now - state.checkedAt < SYNC_INTERVAL_MS) {
-    mem = { data: state.data, checkedAt: state.checkedAt };
+    mem = { data: state.data, checkedAt: state.checkedAt, gen: state.gen ?? 0 };
     return mem.data;
   }
 
   if (!state?.data) {
     const data = await loadFull(env);
     const checkedAt = Date.now();
-    state = { data, checkedAt };
+    state = { data, checkedAt, gen: mem.gen ?? shared?.gen ?? 0 };
   } else {
     const changed = await loadDelta(env, state.checkedAt);
     const merged = mergeList(state.data, changed);
     const checkedAt = Date.now();
-    state = { data: merged, checkedAt };
+    state = { data: merged, checkedAt, gen: state.gen ?? mem.gen ?? 0 };
   }
 
   mem = state;
@@ -143,7 +164,6 @@ async function syncOne(env) {
 }
 
 export async function getActiveStudents(env) {
-  if (mem.data && Date.now() - mem.checkedAt < SYNC_INTERVAL_MS) return mem.data;
   if (pending) return pending;
 
   pending = (async () => {
@@ -182,10 +202,8 @@ export async function mergeStudentIntoCache(doc) {
 // Lupus cache (import/muatan pukal): bacaan penuh semula dilakukan pada
 // permintaan seterusnya.
 export async function invalidateStudentsCache() {
-  mem = { data: null, checkedAt: 0 };
-  try {
-    await caches.default.delete(sharedRequest());
-  } catch {
-    /* Cache API tidak tersedia. */
-  }
+  const shared = await readShared();
+  const gen = Math.max(shared?.gen ?? 0, mem.gen ?? 0) + 1;
+  mem = { data: null, checkedAt: 0, gen };
+  await writeShared({ data: null, checkedAt: 0, gen });
 }

@@ -1,5 +1,5 @@
 import { SCHOOL_LOOKUP } from "./schools.js";
-import { batchGet, commit, getDoc, runQuery } from "../../firestore.js";
+import { batchGet, commit, fieldFilter, getDoc, runQuery, toValue } from "../../firestore.js";
 import {
   getActiveStudents, invalidateStudentsCache, mergeStudentIntoCache, publicStudent, studentFromDoc,
 } from "../../shared/students.js";
@@ -334,7 +334,6 @@ export async function deleteStudents(env, user, ids) {
     throw new HttpError(404, `Beberapa murid tidak dijumpai (${missing.length} rekod).`);
   }
 
-  const now = new Date();
   const writes = ids.map((id) => ({ collection: "students", id, delete: true }));
 
   // Semua pemadaman dalam satu commit atomik (Firestore hadkan 500 tulisan; 200 di bawah had).

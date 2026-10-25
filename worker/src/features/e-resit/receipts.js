@@ -1,5 +1,5 @@
 import {
-  batchGet, beginTransaction, commit, fieldFilter, getDoc, runQuery, toValue,
+  batchGet, beginTransaction, commit, fieldFilter, getDoc, rollbackTransaction, runQuery, toValue,
 } from "../../firestore.js";
 import {
   DAY_MS, HttpError, ID_RE, UUID_RE, clampInt, myDateKey, myDayStart, myYear, parseDateKey, readJson,
@@ -98,8 +98,11 @@ export async function createReceipt(env, user, request) {
   ]);
 
   const student = found.get(`students/${studentId}`);
-  if (!student || student.active !== true || student.tingkatan !== 1) {
+  if (!student || student.tingkatan !== 1) {
     throw new HttpError(400, "Resit hanya boleh dijana untuk murid Tingkatan 1.");
+  }
+  if (student.active === false) {
+    throw new HttpError(400, "Murid ini tidak aktif.");
   }
 
   // Harga diambil daripada pangkalan data. Harga daripada pelayar tidak digunakan.
@@ -145,72 +148,77 @@ export async function createReceipt(env, user, request) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const tx = await beginTransaction(env);
+      let committed = false;
+      try {
+        const again = await getDoc(env, "receipts", requestId, tx);
+        if (again) return { receipt: publicReceipt(again), duplicate: true };
 
-      const again = await getDoc(env, "receipts", requestId, tx);
-      if (again) return { receipt: publicReceipt(again), duplicate: true };
+        const counter = await getDoc(env, "counters", counterId, tx);
+        const next = (counter?.value ?? 0) + 1;
 
-      const counter = await getDoc(env, "counters", counterId, tx);
-      const next = (counter?.value ?? 0) + 1;
+        // Kaunter ringkas bagi hari ini: jumlah resit + jumlah RM, untuk papan
+        // pemuka (1 bacaan sahaja, tanpa imbasan koleksi).
+        const dailyId = `daily-${myDateKey(now)}`;
+        const daily = await getDoc(env, "counters", dailyId, tx);
+        const dailyCount = (daily?.count ?? 0) + 1;
+        const dailyTotal = (daily?.totalSen ?? 0) + totalSen;
 
-      // Kaunter ringkas bagi hari ini: jumlah resit + jumlah RM, untuk papan
-      // pemuka (1 bacaan sahaja, tanpa imbasan koleksi).
-      const dailyId = `daily-${myDateKey(now)}`;
-      const daily = await getDoc(env, "counters", dailyId, tx);
-      const dailyCount = (daily?.count ?? 0) + 1;
-      const dailyTotal = (daily?.totalSen ?? 0) + totalSen;
+        const receipt = {
+          receiptNo: `${year}-${String(next).padStart(6, "0")}`,
+          year,
+          studentId,
+          studentNameSnapshot: String(student.name ?? "").toUpperCase(),
+          formerPrimarySchoolSnapshot: student.formerPrimarySchool,
+          items: receiptItems,
+          totalSen,
+          paymentMethod,
+          staffName,
+          bankRef: bankRef || undefined,
+          status: "ISSUED",
+          createdAt: now,
+          createdByAccountId: user.sub,
+          requestId,
+          hasKoperasiMembership: hasKoperasi,
+        };
 
-      const receipt = {
-        receiptNo: `${year}-${String(next).padStart(6, "0")}`,
-        year,
-        studentId,
-        studentNameSnapshot: String(student.name ?? "").toUpperCase(),
-        formerPrimarySchoolSnapshot: student.formerPrimarySchool,
-        items: receiptItems,
-        totalSen,
-        paymentMethod,
-        staffName,
-        bankRef: bankRef || undefined,
-        status: "ISSUED",
-        createdAt: now,
-        createdByAccountId: user.sub,
-        requestId,
-        hasKoperasiMembership: hasKoperasi,
-      };
-
-      const writes = [
-        { collection: "counters", id: counterId, data: { value: next, year, updatedAt: now } },
-        { collection: "receipts", id: requestId, data: receipt, mustNotExist: true },
-        {
-          collection: "counters",
-          id: dailyId,
-          data: { count: dailyCount, totalSen: dailyTotal, updatedAt: now },
-          mask: true,
-        },
-      ];
-      if (hasKoperasi && student.koperasiMember !== true) {
-        writes.push({
-          collection: "students",
-          id: studentId,
-          data: { koperasiMember: true, updatedAt: now },
-          mask: true,
-        });
-      }
-
-      await commit(env, writes, tx);
-
-      // Kemas kini cache murid supaya statistik koperasi segera terkini.
-      if (hasKoperasi && student.koperasiMember !== true) {
-        try {
-          await mergeStudentIntoCache({ id: studentId, ...student, koperasiMember: true, updatedAt: now });
-        } catch {
-          /* Cache tidak kritikal. */
+        const writes = [
+          { collection: "counters", id: counterId, data: { value: next, year, updatedAt: now } },
+          { collection: "receipts", id: requestId, data: receipt, mustNotExist: true },
+          {
+            collection: "counters",
+            id: dailyId,
+            data: { count: dailyCount, totalSen: dailyTotal, updatedAt: now },
+            mask: true,
+          },
+        ];
+        if (hasKoperasi && student.koperasiMember !== true) {
+          writes.push({
+            collection: "students",
+            id: studentId,
+            data: { koperasiMember: true, updatedAt: now },
+            mask: true,
+          });
         }
-      }
 
-      return {
-        receipt: publicReceipt({ id: requestId, ...receipt, createdAt: now.toISOString() }),
-        duplicate: false,
-      };
+        await commit(env, writes, tx);
+        committed = true;
+
+        // Kemas kini cache murid supaya statistik koperasi segera terkini.
+        if (hasKoperasi && student.koperasiMember !== true) {
+          try {
+            await mergeStudentIntoCache({ id: studentId, ...student, koperasiMember: true, updatedAt: now });
+          } catch {
+            /* Cache tidak kritikal. */
+          }
+        }
+
+        return {
+          receipt: publicReceipt({ id: requestId, ...receipt, createdAt: now.toISOString() }),
+          duplicate: false,
+        };
+      } finally {
+        if (!committed) await rollbackTransaction(env, tx);
+      }
     } catch (err) {
       const retryable = err.code === "ABORTED" || err.code === "ALREADY_EXISTS";
       if (!retryable || attempt === 4) throw err;

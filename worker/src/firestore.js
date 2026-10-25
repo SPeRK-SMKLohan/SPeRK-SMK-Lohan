@@ -203,6 +203,15 @@ export async function beginTransaction(env) {
   return data.transaction;
 }
 
+export async function rollbackTransaction(env, transaction) {
+  if (!transaction) return;
+  try {
+    await fsRequest(env, ":rollback", { body: { transaction } });
+  } catch {
+    /* Transaksi mungkin sudah di-commit, di-abort, atau tamat. */
+  }
+}
+
 // writes: [{ collection, id, data, mustNotExist, mask }]
 // mask = true: hanya medan di dalam data yang ditulis; medan lain tidak diubah.
 export async function commit(env, writes, transaction) {
