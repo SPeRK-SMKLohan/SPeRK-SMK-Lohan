@@ -28,23 +28,28 @@ export function renderEDaftar(root) {
       </div>
 
       <div class="filter-row">
-        <span class="badge indigo grade-scope">Tingkatan 1 sahaja</span>
-        <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
-          <button class="chip active" type="button" data-value="">Semua status</button>
-          ${registrationStatusOptions.map((o) => `
-            <button class="chip" type="button" data-value="${o.value}">${o.label}</button>`).join("")}
+        <div class="filter-group">
+          <span class="filter-caption">Skop tingkatan</span>
+          <span class="badge indigo grade-scope">Tingkatan 1 sahaja</span>
         </div>
-        <label class="school-filter">Sekolah rendah
-        <select id="school" class="input input-school" aria-label="Pilih sekolah rendah">
-          <option value="">— Pilih satu sekolah —</option>
-          ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
-        </select>
+        <div class="filter-group">
+          <span class="filter-caption">Status pendaftaran</span>
+          <div class="chips" id="chips-status" role="group" aria-label="Tapis status daftar">
+            <button class="chip active" type="button" data-value="">Semua status</button>
+            ${registrationStatusOptions.map((o) => `
+              <button class="chip" type="button" data-value="${o.value}">${o.label}</button>`).join("")}
+          </div>
+        </div>
+        <label class="filter-group school-filter">
+          <span class="filter-caption">Sekolah rendah</span>
+          <select id="school" class="input input-school" aria-label="Pilih sekolah rendah">
+            <option value="">— Pilih satu sekolah —</option>
+            ${schools.map((s) => `<option>${esc(s)}</option>`).join("")}
+          </select>
         </label>
       </div>
 
-      <div id="school-summary" class="school-summary" aria-live="polite">
-        <p class="muted">Pilih sekolah rendah untuk melihat kemajuan pendaftaran.</p>
-      </div>
+      <div id="school-summary" class="school-summary hidden" aria-live="polite"></div>
 
       <p class="muted count-line"><span id="count" aria-live="polite">Memuatkan…</span>
         <span id="hint"></span></p>
@@ -268,9 +273,11 @@ export function renderEDaftar(root) {
   function renderSchoolSummary(data) {
     const summary = root.querySelector("#school-summary");
     if (!schoolEl.value) {
-      summary.innerHTML = `<p class="muted">Pilih sekolah rendah untuk melihat kemajuan pendaftaran.</p>`;
+      summary.innerHTML = "";
+      summary.classList.add("hidden");
       return;
     }
+    summary.classList.remove("hidden");
     if (!data) {
       summary.innerHTML = `<p class="muted">Memuatkan kemajuan ${esc(schoolEl.value)}…</p>`;
       return;
@@ -292,7 +299,7 @@ export function renderEDaftar(root) {
       loading = false;
       rows = [];
       hasMore = false;
-      countEl.textContent = "Pilih sekolah rendah untuk mula.";
+      countEl.textContent = "";
       renderSchoolSummary(null);
       renderRows();
       renderHint();
