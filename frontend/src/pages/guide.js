@@ -61,7 +61,7 @@ export function renderGuide(root) {
           <li>Pilih <strong>Tunai</strong> atau <strong>Pindahan Bank</strong>. Untuk pindahan bank, isikan nombor rujukan.</li>
           <li>Sahkan pembayaran dan tekan <strong>Simpan Resit</strong>. Semak <strong>Sejarah Resit</strong> jika sambungan terputus semasa menyimpan, supaya resit tidak dibuat dua kali.</li>
         </ol>
-        <p>Semasa log masuk, pilih nombor kaunter peranti ini. Nombor disimpan pada peranti dan dicatat pada resit baharu; peranti lain boleh menggunakan nombor kaunter berbeza. Resit boleh dibuka semula melalui Sejarah Resit untuk dicetak atau dikongsi.</p>
+        <p>Semasa log masuk, masukkan nama guru. Nama disimpan pada peranti dan dicatat pada resit baharu; guru pada peranti lain boleh memasukkan nama masing-masing. Resit boleh dibuka semula melalui Sejarah Resit untuk dicetak atau dikongsi.</p>
       </section>
 
       <section class="card" id="guide-report">
@@ -70,7 +70,7 @@ export function renderGuide(root) {
         <ol>
           <li>Pilih tarikh mula dan tarikh akhir. Laporan dibuka dengan rekod dari awal tahun hingga hari ini.</li>
           <li>Pilih semua bayaran, tunai atau pindahan bank untuk menapis transaksi.</li>
-          <li>Semak jumlah jualan dan gunakan jadual untuk melihat nombor kaunter, nama murid, nombor resit, jumlah serta kaedah pembayaran bagi setiap resit.</li>
+          <li>Semak jumlah jualan dan gunakan jadual untuk melihat nama guru, nama murid, nombor resit, jumlah serta kaedah pembayaran bagi setiap resit.</li>
           <li>Gunakan <strong>Muat turun CSV</strong> untuk membuka butiran dalam hamparan atau <strong>Cetak laporan</strong> untuk salinan bercetak.</li>
         </ol>
       </section>

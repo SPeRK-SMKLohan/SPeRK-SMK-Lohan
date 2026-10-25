@@ -17,7 +17,7 @@ export function receiptSummary(d) {
     studentNameSnapshot: String(d.studentNameSnapshot ?? "").toUpperCase(),
     totalSen: d.totalSen,
     paymentMethod: d.paymentMethod,
-    counterNumber: Number.isInteger(d.counterNumber) ? d.counterNumber : null,
+    staffName: d.staffName ? String(d.staffName).toUpperCase() : null,
     status: d.status,
   };
 }
@@ -39,13 +39,20 @@ function reportReceipt(d) {
 
 function validateBody(body) {
   if (!body || typeof body !== "object") throw new HttpError(400, "Permintaan tidak sah.");
-  const { requestId, studentId, paymentMethod, counterNumber, lines } = body;
+  const { requestId, studentId, paymentMethod, staffName: rawStaffName, counterNumber, lines } = body;
+  const staffName = typeof rawStaffName === "string"
+    ? rawStaffName.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().toUpperCase()
+    : null;
 
   if (typeof requestId !== "string" || !UUID_RE.test(requestId)) throw new HttpError(400, "ID permintaan tidak sah.");
   if (typeof studentId !== "string" || !ID_RE.test(studentId)) throw new HttpError(400, "Murid tidak sah.");
   if (!PAYMENT_METHODS.includes(paymentMethod)) throw new HttpError(400, "Kaedah pembayaran tidak sah.");
-  if (!Number.isInteger(counterNumber) || counterNumber < 1 || counterNumber > 24) {
-    throw new HttpError(400, "Nombor kaunter mestilah antara 1 hingga 24. Sila pilih nombor kaunter pada peranti ini.");
+  if (staffName !== null && (staffName.length < 2 || staffName.length > 80)) {
+    throw new HttpError(400, "Nama guru mesti antara 2 hingga 80 aksara.");
+  }
+  // Sokongan sementara untuk tab lama sehingga guru memuat semula aplikasi.
+  if (staffName === null && (!Number.isInteger(counterNumber) || counterNumber < 1 || counterNumber > 24)) {
+    throw new HttpError(400, "Sila muat semula aplikasi dan masukkan nama guru.");
   }
   if (!Array.isArray(lines) || lines.length < 1 || lines.length > 30) {
     throw new HttpError(400, "Sila pilih sekurang-kurangnya satu item.");
@@ -70,14 +77,14 @@ function validateBody(body) {
     return { itemId: l.itemId, quantity: l.quantity };
   });
 
-  return { requestId, studentId, paymentMethod, counterNumber, bankRef, lines: cleanLines };
+  return { requestId, studentId, paymentMethod, staffName, bankRef, lines: cleanLines };
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function createReceipt(env, user, request) {
   const body = await readJson(request);
-  const { requestId, studentId, paymentMethod, counterNumber, bankRef, lines } = validateBody(body);
+  const { requestId, studentId, paymentMethod, staffName, bankRef, lines } = validateBody(body);
 
   // Permintaan ulangan: pulangkan resit yang sama, jangan cipta yang baharu.
   const already = await getDoc(env, "receipts", requestId);
@@ -161,7 +168,7 @@ export async function createReceipt(env, user, request) {
         items: receiptItems,
         totalSen,
         paymentMethod,
-        counterNumber,
+        staffName,
         bankRef: bankRef || undefined,
         status: "ISSUED",
         createdAt: now,

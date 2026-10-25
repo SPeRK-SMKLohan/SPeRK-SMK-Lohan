@@ -5,30 +5,23 @@ import { paymentMethods } from "./constants.js";
 import { formatRM, grandTotal } from "../../shared/money.js";
 import { esc, maskIC } from "../../shared/dom.js";
 import { makeId } from "../../shared/id.js";
-import { counterNumberOptions, getDeviceCounterNumber, setDeviceCounterNumber } from "../../shared/counter.js";
+import { getDeviceStaffName, setDeviceStaffName } from "../../shared/staff-name.js";
 
 export async function renderNewReceipt(root, params = new URLSearchParams()) {
-  const deviceCounterNumber = getDeviceCounterNumber();
-  if (!deviceCounterNumber) {
+  const deviceStaffName = getDeviceStaffName();
+  if (!deviceStaffName) {
     root.innerHTML = `
-      <div class="page-head"><h1>e-Resit Koperasi</h1><p class="muted">Tetapkan nombor kaunter pada peranti ini sebelum menjana resit.</p></div>
-      <section class="card counter-setup">
-        <label for="receipt-counter-number">Nombor kaunter</label>
-        <select id="receipt-counter-number" class="input" required>
-          <option value="">— Pilih nombor kaunter —</option>${counterNumberOptions()}
-        </select>
-        <p id="receipt-counter-error" class="error" role="alert"></p>
-        <button id="save-receipt-counter" class="btn primary block" type="button">Simpan dan teruskan</button>
+      <div class="page-head"><h1>e-Resit Koperasi</h1><p class="muted">Simpan nama guru pada peranti ini sebelum menjana resit.</p></div>
+      <section class="card staff-name-setup">
+        <label for="receipt-staff-name">Nama guru</label>
+        <input id="receipt-staff-name" class="input" type="text" autocomplete="name" maxlength="80" placeholder="Contoh: Cikgu Ahmad" required>
+        <p id="receipt-staff-name-error" class="error" role="alert"></p>
+        <button id="save-receipt-name" class="btn primary block" type="button">Simpan dan teruskan</button>
       </section>`;
-    root.querySelector("#save-receipt-counter").addEventListener("click", () => {
-      const selected = root.querySelector("#receipt-counter-number").value;
-      if (!selected) {
-        root.querySelector("#receipt-counter-error").textContent = "Sila pilih nombor kaunter.";
-        root.querySelector("#receipt-counter-number").focus();
-        return;
-      }
-      if (!setDeviceCounterNumber(selected)) {
-        root.querySelector("#receipt-counter-error").textContent = "Nombor kaunter tidak dapat disimpan pada peranti ini. Semak tetapan pelayar dan cuba lagi.";
+    root.querySelector("#save-receipt-name").addEventListener("click", () => {
+      const name = root.querySelector("#receipt-staff-name").value;
+      if (!setDeviceStaffName(name)) {
+        root.querySelector("#receipt-staff-name-error").textContent = "Nama guru mesti 2 hingga 80 aksara dan boleh disimpan pada peranti ini.";
         return;
       }
       renderNewReceipt(root, params);
@@ -49,7 +42,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   root.innerHTML = `
     <div class="page-head">
       <h1>e-Resit Koperasi</h1>
-      <p class="muted">Kaunter ${deviceCounterNumber} · Pilih murid, tambah barangan, pilih bayaran dan semak sebelum simpan.</p>
+      <p class="muted">Guru: ${esc(deviceStaffName)} · Pilih murid, tambah barangan, pilih bayaran dan semak sebelum simpan.</p>
     </div>
     <p id="receipt-progress" class="receipt-progress" role="status" aria-live="polite"></p>
     <div class="receipt-layout">
@@ -386,7 +379,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       const { receipt } = await createReceipt({
         requestId,
         studentId: student.studentId,
-        counterNumber: deviceCounterNumber,
+        staffName: deviceStaffName,
         paymentMethod,
         bankRef: paymentMethod === "BANK_TRANSFER" ? bankRef.trim() : undefined,
         lines: lines.map((l) => ({

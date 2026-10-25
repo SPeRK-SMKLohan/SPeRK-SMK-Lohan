@@ -35,7 +35,7 @@ export function renderCoopReport(root) {
       <div class="report-lines-head"><h2>Butiran resit</h2><button id="report-csv" class="btn small" type="button" disabled>Muat turun CSV</button></div>
       <p id="report-truncated" class="notice" hidden></p>
       <div class="table-wrap report-table-wrap"><table class="table report-table">
-        <thead><tr><th>No. kaunter</th><th>Nama murid</th><th>No. resit</th><th class="num">Jumlah</th><th>Kaedah pembayaran</th></tr></thead>
+        <thead><tr><th>Nama guru</th><th>Nama murid</th><th>No. resit</th><th class="num">Jumlah</th><th>Kaedah pembayaran</th></tr></thead>
         <tbody id="report-rows"><tr><td colspan="5" class="muted">Tekan Muat semula untuk memuatkan laporan.</td></tr></tbody>
       </table></div>
     </section>`;
@@ -51,7 +51,7 @@ export function renderCoopReport(root) {
 
   function renderRows(receipts) {
     const entries = receipts.map((receipt) => ({
-      counterNumber: receipt.counterNumber,
+      staffName: receipt.staffName,
       receiptNo: receipt.receiptNo,
       receiptId: receipt.receiptId,
       student: receipt.studentNameSnapshot,
@@ -61,7 +61,7 @@ export function renderCoopReport(root) {
     reportRows = entries;
     $("#report-rows").innerHTML = entries.map((entry) => `
       <tr>
-        <td data-label="No. kaunter">${entry.counterNumber ?? "—"}</td>
+        <td data-label="Nama guru">${esc(entry.staffName || "—")}</td>
         <td data-label="Nama murid">${esc(entry.student)}</td>
         <td data-label="No. resit"><a href="#/resit/${esc(entry.receiptId)}">${esc(entry.receiptNo)}</a></td>
         <td data-label="Jumlah" class="num"><strong>${formatRM(entry.totalSen)}</strong></td>
@@ -112,8 +112,8 @@ export function renderCoopReport(root) {
   toInput.addEventListener("change", load);
   paymentInput.addEventListener("change", load);
   $("#report-csv").addEventListener("click", () => {
-    const header = ["No. Kaunter", "Nama Murid", "No. Resit", "Jumlah (RM)", "Kaedah Pembayaran"];
-    const lines = reportRows.map((row) => [row.counterNumber ?? "", row.student, row.receiptNo,
+    const header = ["Nama Guru", "Nama Murid", "No. Resit", "Jumlah (RM)", "Kaedah Pembayaran"];
+    const lines = reportRows.map((row) => [row.staffName || "", row.student, row.receiptNo,
       (row.totalSen / 100).toFixed(2), paymentLabel(row.paymentMethod)]);
     const csv = [header, ...lines].map((line) => line.map(csvCell).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }));

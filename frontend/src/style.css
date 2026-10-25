@@ -641,9 +641,9 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .login-card > .muted { margin: 0 0 24px; font-size: .875rem; }
 .login-card label { display: block; margin-bottom: 14px; text-align: left; font-size: .75rem; font-weight: 600; letter-spacing: .04em; color: var(--text-primary); }
 .login-card label .input { width: 100%; margin-top: 6px; }
-.login-card .counter-help { margin: -6px 0 12px; text-align: left; }
-.counter-setup { display: grid; gap: 12px; max-width: 520px; }
-.counter-setup label { font-size: 1rem; font-weight: 600; }
+.login-card .staff-help { margin: -6px 0 12px; text-align: left; }
+.staff-name-setup { display: grid; gap: 12px; max-width: 520px; }
+.staff-name-setup label { font-size: 1rem; font-weight: 600; }
 .login-card .error { text-align: left; }
 .login-card .btn.block { margin-top: 4px; }
 .login-card .login-guide { margin: 14px 0 0; font-size: .8125rem; text-align: center; }

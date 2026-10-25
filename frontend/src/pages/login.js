@@ -1,7 +1,7 @@
 import { signIn, signOutUser, loginErrorMessage } from "../shared/auth.js";
 import { apiFetch } from "../shared/api.js";
 import { wireTextSizeControl } from "../shared/accessibility.js";
-import { counterNumberOptions, getDeviceCounterNumber, setDeviceCounterNumber } from "../shared/counter.js";
+import { getDeviceStaffName, setDeviceStaffName } from "../shared/staff-name.js";
 
 export function renderLogin(root) {
   root.innerHTML = `
@@ -21,13 +21,10 @@ export function renderLogin(root) {
         <label>Kata laluan
           <input id="password" class="input" type="password" autocomplete="current-password">
         </label>
-        <label>Nombor kaunter
-          <select id="counter-number" class="input" aria-describedby="counter-help" required>
-            <option value="">— Pilih nombor kaunter —</option>
-            ${counterNumberOptions(getDeviceCounterNumber())}
-          </select>
+        <label>Nama guru
+          <input id="staff-name" class="input" type="text" autocomplete="name" maxlength="80" placeholder="Contoh: Cikgu Ahmad" aria-describedby="staff-help" required>
         </label>
-        <p id="counter-help" class="muted counter-help">Nombor ini diingati pada peranti ini. Peranti lain boleh menggunakan nombor kaunter yang berbeza.</p>
+        <p id="staff-help" class="muted staff-help">Nama ini diingati pada peranti ini. Guru pada peranti lain boleh memasukkan nama masing-masing.</p>
         <p id="login-error" class="error"></p>
         <button class="btn primary block" type="submit">Log Masuk</button>
         <p class="login-guide"><a href="#/panduan">Buka Panduan Penggunaan</a></p>
@@ -39,7 +36,8 @@ export function renderLogin(root) {
   const form = root.querySelector("#login-form");
   const errorEl = root.querySelector("#login-error");
   const button = form.querySelector("button[type=submit]");
-  const counterSelect = root.querySelector("#counter-number");
+  const staffNameInput = root.querySelector("#staff-name");
+  staffNameInput.value = getDeviceStaffName();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -71,8 +69,8 @@ export function renderLogin(root) {
               : err.message
         );
       }
-      if (!setDeviceCounterNumber(counterSelect.value)) {
-        throw new Error("Nombor kaunter tidak dapat disimpan pada peranti ini. Semak tetapan pelayar dan cuba lagi.");
+      if (!setDeviceStaffName(staffNameInput.value)) {
+        throw new Error("Nama guru mesti 2 hingga 80 aksara dan boleh disimpan pada peranti ini. Sila semak nama dan tetapan pelayar.");
       }
 
       location.hash = "/";
