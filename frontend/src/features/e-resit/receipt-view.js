@@ -35,15 +35,15 @@ export function receiptHtml(r) {
       <table class="table receipt-print-items">
         <thead>
           <tr>
-            <th>Item</th>
-            <th class="num"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
-            <th class="num"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
-            <th class="num"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
+            <th scope="col">Item</th>
+            <th scope="col" class="num"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
+            <th scope="col" class="num"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
+            <th scope="col" class="num"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
         <tfoot>
-          <tr><th colspan="3">Jumlah Keseluruhan</th><th class="num">${formatAmount(r.totalSen)}</th></tr>
+          <tr><th scope="row" colspan="3">Jumlah Keseluruhan</th><td class="num">${formatAmount(r.totalSen)}</td></tr>
         </tfoot>
       </table>
       <div class="receipt-meta receipt-pay">

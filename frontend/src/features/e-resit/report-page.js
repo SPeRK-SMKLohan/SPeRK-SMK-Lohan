@@ -2,6 +2,7 @@ import { listReceipts } from "./api.js";
 import { paymentLabel } from "./constants.js";
 import { formatRM } from "../../shared/money.js";
 import { esc } from "../../shared/dom.js";
+import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedback.js";
 
 function todayKey() {
   const now = new Date();
@@ -35,8 +36,9 @@ export function renderCoopReport(root) {
       <div class="report-lines-head"><h2>Butiran resit</h2><button id="report-csv" class="btn small" type="button" disabled>Muat turun CSV</button></div>
       <p id="report-truncated" class="notice" hidden></p>
       <div class="table-wrap report-table-wrap"><table class="table report-table">
-        <thead><tr><th>Nama guru</th><th>Nama murid</th><th>No. resit</th><th class="num">Jumlah</th><th>Kaedah pembayaran</th></tr></thead>
-        <tbody id="report-rows"><tr><td colspan="5" class="muted">Tekan Muat semula untuk memuatkan laporan.</td></tr></tbody>
+        <caption class="sr-only">Butiran resit koperasi dalam tempoh dipilih</caption>
+        <thead><tr><th scope="col">Nama guru</th><th scope="col">Nama murid</th><th scope="col">No. resit</th><th scope="col" class="num">Jumlah</th><th scope="col">Kaedah pembayaran</th></tr></thead>
+        <tbody id="report-rows"><tr><td colspan="5">Tekan Muat semula untuk memuatkan laporan.</td></tr></tbody>
       </table></div>
     </section>`;
 
@@ -73,7 +75,7 @@ export function renderCoopReport(root) {
   async function load() {
     const mine = ++seq;
     $("#report-message").textContent = "Memuatkan laporan...";
-    $("#report-rows").innerHTML = `<tr><td colspan="5" class="muted">Sedang memuatkan...</td></tr>`;
+    $("#report-rows").innerHTML = `<tr><td colspan="5">${loadingState("Sedang mendapatkan laporan koperasi…")}</td></tr>`;
     $("#report-truncated").hidden = true;
     try {
       const result = await listReceipts({
@@ -100,9 +102,14 @@ export function renderCoopReport(root) {
     } catch (error) {
       if (mine !== seq) return;
       reportRows = [];
-      $("#report-message").textContent = "Laporan tidak dapat dimuatkan. Semak sambungan internet dan cuba lagi.";
-      $("#report-rows").innerHTML = `<tr><td colspan="5" class="error">${esc(error.message)} <button id="report-retry" class="btn small" type="button">Cuba lagi</button></td></tr>`;
-      $("#report-retry").addEventListener("click", load);
+      $("#report-total").textContent = "—";
+      $("#report-cash").textContent = "—";
+      $("#report-bank").textContent = "—";
+      $("#report-count").textContent = "—";
+      $("#report-csv").disabled = true;
+      $("#report-message").textContent = "Laporan tidak dapat dimuatkan. Penapis tarikh dan bayaran dikekalkan.";
+      $("#report-rows").innerHTML = `<tr><td colspan="5">${readErrorState(error, "Laporan")}</td></tr>`;
+      wireReadRetry(root, load);
     }
   }
 

@@ -6,6 +6,7 @@ import { formatRM, grandTotal } from "../../shared/money.js";
 import { esc, maskIC } from "../../shared/dom.js";
 import { makeId } from "../../shared/id.js";
 import { getDeviceStaffName, setDeviceStaffName } from "../../shared/staff-name.js";
+import { loadingState } from "../../shared/feedback.js";
 
 export async function renderNewReceipt(root, params = new URLSearchParams()) {
   const deviceStaffName = getDeviceStaffName();
@@ -14,7 +15,8 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       <div class="page-head"><h1>e-Resit Koperasi</h1><p class="muted">Simpan nama guru pada peranti ini sebelum menjana resit.</p></div>
       <section class="card staff-name-setup">
         <label for="receipt-staff-name">Nama guru</label>
-        <input id="receipt-staff-name" class="input" type="text" autocomplete="name" maxlength="80" placeholder="Contoh: Cikgu Ahmad" required>
+        <input id="receipt-staff-name" class="input" type="text" autocomplete="name" maxlength="80" placeholder="Contoh: Cikgu Ahmad" aria-describedby="receipt-staff-name-help receipt-staff-name-error" required>
+        <p id="receipt-staff-name-help" class="muted">Nama ini disimpan pada peranti ini sahaja.</p>
         <p id="receipt-staff-name-error" class="error" role="alert"></p>
         <button id="save-receipt-name" class="btn primary block" type="button">Simpan dan teruskan</button>
       </section>`;
@@ -48,7 +50,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     <div class="receipt-layout">
       <div>
         <section class="card receipt-step"><h2 class="step"><span class="step-num">1</span>Pilih murid</h2><p class="muted step-help">Cari nama atau nombor IC. Semak sekolah rendah sebelum memilih.</p><div id="student-box"></div></section>
-        <section id="receipt-step-items" class="card receipt-step hidden"><h2 class="step"><span class="step-num">2</span>Pilih barangan</h2><p class="muted step-help">Tambah setiap barangan yang dibeli. Kuantiti boleh diubah sebelum resit disimpan.</p><div id="items-box"><p class="muted">Memuatkan barangan...</p></div></section>
+        <section id="receipt-step-items" class="card receipt-step hidden"><h2 class="step"><span class="step-num">2</span>Pilih barangan</h2><p class="muted step-help">Tambah setiap barangan yang dibeli. Kuantiti boleh diubah sebelum resit disimpan.</p><div id="items-box">${loadingState("Sedang mendapatkan senarai barangan…")}</div></section>
         <section id="receipt-step-payment" class="card receipt-step hidden"><h2 class="step"><span class="step-num">3</span>Pilih bayaran</h2><p class="muted step-help">Pilih tunai atau pindahan bank. Pindahan bank memerlukan nombor rujukan.</p><div id="payment-box"></div></section>
       </div>
       <aside>
@@ -121,7 +123,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
                placeholder="Nama atau sekurang-kurangnya 2 digit No. IC">
         <button id="clear-student-search" class="clear-search" type="button" aria-label="Kosongkan carian murid" hidden>Kosongkan</button>
       </div>
-      <div id="student-results" class="results"></div>`;
+      <div id="student-results" class="results" role="region" aria-label="Hasil carian murid" aria-live="polite" aria-atomic="false"></div>`;
     const input = studentBox.querySelector("#student-search");
     const clear = studentBox.querySelector("#clear-student-search");
     const results = studentBox.querySelector("#student-results");
@@ -156,7 +158,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
             <button type="button" class="result" data-id="${esc(s.studentId)}">
               <strong>${esc(s.name)}</strong>
               <span class="muted">${esc(s.icMasked)} · ${esc(s.formerPrimarySchool)}</span>
-            </button>`).join("") || `<p class="muted">Tiada padanan.</p>`;
+            </button>`).join("") || `<p class="muted">Tiada murid sepadan. Semak ejaan atau nombor IC dan cuba lagi.</p>`;
         } catch (err) {
           if (mine !== seq) return;
           const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
@@ -194,7 +196,8 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     }
     itemsBox.innerHTML = `
       <div class="table-wrap"><table class="table receipt-item-table">
-        <thead><tr><th>Item</th><th class="num">Harga</th><th class="num">Kuantiti</th><th></th></tr></thead>
+        <caption class="sr-only">Pilih barangan dan kuantiti resit</caption>
+        <thead><tr><th scope="col">Item</th><th scope="col" class="num">Harga</th><th scope="col" class="num">Kuantiti</th><th scope="col"><span class="sr-only">Tindakan</span></th></tr></thead>
         <tbody>${items.map((i) => {
           const line = lines.find((l) => l.itemId === i.itemId);
           return `
@@ -305,6 +308,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       </div>
       ${lines.length ? `
         <table class="table compact receipt-summary-table">
+          <caption class="sr-only">Ringkasan barangan dalam resit</caption>
           <thead class="sr-only"><tr><th scope="col">Barangan</th><th scope="col">Kuantiti</th><th scope="col">Jumlah kecil</th><th scope="col">Tindakan</th></tr></thead>
           <tbody>${lines.map((l) => {
             const item = itemOf(l.itemId);
@@ -329,7 +333,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         <input type="checkbox" id="confirm" ${confirmed ? "checked" : ""}>
         Pembayaran telah disahkan mengikut prosedur koperasi
       </label>
-      ${errorMsg ? `<p class="error">${esc(errorMsg)}</p>` : ""}
+      ${errorMsg ? `<p class="error" role="alert">${esc(errorMsg)}</p>` : ""}
       <button id="save" class="btn primary block" type="button" ${ready ? "" : "disabled"}>
         ${saving ? "Menyimpan..." : "Simpan Resit"}
       </button>`;
@@ -423,7 +427,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   await loadItems();
 
   async function loadItems() {
-    itemsBox.innerHTML = `<p class="muted" role="status">Memuatkan barangan…</p>`;
+    itemsBox.innerHTML = loadingState("Sedang mendapatkan senarai barangan…");
     try {
       const data = await getItems();
       items = data.items.filter((i) => i.active);

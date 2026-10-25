@@ -26,7 +26,7 @@ export function renderLogin(root) {
           <input id="staff-name" class="input" type="text" autocomplete="name" maxlength="80" placeholder="Contoh: Cikgu Ahmad" aria-describedby="staff-help" required>
         </label>
         <p id="staff-help" class="muted staff-help">Nama ini diingati pada peranti ini. Guru pada peranti lain boleh memasukkan nama masing-masing.</p>
-        <p id="login-error" class="error"></p>
+        <p id="login-error" class="error" role="alert" aria-live="assertive"></p>
         <button class="btn primary block" type="submit">Log Masuk</button>
         <p class="login-guide"><a href="#/panduan">Buka Panduan Penggunaan</a></p>
       </form>

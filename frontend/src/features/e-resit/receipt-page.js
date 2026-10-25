@@ -2,6 +2,7 @@ import { getReceipt } from "./api.js";
 import { receiptHtml, whatsappText } from "./receipt-view.js";
 import { buildReceiptPdfBlob, downloadReceiptPdf, receiptPdfName } from "./pdf.js";
 import { esc } from "../../shared/dom.js";
+import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedback.js";
 
 // Mengembalikan "" (tiada nombor), nombor antarabangsa tanpa +, atau null jika tidak sah.
 function whatsappNumber(input) {
@@ -13,7 +14,7 @@ function whatsappNumber(input) {
 }
 
 export async function renderReceiptDetail(root, id) {
-  root.innerHTML = `<p class="muted">Memuatkan...</p>`;
+  root.innerHTML = loadingState("Sedang mendapatkan resit yang disimpan…");
 
   let r;
   try {
@@ -21,8 +22,9 @@ export async function renderReceiptDetail(root, id) {
   } catch (err) {
     root.innerHTML = `
       <h1>Resit tidak dapat dibuka</h1>
-      <p class="error">${esc(err.message)}</p>
+      ${readErrorState(err, "Resit", "Cuba buka semula")}
       <p><a href="#/sejarah">Kembali ke Sejarah Resit</a></p>`;
+    wireReadRetry(root, () => renderReceiptDetail(root, id));
     return;
   }
 
@@ -33,7 +35,7 @@ export async function renderReceiptDetail(root, id) {
       <button class="btn primary" id="print" type="button">Cetak</button>
       <button class="btn" id="pdf" type="button">Muat turun PDF</button>
     </div>
-    <p id="pdf-msg" class="error no-print"></p>
+    <p id="pdf-msg" class="error no-print" role="alert" aria-live="assertive"></p>
     <div class="receipt-layout">
       <div class="receipt-main">${receiptHtml(r)}</div>
       <aside class="no-print">
@@ -43,7 +45,9 @@ export async function renderReceiptDetail(root, id) {
             disimpan). WhatsApp tidak membenarkan PDF dilampirkan secara automatik — tandakan kotak
             di bawah untuk muat turun PDF resit, kemudian lampirkan fail itu dalam WhatsApp.</p>
           <div class="toolbar">
-            <input id="wa-phone" class="input" type="tel" placeholder="Contoh: 012-3456789" autocomplete="off">
+            <label class="history-filter" for="wa-phone">Nombor telefon WhatsApp
+              <input id="wa-phone" class="input" type="tel" placeholder="Contoh: 012-3456789" autocomplete="tel">
+            </label>
             <button id="wa" class="btn wa" type="button">Buka WhatsApp</button>
             <button id="wa-share" class="btn" type="button" hidden>Kongsi PDF (peranti)</button>
           </div>

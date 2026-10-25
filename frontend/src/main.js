@@ -76,10 +76,11 @@ function layoutHtml(path) {
   };
   const navDrop = ({ label, links }) => {
     const state = links.some(([p]) => isActive(path, p)) ? " active" : "";
+    const menuId = `nav-menu-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
     return `
       <div class="nav-drop">
-        <button class="nav-link nav-drop-btn${state}" type="button" aria-haspopup="true" aria-expanded="false">${label}</button>
-        <div class="nav-menu">
+        <button class="nav-link nav-drop-btn${state}" type="button" aria-haspopup="true" aria-controls="${menuId}" aria-expanded="false">${label}</button>
+        <div class="nav-menu" id="${menuId}">
           ${links.map(([p, l]) => navLink(p, l, true)).join("")}
         </div>
       </div>`;
@@ -158,7 +159,11 @@ function wireNav(scope) {
       document.removeEventListener("keydown", onKey);
       return;
     }
-    if (e.key === "Escape") closeAll();
+    if (e.key === "Escape") {
+      const openDrop = drops.find((drop) => drop.classList.contains("open"));
+      closeAll();
+      openDrop?.querySelector("button")?.focus();
+    }
     if (e.key === "Escape" && topbar?.classList.contains("menu-open")) {
       setMobileMenu(false);
       mobileToggle?.focus();
@@ -237,7 +242,7 @@ function render() {
 applyTextSizePreference();
 
 // Tunggu Firebase memulihkan sesi dahulu, kemudian mulakan aplikasi.
-app.innerHTML = `<p class="muted" style="padding:1rem">Memuatkan...</p>`;
+app.innerHTML = `<p class="muted loading-state" role="status" aria-live="polite"><span class="loading-indicator" aria-hidden="true"></span><span>Menyambung ke SPeRK dan memulihkan sesi…</span></p>`;
 
 // Bersihkan service worker lama (jika ada) supaya tidak sekat muatan.
 async function cleanupLegacySW() {
@@ -264,8 +269,9 @@ initAuth().then(() => {
     <main class="page">
       <section class="card">
         <h1>Sistem tidak dapat dimulakan</h1>
-        <p class="error">Sambungan pengesahan gagal. Semak sambungan internet dan cuba muat semula halaman.</p>
-        <button class="btn primary" type="button" onclick="location.reload()">Cuba Lagi</button>
+        <p class="error" role="alert">Sambungan pengesahan gagal. Semak sambungan internet dan cuba muat semula halaman.</p>
+        <button id="retry-startup" class="btn primary" type="button">Cuba Lagi</button>
       </section>
     </main>`;
+  app.querySelector("#retry-startup").addEventListener("click", () => location.reload());
 });

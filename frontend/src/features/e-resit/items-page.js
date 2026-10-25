@@ -1,22 +1,26 @@
 import { getItems } from "./api.js";
 import { formatRM } from "../../shared/money.js";
 import { esc } from "../../shared/dom.js";
+import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedback.js";
 
-export async function renderItems(root) {
+export function renderItems(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Barangan</h1>
     </div>
     <p class="notice">Harga daripada senarai yang diluluskan pihak sekolah. Sesetengah item mempunyai jenis dengan harga berbeza.</p>
-    <div id="box"><p class="muted">Memuatkan...</p></div>`;
+    <div id="box">${loadingState("Sedang mendapatkan senarai barangan…")}</div>`;
   const box = root.querySelector("#box");
 
-  try {
-    const { items } = await getItems();
-    box.innerHTML = `
+  async function load() {
+    box.innerHTML = loadingState("Sedang mendapatkan senarai barangan…");
+    try {
+      const { items } = await getItems();
+      box.innerHTML = `
       <section class="card">
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>Item</th><th class="num">Harga</th><th>Kuantiti</th><th>Status</th></tr></thead>
+          <caption class="sr-only">Senarai barangan dan harga koperasi</caption>
+          <thead><tr><th scope="col">Item</th><th scope="col" class="num">Harga</th><th scope="col">Kuantiti</th><th scope="col">Status</th></tr></thead>
           <tbody>${items.map((i) => `
             <tr>
               <td>${esc(i.name)}</td>
@@ -27,7 +31,10 @@ export async function renderItems(root) {
           </tbody>
         </table></div>
       </section>`;
-  } catch (err) {
-    box.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+    } catch (err) {
+      box.innerHTML = readErrorState(err, "Senarai barangan");
+      wireReadRetry(box, load);
+    }
   }
+  load();
 }

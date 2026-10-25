@@ -92,7 +92,7 @@
 * { box-sizing: border-box; }
 
 html { font-size: 112.5%; scroll-behavior: smooth; }
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; padding: 0; min-width: 0; }
 
 body {
   font-family: var(--font-body);
@@ -102,8 +102,9 @@ body {
   color: var(--text-primary);
 }
 
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent); text-decoration: underline; text-underline-offset: .14em; }
 a:hover { color: var(--accent-hover); text-decoration: underline; }
+.btn, .brand, .nav-card { text-decoration: none; }
 
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
@@ -122,8 +123,11 @@ html.text-size-largest { font-size: 137.5%; }
 .skip-link:focus { transform: translateY(0); color: #fff; }
 
 /* Rangka halaman: topbar kekal di atas, footer di bawah. */
-#app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
-.page { flex: 1 0 auto; width: 100%; max-width: 1120px; margin: 0 auto; padding: 40px 24px 64px; }
+#app { min-height: 100vh; min-height: 100dvh; min-width: 0; display: flex; flex-direction: column; }
+.page { flex: 1 0 auto; width: 100%; min-width: 0; max-width: 1120px; margin: 0 auto; padding: 40px 24px 64px; }
+.page-head, .page-head > div, .card, .guide-content, .guide-head, .topbar-in,
+.receipt-layout, .receipt-layout > *, .import-layout, .import-layout > *,
+.report-lines-card { min-width: 0; }
 .page-head { margin-bottom: 28px; }
 .page-head h1 { margin: 0 0 6px; }
 .page-head p { margin: 0; font-size: 1rem; color: var(--text-secondary); }
@@ -297,7 +301,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .table th, .table td { padding: 14px 16px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--surface-high); }
 .table thead th {
   background: var(--surface-low);
-  font-size: .875rem; font-weight: 700;
+  font-size: .9rem; font-weight: 700;
   color: var(--text-secondary); white-space: nowrap;
 }
 .table thead th:first-child { border-radius: var(--radius-control) 0 0 var(--radius-control); }
@@ -306,13 +310,13 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .table tbody tr:hover { background: rgba(243, 243, 244, .5); }
 .table .num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-body); font-size: .9375rem; font-weight: 500; white-space: nowrap; }
 .table .nowrap { white-space: nowrap; }
-.table .muted { font-size: .875rem; }
+.table .muted { font-size: .9rem; }
 .table a { font-weight: 600; }
 /* Jadual lebar (e-Daftar): skrol mendatar lebih baik daripada berlipat sesak. */
 .table.wide { min-width: 880px; }
 .table.wide .muted { white-space: nowrap; }
-.table.compact th, .table.compact td { padding: 8px 10px; font-size: .875rem; }
-.table.compact thead th { font-size: .875rem; }
+.table.compact th, .table.compact td { padding: 10px 12px; font-size: .9rem; }
+.table.compact thead th { font-size: .9rem; }
 
 /* ---------------- Laporan koperasi ---------------- */
 .report-filters { display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)) auto; gap: 14px; align-items: end; }
@@ -333,6 +337,8 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .report-table tbody td.num { font-size: 1rem; }
 .report-table td[data-label="Barang"] { min-width: 180px; }
 .report-table-wrap { overflow-x: auto; }
+.history-filter { display: grid; gap: 6px; min-width: 0; color: var(--text-primary); font-size: .9375rem; font-weight: 600; }
+.file-input-label { display: grid; flex: 1 1 240px; gap: 6px; min-width: 0; color: var(--text-primary); font-weight: 600; }
 
 /* ---------------- Lencana, tag dan cip ---------------- */
 .badge {
@@ -406,7 +412,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .search-field { position: relative; min-width: 0; }
 .search-field > .input { padding-right: 112px; }
 .search-row .input-lg { width: 100%; min-width: 0; min-height: 56px; padding-right: 112px; font-size: 1.0625rem; }
-.clear-search { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); min-width: 84px; min-height: 40px; padding: 0 8px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text-secondary); font: 600 .875rem/1 var(--font-body); cursor: pointer; white-space: nowrap; }
+.clear-search { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); min-width: 84px; min-height: 48px; padding: 0 8px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text-secondary); font: 600 .875rem/1 var(--font-body); cursor: pointer; white-space: nowrap; }
 .clear-search:hover { background: var(--surface-mid); color: var(--text-primary); }
 .clear-search[hidden] { display: none; }
 .search-row .btn { min-height: 52px; font-size: 1rem; }
@@ -423,9 +429,14 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .school-stats span { color: var(--text-secondary); font-size: .9375rem; font-weight: 600; }
 .school-stats strong { color: var(--primary-deep); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .load-error { display: grid; justify-items: start; gap: 8px; padding: 12px; }
+.load-error { width: 100%; min-width: 0; border: 1px solid #C85D56; border-left: 5px solid var(--danger); border-radius: 10px; background: #FFF8F7; }
 .load-error strong { color: var(--danger-soft-ink); }
 .load-error > span { color: var(--text-secondary); }
+.load-error-detail { overflow-wrap: anywhere; }
 .load-error .btn { min-height: 48px; }
+.loading-state { display: flex; align-items: center; gap: 12px; min-width: 0; margin: 0; padding: 16px; }
+.loading-indicator { width: 20px; height: 20px; flex: none; border: 3px solid var(--border-strong); border-top-color: var(--primary); border-radius: 50%; animation: loading-spin .85s linear infinite; }
+@keyframes loading-spin { to { transform: rotate(360deg); } }
 .count-line { font-size: .9375rem; color: var(--text-secondary); margin: 0; }
 .count-line #count { font-weight: 600; color: var(--text-primary); }
 
@@ -441,7 +452,8 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* ---------------- Dialog borang (e-Daftar) ---------------- */
 .modal {
-  width: min(760px, 94vw); padding: 0; overflow: auto; max-height: 92vh;
+  width: min(760px, calc(100vw - 24px)); max-width: calc(100vw - 24px); min-width: 0;
+  padding: 0; overflow: auto; max-height: min(92vh, 92dvh); overscroll-behavior: contain;
   border: none; border-radius: 16px; background: var(--surface);
   box-shadow: var(--shadow-modal);
 }
@@ -536,7 +548,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   padding: 14px 16px; margin: 0 0 10px; cursor: pointer;
   transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
-.pay-option input { width: 22px; height: 22px; }
+.pay-option input { width: 24px; height: 24px; }
 .pay-option:hover { background: var(--surface-mid); }
 .pay-option:has(input:checked) { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--primary); }
 .pay-option strong { font-size: 1rem; }
@@ -615,8 +627,9 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* ---------------- Log masuk ---------------- */
 .login-wrap {
-  flex: 1; min-height: 100vh; min-height: 100dvh;
-  display: grid; place-items: center; padding: 24px; position: relative; overflow: hidden;
+  flex: 1; min-width: 0; width: min(100%, 100vw); max-width: 100vw; min-height: 100vh; min-height: 100dvh;
+  display: grid; grid-template-columns: minmax(0, 1fr); place-items: center;
+  padding: 24px; position: relative; overflow-x: clip; overflow-y: auto;
   background: var(--background);
 }
 .login-wrap::before, .login-wrap::after {
@@ -626,7 +639,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .login-wrap::before { top: 8%; left: 18%; background: rgba(30, 42, 58, .06); }
 .login-wrap::after { bottom: 8%; right: 18%; background: rgba(159, 64, 55, .06); }
 .login-card {
-  position: relative; width: 100%; max-width: 420px;
+  position: relative; width: 100%; min-width: 0; max-width: min(420px, calc(100vw - 28px)); justify-self: center;
   margin-top: 42px; padding: 56px 40px 32px;
   background: var(--surface); border-radius: 16px;
   box-shadow: 0 24px 48px -12px rgba(9, 21, 37, .18), var(--shadow-card);
@@ -653,26 +666,27 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 
 /* ---------------- Maklum balas pantas dengan "Batal" ---------------- */
 .toast-wrap {
-  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-  display: grid; gap: 8px; z-index: 100; width: min(560px, 94vw);
+  position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  display: grid; gap: 8px; z-index: 100; width: min(560px, calc(100vw - 24px)); max-height: min(45dvh, 360px); overflow-y: auto;
 }
 .toast {
-  display: flex; align-items: center; gap: 14px; justify-content: space-between;
+  display: flex; align-items: center; gap: 14px; justify-content: space-between; flex-wrap: wrap;
   padding: 14px 14px 14px 18px; border-radius: var(--radius-card);
-  background: var(--primary); color: var(--text-on-primary); font-size: .875rem;
+  background: var(--primary); color: var(--text-on-primary); font-size: 1rem; line-height: 1.45;
   box-shadow: 0 16px 32px -8px rgba(9, 21, 37, .35);
 }
 .toast.danger { background: var(--accent); }
 .toast-action {
-  padding: 8px 14px; border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;
-  background: rgba(255, 255, 255, .14); color: #FFB4AA;
-  font-family: var(--font-body); font-size: .8125rem; font-weight: 600;
+  min-height: 48px; padding: 8px 14px; border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;
+  background: rgba(255, 255, 255, .14); color: #FFFFFF;
+  font-family: var(--font-body); font-size: .875rem; font-weight: 600;
 }
 .toast-action:hover { background: rgba(255, 255, 255, .24); }
 
 /* Utiliti */
 .hidden { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+caption.sr-only { display: table-caption; text-align: left; }
 
 /* ---- Resit (dikecualikan daripada design system) ----
    Semua teks dan nombor guna Helvetica; hanya nama koperasi dan kepala
@@ -713,6 +727,8 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 .receipt .table .num { white-space: nowrap; font-family: Helvetica, Arial, sans-serif; font-size: .85rem; }
 .receipt .table tfoot th { border-top: 1px solid var(--text); border-bottom: none; padding-top: .5rem; }
 .receipt .table tfoot th.num { font-family: Helvetica, Arial, sans-serif; }
+.receipt .table tfoot td { border-top: 1px solid var(--text); border-bottom: none; padding-top: .5rem; font-weight: 700; }
+.receipt .table tfoot td.num { font-family: Helvetica, Arial, sans-serif; }
 
 /* Cetakan: hanya resit dicetak */
 @media print {
@@ -735,12 +751,12 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
 }
 @media (max-width: 1080px) {
   .topbar-in { min-height: 0; flex-wrap: wrap; gap: 0; padding: 8px 16px; }
-  .brand { min-width: 0; gap: 8px; }
+  .topbar-in > .brand { flex: 1 1 auto; min-width: 0; gap: 8px; }
   .brand-badge { width: 36px; height: 36px; }
   .brand-name { overflow: hidden; text-overflow: ellipsis; font-size: 1.125rem; }
   .mobile-nav-toggle {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 44px; min-width: 44px; margin-left: auto; padding: 0 12px;
+    min-height: 48px; min-width: 48px; margin-left: auto; padding: 0 12px;
     border: 1px solid var(--border); border-radius: var(--radius-control);
     background: var(--surface); color: var(--primary); font: 600 .875rem var(--font-body);
     cursor: pointer;
@@ -748,13 +764,13 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .mobile-nav-toggle span[aria-hidden="true"] { font-size: 1.2rem; line-height: 1; }
   .topbar .nav { display: none; width: 100%; flex-direction: column; align-items: stretch; gap: 2px; padding: 8px 0 4px; }
   .topbar.menu-open .nav { display: flex; }
-  .topbar .nav-link { width: 100%; min-height: 44px; justify-content: space-between; padding: 9px 12px; }
+  .topbar .nav-link { width: 100%; min-height: 48px; justify-content: space-between; padding: 9px 12px; }
   .topbar .nav-drop { width: 100%; }
   .topbar .nav-drop:hover .nav-menu { display: none; }
   .topbar .nav-menu { position: static; min-width: 0; margin: 2px 0 4px 12px; padding: 2px 8px; background: transparent; box-shadow: none; }
   .topbar .nav-drop.open .nav-menu,
   .topbar .nav-drop:focus-within .nav-menu { display: flex; }
-  .topbar .nav-menu a { min-height: 44px; display: flex; align-items: center; }
+  .topbar .nav-menu a { min-height: 48px; display: flex; align-items: center; }
   .topbar-user { display: none; width: 100%; justify-content: flex-end; margin: 4px 0 0; padding: 8px 0 0; border-top: 1px solid var(--border); }
   .topbar.menu-open .topbar-user { display: flex; }
 }
@@ -767,7 +783,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .page-head { margin-bottom: 20px; }
   .card { padding: 16px; }
   .btn { padding: 0 14px; }
-  .btn.small { min-height: 44px; }
+  .btn.small { min-height: 48px; }
   .search-row { display: grid; grid-template-columns: 1fr 1fr; }
   .kaunter-tools { gap: 16px; }
   .school-filter { padding: 14px; }
@@ -780,8 +796,8 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .school-stats span { font-size: .875rem; line-height: 1.3; }
   .school-stats strong { font-size: 1.375rem; }
   .registration-list .table tbody td[data-label="Murid"] strong { display: inline-block; padding-right: 8px; font-size: 1.125rem; line-height: 1.45; }
-  .registration-list .table tbody td[data-label="Sekolah rendah"] strong { font-size: .9375rem; }
-  .registration-list .table tbody td[data-label="Status daftar"] .badge { font-size: .9375rem; }
+  .registration-list .table tbody td[data-label="Sekolah rendah"] strong { font-size: 1rem; }
+  .registration-list .table tbody td[data-label="Status daftar"] .badge { font-size: 1rem; }
   .registration-list .table tbody td[data-label="Tindakan"] .register-action { flex: 1 1 100%; }
   .registration-list .table tbody td[data-label="Tindakan"] .btn { min-height: 48px; }
   .filter-group { gap: 6px; }
@@ -799,7 +815,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .form-grid { grid-template-columns: 1fr; }
   .form-grid > .full { grid-column: auto; }
   .bulk-toolbar { flex-wrap: wrap; padding: 12px 14px; }
-  .bulk-toolbar .btn.small { min-height: 44px; }
+  .bulk-toolbar .btn.small { min-height: 48px; }
   .import-layout { grid-template-columns: minmax(0, 1fr); }
   .receipt { padding: 1rem; }
   .receipt-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -812,7 +828,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .receipt .table th:nth-child(2), .receipt .table td:nth-child(2) { width: 16%; }
   .receipt .table th:nth-child(3), .receipt .table td:nth-child(3) { width: 22%; }
   .receipt .table th:nth-child(4), .receipt .table td:nth-child(4) { width: 22%; }
-  .receipt .table thead th { padding: .4rem .12rem; font-size: .7rem; line-height: 1.2; white-space: normal; }
+  .receipt .table thead th { padding: .4rem .12rem; font-size: .8rem; line-height: 1.25; white-space: normal; }
   .receipt .table thead .num { text-align: right; }
   .receipt-heading-full { display: none; }
   .receipt-heading-short { display: inline; }
@@ -824,30 +840,37 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .receipt .receipt-print-items tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
   .receipt .receipt-print-items tbody td,
   .receipt .receipt-print-items tbody td:nth-child(n) { display: block; width: auto; min-width: 0; padding: 5px 2px; border: 0; font-size: .9375rem; line-height: 1.4; overflow-wrap: anywhere; text-align: left; white-space: normal; }
-  .receipt .receipt-print-items tbody td[data-label]::before { display: block; margin-bottom: 3px; content: attr(data-label); color: var(--text-secondary); font-size: .8125rem; font-weight: 700; }
+  .receipt .receipt-print-items tbody td[data-label]::before { display: block; margin-bottom: 3px; content: attr(data-label); color: var(--text-secondary); font-size: .875rem; font-weight: 700; }
   .receipt .receipt-print-items tbody td:first-child { grid-column: 1 / -1; font-size: 1rem; font-weight: 700; }
   .receipt .receipt-print-items tfoot { display: block; margin-top: 10px; }
   .receipt .receipt-print-items tfoot tr { display: flex; justify-content: space-between; gap: 12px; }
   .receipt .receipt-print-items tfoot th { width: auto; padding: 8px 2px; font-size: .9375rem; white-space: normal; }
   .receipt .receipt-print-items tfoot th:last-child { white-space: nowrap; }
+  .receipt .receipt-print-items tfoot td { width: auto; padding: 8px 2px; font-size: .9375rem; white-space: nowrap; }
   .guide-head { align-items: stretch; flex-direction: column; }
+  .guide-head > div, .guide-head p { width: 100%; max-width: 100%; min-width: 0; overflow-wrap: anywhere; }
   .guide-head > .btn { align-self: flex-start; }
   .guide-index { align-items: stretch; flex-direction: column; gap: 2px; }
-  .guide-index button { min-height: 44px; border-top: 1px solid var(--border); text-align: left; }
+  .guide-index button { min-height: 48px; border-top: 1px solid var(--border); text-align: left; }
   .guide-content .card { padding: 16px; }
   .guide-content p, .guide-content li { font-size: 1rem; }
-  .login-tools { top: 12px; right: 12px; }
-  .login-tools .text-size-control { gap: 4px; font-size: .9375rem; }
-  .login-tools .text-size-control .input { min-width: 124px; }
-  .guide-public-head { justify-content: flex-start; gap: 8px; }
-  .guide-public-head .brand { flex: 1 0 100%; }
-  .guide-public-head .text-size-control { flex: 1; }
+  .login-wrap { align-content: center; padding: max(12px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom)); gap: 8px; }
+  .login-tools { position: relative; inset: auto; justify-self: end; width: calc(100vw - 28px); max-width: 420px; margin: 0 auto; }
+  .login-tools .text-size-control { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; width: 100%; font-size: .9375rem; }
+  .login-tools .text-size-control .input { min-width: 0; width: 100%; }
+  .login-card { width: calc(100vw - 28px); max-width: 420px; margin-top: 44px; padding: 52px clamp(18px, 6vw, 32px) 28px; }
+  .guide-public-head { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; justify-content: initial; gap: 8px; }
+  .guide-public-head .brand, .guide-public-head .text-size-control, .guide-public-head > .btn { grid-column: 1 / -1; width: 100%; min-width: 0; }
+  .guide-public-head .brand-name { white-space: normal; overflow-wrap: anywhere; }
+  .guide-public-head .text-size-control { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .guide-public-head .text-size-control .input { width: 100%; min-width: 0; }
+  .guide-public-head > .btn { min-width: 0; }
   .receipt-item-table { display: block; min-width: 0; }
   .receipt-item-table thead { display: none; }
   .receipt-item-table tbody { display: grid; gap: 10px; }
   .receipt-item-table tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
   .receipt-item-table tbody td { display: block; min-width: 0; padding: 6px 2px; border: 0; white-space: normal; text-align: left; }
-  .receipt-item-table tbody td[data-label]::before { display: block; margin-bottom: 4px; content: attr(data-label); color: var(--text-secondary); font-size: .75rem; font-weight: 600; }
+  .receipt-item-table tbody td[data-label]::before { display: block; margin-bottom: 4px; content: attr(data-label); color: var(--text-secondary); font-size: .85rem; font-weight: 600; }
   .receipt-item-table tbody td:first-child, .receipt-item-table tbody td:last-child { grid-column: 1 / -1; }
   .receipt-item-table tbody td:first-child { padding-right: 0; font-size: 1rem; font-weight: 600; }
   .receipt-item-table tbody td:last-child .btn { width: 100%; min-height: 48px; }
@@ -878,7 +901,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .report-table tbody { display: grid; gap: 10px; }
   .report-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
   .report-table tbody td { display: block; min-width: 0; padding: 7px 2px; border: 0; overflow-wrap: anywhere; text-align: left; }
-  .report-table tbody td[data-label]::before { display: block; margin-bottom: 3px; content: attr(data-label); color: var(--text-secondary); font-size: .8125rem; font-weight: 600; }
+  .report-table tbody td[data-label]::before { display: block; margin-bottom: 3px; content: attr(data-label); color: var(--text-secondary); font-size: .875rem; font-weight: 600; }
   .report-table tbody td[data-label="Nama murid"] { grid-column: 1 / -1; }
   .report-table tbody td[data-label="Jumlah"] { font-size: 1rem; }
   .report-table tbody td[colspan] { grid-column: 1 / -1; }
@@ -889,7 +912,7 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .registration-list .table tbody { display: grid; gap: 10px; }
   .registration-list .table tbody tr { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
   .registration-list .table tbody td { display: block; min-width: 0; padding: 8px 4px; border: 0; white-space: normal; }
-  .registration-list .table tbody td[data-label]::before { display: block; margin-bottom: 3px; color: var(--text-secondary); font-size: .8125rem; font-weight: 600; }
+  .registration-list .table tbody td[data-label]::before { display: block; margin-bottom: 3px; color: var(--text-secondary); font-size: .875rem; font-weight: 600; }
   .registration-list .table tbody td[data-label]::before { content: attr(data-label); }
   .registration-list .table tbody td[data-label="Murid"],
   .registration-list .table tbody td[data-label="Penempatan semula"],
@@ -906,7 +929,23 @@ label.check, label.radio { display: flex; gap: 10px; align-items: center; margin
   .modal .toolbar { margin: 20px -18px 0; padding: 14px 18px; }
 }
 
+@media (min-width: 360px) and (max-width: 640px) {
+  .guide-public-head { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .guide-public-head .brand { grid-column: 1 / -1; }
+  .guide-public-head .text-size-control { grid-column: 1; grid-template-columns: auto minmax(0, 1fr); }
+  .guide-public-head .text-size-control .input { max-width: 140px; }
+  .guide-public-head > .btn { grid-column: 2; width: auto; justify-self: end; }
+}
+
 /* Hormati keutamaan kurang gerakan */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+  html { scroll-behavior: auto; }
+  .loading-indicator { animation: none; border-top-color: var(--border-strong); }
+}
+
+@media (forced-colors: active) {
+  :focus-visible { outline: 3px solid Highlight; }
+  .btn, .chip, .nav-link, .input, .result { border: 1px solid ButtonText; }
+  .badge, .notice, .load-error { border: 1px solid CanvasText; }
 }

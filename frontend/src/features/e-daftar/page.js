@@ -73,12 +73,13 @@ export function renderEDaftar(root) {
 
     <section class="card registration-list">
       <div class="table-wrap"><table class="table wide">
+        <caption class="sr-only">Senarai murid Tingkatan 1 mengikut sekolah rendah</caption>
         <thead><tr>
-          <th class="sel-col"><input type="checkbox" id="sel-all" title="Pilih semua"></th>
-          <th>Murid</th><th>Sekolah Rendah Asal</th><th>Status Daftar</th>
-          <th>Penempatan Semula</th><th>Tindakan</th>
+          <th scope="col" class="sel-col"><input type="checkbox" id="sel-all" aria-label="Pilih semua murid pada halaman ini" title="Pilih semua"></th>
+          <th scope="col">Murid</th><th scope="col">Sekolah Rendah Asal</th><th scope="col">Status Daftar</th>
+          <th scope="col">Penempatan Semula</th><th scope="col">Tindakan</th>
         </tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="muted">Memuatkan…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="6" class="muted">Pilih sekolah rendah untuk memaparkan senarai murid.</td></tr></tbody>
       </table></div>
     </section>
 
@@ -88,7 +89,7 @@ export function renderEDaftar(root) {
       <button id="btn-next" class="btn small" type="button">Seterusnya ›</button>
     </div>
 
-    <dialog id="form-dialog" class="modal">
+    <dialog id="form-dialog" class="modal" aria-labelledby="form-title">
       <form id="student-form">
         <h2 id="form-title">Daftar murid baharu</h2>
         <div class="form-grid">
@@ -143,7 +144,7 @@ export function renderEDaftar(root) {
           </div>
         </div>
 
-        <p id="form-msg" class="error"></p>
+        <p id="form-msg" class="error" role="alert" aria-live="assertive"></p>
         <div class="toolbar">
           <button id="save" class="btn primary" type="submit">Simpan</button>
           <button id="clear" class="btn" type="button">Kosongkan borang</button>
@@ -152,17 +153,17 @@ export function renderEDaftar(root) {
       </form>
     </dialog>
 
-    <dialog id="bulk-delete-dialog" class="modal modal-sm">
+    <dialog id="bulk-delete-dialog" class="modal modal-sm" aria-labelledby="bulk-delete-title" aria-describedby="bulk-delete-description">
       <form id="bulk-delete-form">
-        <h2>Padam Murid Terpilih</h2>
-        <p class="muted">Anda pasti mahu memadam <strong id="bulk-del-count"></strong> murid? Tindakan ini
+        <h2 id="bulk-delete-title">Padam Murid Terpilih</h2>
+        <p id="bulk-delete-description" class="muted">Anda pasti mahu memadam <strong id="bulk-del-count"></strong> murid? Tindakan ini
           <strong>kekal</strong> — semua rekod dipilih akan dibuang daripada pangkalan data. Resit lama masih
           memaparkan nama murid, tetapi murid ini tidak lagi boleh dicari. No. IC yang sama boleh
           diimport semula kemudian.</p>
         <label>Kata laluan (pengesahan)
           <input id="bulk-del-password" class="input" type="password" autocomplete="current-password">
         </label>
-        <p id="bulk-del-msg" class="error"></p>
+        <p id="bulk-del-msg" class="error" role="alert" aria-live="assertive"></p>
         <div class="toolbar">
           <button id="bulk-del-cancel" class="btn" type="button">Batal</button>
           <button id="bulk-del-confirm" class="btn danger-solid" type="submit">Padam Semua Terpilih</button>
@@ -351,7 +352,8 @@ export function renderEDaftar(root) {
       loading = false;
       if (!silent || !rows.length) {
         countEl.textContent = "Senarai belum dapat dimuatkan.";
-        root.querySelector("#school-summary").innerHTML = `<p class="error" role="alert">Kemajuan sekolah belum dapat dimuatkan. Cuba semula selepas sambungan pulih.</p>`;
+        root.querySelector("#school-summary").innerHTML = "";
+        root.querySelector("#school-summary").classList.add("hidden");
         const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
         const message = isConnectionError
           ? "Semak sambungan internet, kemudian cuba semula. Sekolah dan carian anda dikekalkan."

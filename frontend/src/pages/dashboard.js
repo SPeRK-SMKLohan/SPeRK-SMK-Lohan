@@ -3,6 +3,7 @@ import { formatRM } from "../shared/money.js";
 import { esc, formatDate, formatTime } from "../shared/dom.js";
 import { APP_LONG_NAME } from "../shared/config.js";
 import { paymentLabel } from "../features/e-resit/constants.js";
+import { loadingState, readErrorState, wireReadRetry } from "../shared/feedback.js";
 
 // Papan pemuka menggabungkan statistik e-Daftar dan e-Resit Koperasi.
 const getDashboard = () => apiFetch("/api/dashboard");
@@ -13,18 +14,15 @@ export async function renderDashboard(root) {
       <h1>Utama</h1>
       <p>${esc(APP_LONG_NAME)}</p>
     </div>
-    <div id="dash"><p class="muted">Memuatkan...</p></div>`;
+    <div id="dash">${loadingState("Sedang mendapatkan ringkasan sistem…")}</div>`;
   const box = root.querySelector("#dash");
 
   let d;
   try {
     d = await getDashboard();
   } catch (err) {
-    const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
-    box.innerHTML = `<div class="load-error" role="alert"><strong>${isConnectionError ? "Sambungan terganggu" : "Papan pemuka belum tersedia"}</strong>
-      <span>${isConnectionError ? "Semak sambungan internet dan cuba semula." : "Pelayan belum dapat memuatkan ringkasan. Cuba semula sebentar lagi."}</span>
-      <button id="retry-dashboard" class="btn primary" type="button">Cuba semula</button></div>`;
-    box.querySelector("#retry-dashboard").addEventListener("click", () => renderDashboard(root));
+    box.innerHTML = readErrorState(err, "Ringkasan papan pemuka");
+    wireReadRetry(box, () => renderDashboard(root));
     return;
   }
 
@@ -53,7 +51,8 @@ export async function renderDashboard(root) {
         · Jumlah: <strong>${formatRM(d.todayTotalSen ?? 0)}</strong></p>
       ${(d.recent ?? []).length ? `
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>No. Resit</th><th>Tarikh</th><th>Murid</th><th class="num">Jumlah</th><th>Bayaran</th></tr></thead>
+          <caption class="sr-only">Resit koperasi terkini</caption>
+          <thead><tr><th scope="col">No. Resit</th><th scope="col">Tarikh</th><th scope="col">Murid</th><th scope="col" class="num">Jumlah</th><th scope="col">Bayaran</th></tr></thead>
           <tbody>${(d.recent ?? []).map((r) => `
             <tr>
               <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>

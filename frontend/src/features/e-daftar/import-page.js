@@ -1,6 +1,7 @@
 import { importStudents } from "./api.js";
 import { parseStudentsFile, downloadStudentTemplate } from "./excel.js";
 import { esc, maskIC } from "../../shared/dom.js";
+import { loadingState } from "../../shared/feedback.js";
 
 const STATUS_LABEL = {
   invalid: "Tidak sah",
@@ -14,7 +15,7 @@ const STATUS_CLASS = {
   duplicate_existing: "warn",
 };
 
-const EMPTY_BOX = `<p class="muted">Pilih fail Excel untuk memulakan pratonton semakan di sini.</p>`;
+const EMPTY_BOX = `<p class="muted" role="status">Pilih fail Excel untuk memulakan pratonton semakan di sini.</p>`;
 
 export function renderImportData(root) {
   root.innerHTML = `
@@ -30,9 +31,12 @@ export function renderImportData(root) {
           <strong>(wajib)</strong> atau <strong>(pilihan)</strong>. Murid yang sudah wujud
           (No. IC sama) dilangkau, tidak diganti.</p>
         <div class="toolbar">
-          <input id="file" class="input" type="file" accept=".xlsx">
+          <label class="file-input-label" for="file">Pilih fail Excel (.xlsx)
+            <input id="file" class="input" type="file" accept=".xlsx" aria-describedby="file-help">
+          </label>
           <button id="template" class="btn small" type="button">Muat turun templat</button>
         </div>
+        <p id="file-help" class="muted">Gunakan templat SPeRK. Fail .xlsx mestilah tidak melebihi 2 MB atau 2,000 baris murid.</p>
         <p class="muted">Selepas import, tanda kehadiran murid dalam
           <a href="#/pendaftaran">e-Daftar</a>.</p>
       </section>
@@ -72,7 +76,8 @@ export function renderImportData(root) {
       </div>
       ${shown.length ? `
         <div class="table-wrap"><table class="table compact">
-          <thead><tr><th>Baris</th><th>Nama</th><th>No. IC</th><th>Status</th><th>Sebab</th></tr></thead>
+          <caption class="sr-only">Baris fail yang memerlukan semakan</caption>
+          <thead><tr><th scope="col">Baris</th><th scope="col">Nama</th><th scope="col">No. IC</th><th scope="col">Status</th><th scope="col">Sebab</th></tr></thead>
           <tbody>${shown.map((p) => {
             const r = byRow.get(p.row);
             return `<tr>
@@ -90,7 +95,7 @@ export function renderImportData(root) {
         <button id="confirm-import" class="btn primary" type="button" ${s.valid ? "" : "disabled"}>Import ${s.valid} murid</button>
         <button id="cancel-import" class="btn" type="button">Batal</button>
       </div>
-      <p id="import-msg" class="error"></p>`;
+      <p id="import-msg" class="error" role="alert" aria-live="assertive"></p>`;
 
     importBox.querySelector("#cancel-import").addEventListener("click", resetImport);
 
@@ -116,7 +121,7 @@ export function renderImportData(root) {
   function renderDone(done) {
     const s = done.summary;
     importBox.innerHTML = `
-      <p class="notice ok"><strong>Import selesai.</strong> ${done.imported} murid ditambah.
+      <p class="notice ok" role="status" aria-live="polite"><strong>Import selesai.</strong> ${done.imported} murid ditambah.
       ${s.invalid + s.duplicateInFile + s.duplicateExisting} baris dilangkau
       (${s.invalid} tidak sah, ${s.duplicateInFile + s.duplicateExisting} pendua).
       Buka <a href="#/pendaftaran">e-Daftar</a> untuk menyemak senarai murid.</p>`;
@@ -131,20 +136,23 @@ export function renderImportData(root) {
       return;
     }
 
-    importBox.innerHTML = `<p class="muted">Membaca dan menyemak fail...</p>`;
+    importBox.innerHTML = loadingState("Membaca fail dan menyemak data. Sila tunggu…");
     try {
       const rows = await parseStudentsFile(file);
       const result = await importStudents(rows, true); // pratonton sahaja, tiada data disimpan
       pendingRows = rows;
       renderPreview(rows, result);
     } catch (err) {
-      importBox.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+      importBox.innerHTML = `<p class="error" role="alert">${esc(err.message)}</p>`;
     }
   });
 
   root.querySelector("#template").addEventListener("click", () => {
     downloadStudentTemplate().catch(() => {
-      importBox.innerHTML = `<p class="error">Templat gagal dijana. Sila cuba lagi.</p>`;
+      importBox.innerHTML = `<div class="load-error" role="alert"><strong>Templat tidak dapat dimuat turun</strong><span>Cuba jana templat sekali lagi.</span><button class="btn" type="button" data-retry-template>Cuba lagi</button></div>`;
+      importBox.querySelector("[data-retry-template]").addEventListener("click", () => {
+        root.querySelector("#template").click();
+      });
     });
   });
 }
