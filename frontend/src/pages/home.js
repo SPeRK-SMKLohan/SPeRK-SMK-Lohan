@@ -10,8 +10,6 @@ import { loadingState, readErrorState, wireReadRetry } from "../shared/feedback.
 
 const getDashboard = () => apiFetch("/api/dashboard");
 
-const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
-
 export async function renderHome(root) {
   root.innerHTML = `
     <div class="page-head home-hero">
@@ -61,27 +59,7 @@ export async function renderHome(root) {
     return;
   }
 
-  const registered = d.registeredStudents ?? 0;
-  const percent = pct(registered, registered + (d.notRegisteredStudents ?? 0));
-
   box.innerHTML = `
-    <div class="home-grid">
-      <section class="card">
-        <div class="card-head">
-          <h2>Kemajuan pendaftaran</h2>
-          <span class="pill ${percent === 100 ? "ok" : "brand"}">${percent}% selesai</span>
-        </div>
-
-        <div class="meter-row" style="margin-bottom:var(--s4)">
-          <div class="meter" role="img" aria-label="${percent}% murid sudah daftar">
-            <span style="width:${percent}%"></span>
-          </div>
-        </div>
-
-      </section>
-
-    </div>
-
     <section class="card">
       <div class="card-head"><h2>Laporan Pendaftaran Tingkatan 1</h2></div>
       <div class="table-wrap">
