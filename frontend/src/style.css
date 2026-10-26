@@ -1178,6 +1178,8 @@ dialog.modal > form {
   margin-bottom: var(--s5);
 }
 
+#home-data { display: grid; gap: var(--s5); }
+
 .tool-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s4); }
 .tool-list a {
   display: flex;
