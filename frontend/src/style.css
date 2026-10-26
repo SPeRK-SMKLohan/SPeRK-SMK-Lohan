@@ -928,7 +928,7 @@ legend { font-size: 1rem; font-weight: 650; padding: 0; margin-bottom: var(--s2)
 .status-body { flex: 1 1 auto; min-width: 0; }
 .status-title { display: block; font-weight: 700; margin-bottom: 2px; }
 .status-text { display: block; color: var(--ink-2); font-size: 0.9375rem; }
-.status-actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
+.status-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-top: var(--s3); }
 .status-close {
   flex: none;
   width: 44px;
