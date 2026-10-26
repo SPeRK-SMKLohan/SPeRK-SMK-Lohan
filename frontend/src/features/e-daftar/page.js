@@ -13,6 +13,7 @@ import { showStatus } from "../../shared/status.js";
    out of the way until someone opens it. */
 
 const PAGE_SIZE = 50;
+const EXPORT_PAGE_SIZE = 200;
 const PASSWORD_ERR_CODES = new Set([
   "auth/wrong-password", "auth/invalid-credential", "auth/user-mismatch", "auth/invalid-email",
 ]);
@@ -53,6 +54,7 @@ export function renderRegistration(root) {
             <button type="button" data-status="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
         </div>
         <button id="refresh" class="btn secondary" type="button">Muat semula</button>
+        <button id="export-csv" class="btn secondary" type="button">Muat turun CSV</button>
         <button id="new" class="btn primary" type="button">+ Murid baharu</button>
       </div>
 
@@ -248,6 +250,7 @@ export function renderRegistration(root) {
   const bulkCount = $("#bulk-count");
   const adminPanel = $("#admin");
   const startSelectBtn = $("#start-select");
+  const exportCsvBtn = $("#export-csv");
 
   const confirmDialog = $("#confirm-dialog");
   const confirmTitle = $("#confirm-title");
@@ -653,6 +656,64 @@ export function renderRegistration(root) {
   });
 
   $("#refresh").addEventListener("click", () => load());
+
+  function csvCell(value) {
+    const safe = String(value ?? "").replace(/^[-=+@]/, "'$&");
+    return `"${safe.replaceAll('"', '""')}"`;
+  }
+
+  exportCsvBtn.addEventListener("click", async () => {
+    if (!selectedSchool || exportCsvBtn.disabled) return;
+    exportCsvBtn.disabled = true;
+    const originalLabel = exportCsvBtn.textContent;
+    exportCsvBtn.textContent = "Menyediakan CSV…";
+    try {
+      const exported = [];
+      let offset = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const data = await searchStudents(qEl.value.trim(), {
+          status,
+          school: selectedSchool,
+          offset,
+          limit: EXPORT_PAGE_SIZE,
+        });
+        exported.push(...data.students);
+        offset += data.students.length;
+        hasMore = Boolean(data.hasMore);
+        if (!data.students.length && hasMore) throw new Error("Senarai berubah semasa CSV disediakan. Sila cuba semula.");
+      }
+
+      const header = ["Nama", "No. IC", "Sekolah rendah asal", "Tingkatan", "Status OKU", "Status daftar", "Tarikh daftar", "No. Tel. Ibu", "No. Tel. Bapa", "Sekolah dipohon", "Sebab pindah", "Catatan pindah"];
+      const lines = exported.map((s) => [
+        s.name,
+        s.icNumber,
+        s.formerPrimarySchool,
+        s.tingkatan ? `Tingkatan ${s.tingkatan}` : "",
+        s.oku === true ? "Ya" : s.oku === false ? "Tidak" : "",
+        s.registrationStatus === "SUDAH" ? "Sudah daftar" : "Belum daftar",
+        s.registeredAt || "",
+        s.motherPhone || "",
+        s.fatherPhone || "",
+        s.transferSchool || "",
+        s.transferReason || "",
+        s.transferNotes || "",
+      ]);
+      const csv = [header, ...lines].map((line) => line.map(csvCell).join(",")).join("\r\n");
+      const url = URL.createObjectURL(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `senarai-murid-${selectedSchool.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.csv`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showStatus({ type: "ok", title: "CSV sedia", message: `${exported.length} murid dieksport.` });
+    } catch (err) {
+      showStatus({ type: "bad", title: "CSV tidak dapat disediakan", message: err.message });
+    } finally {
+      exportCsvBtn.disabled = false;
+      exportCsvBtn.textContent = originalLabel;
+    }
+  });
 
   btnPrev.addEventListener("click", () => {
     if (page > 0) { page -= 1; load(); window.scrollTo({ top: 0, behavior: "smooth" }); }
