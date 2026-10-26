@@ -414,11 +414,6 @@ export function renderRegistration(root) {
         <h2>${esc(selectedSchool)}</h2>
         <span class="pill ${pct === 100 ? "ok" : "brand"}">${pct}% selesai</span>
       </div>
-      <div class="meter-row" style="flex:1 1 200px">
-        <div class="meter" role="img" aria-label="${pct}% murid sudah daftar">
-          <span style="width:${pct}%"></span>
-        </div>
-      </div>
       <div class="counts">
         <div><span>Belum daftar</span><strong>${data.schoolNotRegisteredTotal ?? 0}</strong></div>
         <div><span>Sudah daftar</span><strong>${done}</strong></div>
