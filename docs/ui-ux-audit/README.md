@@ -193,7 +193,7 @@ that mattered most were fixed and re-measured:
 | Guide heading hidden under the sticky header (A-01) | 93 px obscured at 320 px | 37 px clear |
 | English native validation (A-02) | Browser bubbles in English | Three Malay messages, inline, persistent |
 | Faint input boundary (A-03) | 1.81:1 | 3.4:1 |
-| 194 px phone header (R-01) | 28% of a 700 px screen | 112 px, two rows, nothing hidden |
+| 194 px phone header (R-01) | 28% of a 700 px screen | 60 px, one row down to 360 px; footer 54 px, one row |
 
 Measured on the result: **65 screens, 0 px horizontal overflow, 0 console errors,
 0 contrast failures, 0 targets below 24 px, 30/30 scripted feature checks.**

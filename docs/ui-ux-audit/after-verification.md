@@ -128,9 +128,11 @@ No production data was read or written at any point.
 | 1440 | 14 | 0 px | 76 px |
 | 1920 | 4 | 0 px | 76 px |
 
-The header is a single row from 561 px up. Below that it wraps to two rows and
-the `--header-h` token grows to match, so nothing is hidden behind it and no
-control is dropped.
+The header is a single row at every width down to 360 px (60 px tall). Below
+that, and whenever the *Sangat besar* text size makes the row genuinely too
+wide, it wraps to a second row and the `--header-h` token is re-measured to
+match — so nothing is hidden behind it, no control is dropped, and no type is
+shrunk to force a fit.
 
 Two overflow regressions were introduced and fixed during the build, both
 recorded here because they show what the measurements caught:
@@ -290,7 +292,7 @@ Changed files: `style.css` (rewritten), `main.js` (shell), all page modules,
 | A-10 | Status conveyed by word and symbol | **Preserved** |
 | A-11 | Focus visibility and skip links | **Verified** |
 | A-12 | Text resizing without loss | **Verified** at 24 px root on 320 px |
-| R-01 | 194 px phone header | **Fixed** — 112 px, two rows, nothing hidden |
+| R-01 | 194 px phone header | **Fixed** — 60 px, one row down to 360 px (was 112 px, two rows); grows only when the largest text size needs it |
 | R-02 | Guide had no persistent navigation | **Fixed** — sticky index with scroll-spy |
 | R-03 | Anchor offset did not track header height | **Fixed** — single token |
 | R-04 | Size selector cramped at 320 px | **Fixed** — moved to its own header row |

@@ -2,7 +2,7 @@
 
 **Untuk pentadbir sistem dan penyelenggara**
 Laman: [sperk-smklohan.pages.dev](https://sperk-smklohan.pages.dev)
-API: `https://sperk-smk-lohan-api.smk-lohan.workers.dev`
+API: `https://sperk-smk-lohan-api.sperk-smklohan.workers.dev`
 Repositori: [SPeRK-SMKLohan/SPeRK-SMK-Lohan](https://github.com/SPeRK-SMKLohan/SPeRK-SMK-Lohan)
 
 ## Seni bina semasa
@@ -72,7 +72,7 @@ npx wrangler deploy
 Selepas perubahan frontend sahaja, deploy Pages sahaja. Selepas perubahan API, deploy Worker dan pastikan URL Pages masih sepadan dengan `ALLOWED_ORIGINS`. Semak kesihatan API:
 
 ```powershell
-curl.exe https://sperk-smk-lohan-api.smk-lohan.workers.dev/api/health
+curl.exe https://sperk-smk-lohan-api.sperk-smklohan.workers.dev/api/health
 ```
 
 Kemudian buka laman produksi, log masuk, dan semak satu aliran baca yang sesuai. Jangan cipta atau padam rekod murid sebenar semata-mata untuk ujian deploy.

@@ -69,7 +69,9 @@ resit tidak dijana dua kali.
 Buka **e-Resit Koperasi → Laporan Koperasi**. Pilih julat tarikh dan kaedah
 pembayaran untuk menapis. Jadual menunjukkan nama guru, nama murid, nombor
 resit, jumlah dan kaedah pembayaran. Gunakan **Muat turun CSV** untuk membuka
-data dalam hamparan atau **Cetak laporan** untuk salinan kertas.
+data dalam hamparan. Untuk salinan kertas, buka fail CSV itu dan cetak dari
+hamparan — atau buka resit yang diperlukan dan gunakan butang **Cetak** di
+halaman resit.
 
 ## 6. Jika berlaku masalah
 

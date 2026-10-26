@@ -150,9 +150,9 @@ rather than only the type. The page gutter is the exception, deliberately in
 |---|---|
 | Desktop header (≥1081 px) | Brand, four flat links, text-size select, no Log Keluar in the header. **No dropdowns.** |
 | Tablet/phone (≤1080 px) | Brand, one **Menu** button, then the tools row |
-| Small phone (≤560 px) | Header wraps to two rows: brand + Menu, then text-size. **Log Keluar lives in the footer**, so it is never squeezed into the header. |
+| Small phone (≤560 px) | Header stays on **one row** (brand + Menu + text-size), so the bar is 60 px instead of 112 px. It grows to a second row only when the *Sangat besar* text size genuinely needs more room — nothing is hidden and no type is shrunk to force a fit. **Log Keluar lives in the footer**, so it is never squeezed into the header. |
 | Mobile menu | Full-screen list of 64 px rows grouped Kerja harian / Alat lain, with a **Log Keluar** row at the bottom. Label changes to **Tutup**; Escape closes and returns focus to the button. |
-| Footer | Every destination, including Import, Barangan and Panduan, plus the **Log Keluar** button |
+| Footer | Import, Barangan and Panduan plus the **Log Keluar** button. On phones (≤560 px) the three tool links drop out — they are already in the menu — leaving a single 54 px row with Log Keluar. |
 
 The four header links cover the daily work (Utama, Pendaftaran, Jana Resit,
 Laporan). The three tools live on the home screen and in the footer, so nothing
@@ -168,7 +168,7 @@ receipt by number or by student name directly from the report.
 
 | Constant | Value | Bug it prevents |
 |---|---|---|
-| `--header-h` | 76 / 64 / 112 px by breakpoint, **and re-measured at runtime** | The old `scroll-margin-top: 84px` against a 64–194 px header hid guide headings. `scroll-padding-top: calc(var(--header-h) + 1rem)` now derives from the same token the header uses, and `syncHeaderHeight()` updates it after fonts load and at every resize, so it stays correct even at the largest text size. |
+| `--header-h` | 76 / 64 / 60 px by breakpoint, **and re-measured at runtime** | The old `scroll-margin-top: 84px` against a 64–194 px header hid guide headings. `scroll-padding-top: calc(var(--header-h) + 1rem)` now derives from the same token the header uses, and `syncHeaderHeight()` updates it after fonts load and at every resize, so it stays correct even at the largest text size. |
 | `.guide-body > section { scroll-margin-top: … }` | Same expression | Belt and braces for programmatic scrolling. |
 | `min-height` on every control | 44–64 px | Sub-24 px targets. |
 | `overflow-wrap: anywhere` on record names | — | Long names pushing rows wider than the screen. |

@@ -4,7 +4,7 @@ SPeRK ialah aplikasi sekolah untuk pendaftaran murid Tingkatan 1 dan urusan
 bayaran koperasi. Aplikasi digunakan oleh guru dan kakitangan yang dibenarkan.
 
 **Laman produksi:** [sperk-smklohan.pages.dev](https://sperk-smklohan.pages.dev)
-**API:** `https://sperk-smk-lohan-api.smk-lohan.workers.dev`
+**API:** `https://sperk-smk-lohan-api.sperk-smklohan.workers.dev`
 
 ## Fungsi
 
@@ -65,7 +65,7 @@ Semak `frontend/wrangler.toml` dan `worker/wrangler.toml` sebelum deploy.
 Pastikan domain Pages dibenarkan dalam `ALLOWED_ORIGINS`, konfigurasi API
 frontend menunjuk kepada Worker produksi, dan Wrangler menggunakan akaun
 Cloudflare sekolah. Selepas deploy API, semak
-`https://sperk-smk-lohan-api.smk-lohan.workers.dev/api/health`.
+`https://sperk-smk-lohan-api.sperk-smklohan.workers.dev/api/health`.
 
 ## Struktur utama
 

@@ -174,9 +174,11 @@ Evidence: `before/repo/registration-1440.png` →
 Horizontal overflow was 0 px in the audit and remains 0 px after the rebuild, at
 every width and at 24 px root text.
 
-The one structural change on phones is the header: rather than dropping the
-text-size control or the sign-out button, it wraps to two rows and the
-`--header-h` token grows to match. Nothing is hidden and nothing overlaps.
+The header keeps every control on phones: text-size, menu and sign-out all
+stay, and the bar is one row (60 px) down to 360 px rather than two rows
+(112 px). It grows to a second row only when the *Sangat besar* text size
+genuinely needs the room, and `--header-h` is re-measured to match, so nothing
+is hidden and nothing overlaps.
 
 Evidence: `after/registration-320.png`, `after/home-320.png`,
 `after/receipt-375.png`, `after/guide-320.png`.

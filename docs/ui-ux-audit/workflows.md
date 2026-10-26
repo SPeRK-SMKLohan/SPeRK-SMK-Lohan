@@ -125,7 +125,7 @@ confidence: *how do I know it worked, and what do I do if it didn't?*
 | | |
 |---|---|
 | **Start** | `#/laporan-koperasi` |
-| **Steps** | 1. Set from/to dates (defaults: 1 January → today). 2. Choose payment method. 3. Read the four totals and the row table. 4. **Muat turun CSV** or **Cetak laporan**. |
+| **Steps** | 1. Set from/to dates (defaults: 1 January → today). 2. Choose payment method. 3. Read the four totals and the row table. 4. **Muat turun CSV** (the report page no longer has a Cetak button — printing a single receipt is done on the receipt page). |
 | **Information** | Date range; payment filter. |
 | **Confirmation** | Message line shows "N resit"; a notice appears if the 500-row cap is reached. |
 | **Expected outcome** | Totals and rows for the period, with teacher name, student, receipt number, amount and method. |
