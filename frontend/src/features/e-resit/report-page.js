@@ -54,7 +54,6 @@ export function renderCoopReport(root) {
         <div class="field">
           <div class="filter-actions">
             <button id="report-refresh" class="btn secondary" type="button">Muat semula</button>
-            <button id="report-print" class="btn primary" type="button">Cetak</button>
           </div>
         </div>
       </div>
@@ -199,7 +198,6 @@ export function renderCoopReport(root) {
   }
 
   $("#report-refresh").addEventListener("click", load);
-  $("#report-print").addEventListener("click", () => window.print());
   fromInput.addEventListener("change", load);
   toInput.addEventListener("change", load);
   paymentInput.addEventListener("change", load);

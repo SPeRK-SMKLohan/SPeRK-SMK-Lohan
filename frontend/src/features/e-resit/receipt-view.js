@@ -8,11 +8,11 @@ export function receiptHtml(r) {
   const rows = r.items.map((i) => {
     const variant = i.variant ?? i.size; // sokong resit lama yang menggunakan "size"
     return `
-    <tr>
-      <td data-label="Barangan">${esc(i.itemNameSnapshot)}${variant ? ` (${esc(variant)})` : ""}</td>
-      <td class="num" data-label="Kuantiti">${i.quantity}</td>
-      <td class="num" data-label="Harga seunit">${formatAmount(i.unitPriceSen)}</td>
-      <td class="num" data-label="Jumlah">${formatAmount(i.subtotalSen)}</td>
+    <tr role="row">
+      <td role="cell" data-label="Barangan">${esc(i.itemNameSnapshot)}${variant ? ` (${esc(variant)})` : ""}</td>
+      <td class="num" role="cell" data-label="Kuantiti">${i.quantity}</td>
+      <td class="num" role="cell" data-label="Harga">${formatAmount(i.unitPriceSen)}</td>
+      <td class="num" role="cell" data-label="Jumlah">${formatAmount(i.subtotalSen)}</td>
     </tr>`;
   }).join("");
 
@@ -32,18 +32,18 @@ export function receiptHtml(r) {
         <div><span>Tarikh</span><strong>${esc(formatDateTime(r.createdAt))}</strong></div>
         <div><span>Nama Murid</span><strong>${esc(r.studentNameSnapshot)}</strong></div>
       </div>
-      <table class="table receipt-print-items">
-        <thead>
-          <tr>
-            <th scope="col">Item</th>
-            <th scope="col" class="num"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
-            <th scope="col" class="num"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
-            <th scope="col" class="num"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
+      <table class="table receipt-print-items" role="table">
+        <thead role="rowgroup">
+          <tr role="row">
+            <th scope="col" role="columnheader">Item</th>
+            <th scope="col" class="num" role="columnheader"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
+            <th scope="col" class="num" role="columnheader"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
+            <th scope="col" class="num" role="columnheader"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
-        <tfoot>
-          <tr><th scope="row" colspan="3">Jumlah Keseluruhan</th><td class="num">${formatAmount(r.totalSen)}</td></tr>
+        <tbody role="rowgroup">${rows}</tbody>
+        <tfoot role="rowgroup">
+          <tr role="row"><th scope="row" role="rowheader" colspan="3">Jumlah Keseluruhan</th><td class="num" role="cell">${formatAmount(r.totalSen)}</td></tr>
         </tfoot>
       </table>
       <div class="receipt-meta receipt-pay">

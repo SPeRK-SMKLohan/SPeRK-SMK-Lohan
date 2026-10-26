@@ -461,26 +461,28 @@ small { font-size: 0.875rem; }
 .site-footer {
   border-top: 1px solid var(--line);
   background: var(--surface-2);
-  padding: var(--s2) var(--gutter);
+  padding: var(--s1) var(--gutter);
 }
 .site-footer-in {
   max-width: var(--page-max);
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s2) var(--s5);
+  gap: var(--s1) var(--s4);
   align-items: center;
   justify-content: space-between;
 }
 .site-footer p { margin: 0; color: var(--ink-3); font-size: 0.875rem; }
-.footer-links { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 0 var(--s3); }
 .footer-links a {
   color: var(--ink-2);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   min-height: 44px;
+  padding: 0 var(--s1);
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 /* 05 Utilities ------------------------------------------------------------- */
@@ -844,6 +846,11 @@ legend { font-size: 1rem; font-weight: 650; padding: 0; margin-bottom: var(--s2)
   font-variant-numeric: tabular-nums;
 }
 .stat-note { display: block; font-size: 0.875rem; color: var(--ink-2); margin-top: var(--s1); }
+/* Short phrases should not strand a single word on the last line. */
+.stat-label, .stat-note { text-wrap: pretty; }
+/* A lone card in a two-column grid uses the full width instead of sitting in a
+   narrow half with its label broken over two lines. */
+.stats.cols-2 > .stat:only-child { grid-column: 1 / -1; }
 
 .meter { height: 14px; border-radius: var(--r-pill); background: var(--surface-3); overflow: hidden; border: 1px solid var(--line); }
 .meter > span { display: block; height: 100%; background: var(--brand); border-radius: var(--r-pill); transition: width .4s ease; }
@@ -1011,11 +1018,35 @@ dialog.modal {
 dialog.modal[open] { display: flex; flex-direction: column; }
 dialog.modal::backdrop { background: rgba(15, 20, 18, .55); }
 
-.modal-head { padding: var(--s5) var(--s5) var(--s4); border-bottom: 1px solid var(--line); }
+/* The form is the dialog's only child, so it is the element that has to become
+   the flex column. Without this the body is not a flex item, `flex: 1 1 auto`
+   does nothing, and the form grows past the dialog's max-height and is clipped
+   by `overflow: hidden` instead of scrolling. */
+dialog.modal > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.modal-head {
+  flex: none;
+  padding: var(--s5) var(--s5) var(--s4);
+  border-bottom: 1px solid var(--line);
+}
 .modal-head h2 { margin: 0 0 var(--s1); font-size: 1.375rem; }
 .modal-head p { margin: 0; color: var(--ink-2); font-size: 0.9375rem; }
-.modal-body { padding: var(--s5); overflow-y: auto; flex: 1 1 auto; }
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--s5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .modal-foot {
+  flex: none;
   display: flex;
   flex-wrap: wrap;
   gap: var(--s3);
@@ -1179,7 +1210,11 @@ dialog.modal::backdrop { background: rgba(15, 20, 18, .55); }
 }
 .receipt-mini a:hover { text-decoration: underline; }
 .receipt-mini .rm-name { display: block; font-weight: 650; font-size: 0.9375rem; }
-.receipt-mini .rm-meta { display: block; font-size: 0.8125rem; color: var(--ink-3); }
+.receipt-mini .rm-meta { display: flex; flex-wrap: wrap; gap: 0 var(--s2); font-size: 0.8125rem; color: var(--ink-3); }
+/* The separator is glued to the text before it, so a wrapped line never starts
+   with a lone "·". */
+.receipt-mini .rm-meta > span { white-space: nowrap; }
+.receipt-mini .rm-meta > span:not(:last-child)::after { content: " ·"; }
 
 /* 17 Registration ---------------------------------------------------------- */
 
@@ -1627,38 +1662,133 @@ body.has-trolley .page { padding-bottom: 9rem; }
 }
 
 @media (max-width: 560px) {
-  /* Two compact rows instead of hiding controls. The height token grows with
-     it, so scroll offsets and the menu still line up. */
-  :root { --header-h: 112px; }
+  /* One row at the normal and large text sizes: brand on the left, menu button
+     and text-size control on the right. The row is allowed to wrap, but only
+     when the largest-text setting makes it genuinely too wide — nothing is
+     hidden and no type is shrunk to force a fit. The real height is measured
+     at runtime and used for scroll offsets via --header-h. */
+  :root { --header-h: 60px; }
   .site-header-in {
     flex-wrap: wrap;
-    align-content: center;
-    row-gap: 2px;
-    padding-block: 6px;
+    align-items: center;
+    gap: 6px var(--s3);
+    padding-block: 4px;
   }
-  .brand { order: 1; }
-  .menu-btn { order: 2; margin-left: auto; }
-  .header-tools {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
-    justify-content: space-between;
-    gap: var(--s2);
-  }
-  .size-control select { min-height: 44px; }
-  .btn-logout { min-height: 44px; }
+  .brand { order: 1; min-height: 44px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 8px; padding: 3px; }
+  .brand-name { font-size: 1rem; }
+  .menu-btn { order: 2; margin-left: auto; min-height: 44px; padding: 0 var(--s3); }
+  .header-tools { order: 3; width: auto; margin-left: auto; }
+  .size-control select { min-height: 44px; padding: 0 var(--s2); font-size: 0.875rem; }
+  /* On a phone the footer keeps only the logout button. The three tool links
+     live in the menu already, and squeezing all four onto one row would break
+     the labels over two lines. */
+  .footer-links { display: none; }
+  .site-footer-in { justify-content: flex-end; }
   .school-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* Three filters share one row instead of dropping the last one onto its own. */
+  /* Filters keep their natural width and wrap onto another row rather than
+     squeezing "Sudah daftar" into a two-line button. */
   .list-toolbar .seg { display: flex; }
-  .list-toolbar .seg button { flex: 1 1 0; min-width: 0; padding: 0 var(--s2); font-size: 0.9375rem; }
+  .list-toolbar .seg button { flex: 0 1 auto; min-width: max-content; padding: 0 var(--s3); font-size: 0.9375rem; }
   .school-grid .chip { min-height: 52px; padding: var(--s2) var(--s3); font-size: 0.9375rem; }
 }
 
 @media (max-width: 420px) {
   .brand-name { font-size: 1rem; }
-  .brand-mark { width: 34px; height: 34px; }
+  .brand-mark { width: 32px; height: 32px; }
+  .menu-btn { position: relative; padding: 0 var(--s2); }
+  /* Icon only, but the word stays in the accessibility tree, so the button
+     still has a name for screen readers. */
+  .menu-btn-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
   .task-card { padding: var(--s4); }
   .task-card .task-title { font-size: 1.25rem; }
+}
+
+/* Stat cards need room: a two-column grid squeezes "Didaftarkan hari ini" and
+   "telah membayar keahlian" into three broken lines on a phone. */
+@media (max-width: 480px) {
+  .stats.cols-2 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* On a phone the receipt table becomes a stack of rows: the item name gets the
+   full width so it reads over two lines instead of four, and every number
+   keeps its own label — nothing is squeezed and nothing is lost. The printed
+   receipt keeps the original four-column table. */
+@media screen and (max-width: 560px) {
+  .receipt { padding: var(--s4); }
+
+  .receipt-print-items thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .receipt-print-items,
+  .receipt-print-items tbody,
+  .receipt-print-items tfoot,
+  .receipt-print-items tr,
+  .receipt-print-items th,
+  .receipt-print-items td { display: block; }
+
+  .receipt-print-items tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s1) var(--s3);
+    padding: var(--s3) 0;
+    border-bottom: 1px solid #ccc;
+  }
+  .receipt-print-items td { border: 0; padding: 0; }
+  .receipt-print-items tbody td:first-child {
+    grid-column: 1 / -1;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-wrap: pretty;
+  }
+  .receipt-print-items tbody td:not(:first-child) { font-size: 0.8125rem; }
+  /* The column headers are out of sight in the stacked layout, so the amounts
+     carry their own unit instead of borrowing it from the header. */
+  .receipt-print-items tbody td.num:nth-child(3)::after,
+  .receipt-print-items tbody td.num:nth-child(4)::after,
+  .receipt-print-items tfoot td::after { content: " RM"; color: #555; }
+  /* The label sits on its own line above the number, so "Harga seunit" is
+     never broken in half. */
+  .receipt-print-items tbody td:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    color: #555;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .receipt-print-items tfoot tr {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding-top: var(--s2);
+    border-top: 2px solid #111;
+  }
+  .receipt-print-items tfoot th,
+  .receipt-print-items tfoot td { border-top: 0; padding: 0; }
+  .receipt-print-items tfoot td { font-size: 1rem; }
 }
 
 /* 23 Accessibility preferences --------------------------------------------- */

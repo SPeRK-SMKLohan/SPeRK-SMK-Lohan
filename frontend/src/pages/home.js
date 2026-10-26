@@ -112,8 +112,11 @@ export async function renderHome(root) {
                 <a href="#/resit/${esc(r.receiptId)}">
                   <span>
                     <span class="rm-name">${esc(r.studentNameSnapshot)}</span>
-                    <span class="rm-meta">${esc(r.receiptNo)} · ${esc(formatDate(r.createdAt))} ·
-                      ${esc(paymentLabel(r.paymentMethod))}</span>
+                    <span class="rm-meta">
+                      <span>${esc(r.receiptNo)}</span>
+                      <span>${esc(formatDate(r.createdAt))}</span>
+                      <span>${esc(paymentLabel(r.paymentMethod))}</span>
+                    </span>
                   </span>
                   <strong class="num">${formatRM(r.totalSen)}</strong>
                 </a>
