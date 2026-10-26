@@ -8,6 +8,8 @@ export function studentFromDoc(d) {
     studentId: d.id,
     name: String(d.name ?? "").toUpperCase(),
     icNumber: d.icNumber ?? "",
+    motherPhone: d.motherPhone ?? "",
+    fatherPhone: d.fatherPhone ?? "",
     formerPrimarySchool: d.formerPrimarySchool ?? "",
     tingkatan: Number.isInteger(d.tingkatan) ? d.tingkatan : null,
     oku: typeof d.oku === "boolean" ? d.oku : null,

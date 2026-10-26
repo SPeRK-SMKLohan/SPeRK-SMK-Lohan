@@ -19,6 +19,8 @@ const HEADER_ALIASES = {
   transferSchool: ["sekolahdipohon", "namasekolahdipohon", "sekolahbaharu"],
   transferReason: ["sebab", "sebabpenempatansemula", "sebabpermohonan"],
   transferNotes: ["catatan", "catatanpenempatansemula", "nota"],
+  motherPhone: ["notelibu", "telefonibu", "nombortelefonibu"],
+  fatherPhone: ["notelbapa", "telefonbapa", "nombortelefonbapa"],
 };
 
 const HEADER_LABELS = {
@@ -31,6 +33,8 @@ const HEADER_LABELS = {
   transferSchool: "Sekolah Dipohon (pilihan)",
   transferReason: "Sebab Penempatan Semula (pilihan)",
   transferNotes: "Catatan (pilihan)",
+  motherPhone: "No Tel. Ibu (pilihan)",
+  fatherPhone: "No Tel. Bapa (pilihan)",
 };
 
 // Hanya lajur ini wajib ada dalam fail. Selebihnya pilihan.
@@ -89,6 +93,8 @@ export async function parseStudentsFile(file) {
       transferSchool: cell(r, "transferSchool"),
       transferReason: cell(r, "transferReason"),
       transferNotes: cell(r, "transferNotes"),
+      motherPhone: cell(r, "motherPhone"),
+      fatherPhone: cell(r, "fatherPhone"),
     };
     if (!row.name && !row.icNumber && !row.school) continue; // langkau baris kosong
     rows.push(row);
@@ -108,7 +114,7 @@ export async function downloadStudentTemplate() {
   const sheet = XLSX.utils.aoa_to_sheet([headers]);
   sheet["!cols"] = [
     { wch: 35 }, { wch: 18 }, { wch: 22 }, { wch: 10 }, { wch: 11 },
-    { wch: 14 }, { wch: 20 }, { wch: 30 }, { wch: 30 },
+    { wch: 14 }, { wch: 20 }, { wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 20 },
   ];
 
   const guide = XLSX.utils.aoa_to_sheet([

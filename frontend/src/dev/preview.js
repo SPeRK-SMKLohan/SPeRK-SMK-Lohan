@@ -57,6 +57,8 @@ function makeStudents() {
       name,
       icNumber: `1205${day}-12-${String(1000 + i)}`,
       formerPrimarySchool: school,
+      motherPhone: "",
+      fatherPhone: "",
       tingkatan: 1,
       oku: i % 11 === 0,
       registrationStatus: registered ? "SUDAH" : "BELUM",
@@ -106,6 +108,8 @@ const publicStudent = (s) => ({
   tingkatan: s.tingkatan,
   oku: s.oku,
   registrationStatus: s.registrationStatus,
+  motherPhone: s.motherPhone || "",
+  fatherPhone: s.fatherPhone || "",
   registeredAt: s.registeredAt,
   registeredBy: s.registeredBy,
   transferSchool: s.transferSchool,
@@ -195,11 +199,17 @@ export function installPreview() {
 
   function dashboard() {
     const registered = students.filter((s) => s.registrationStatus === "SUDAH").length;
+    const registrationBySchool = SCHOOLS.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
+      const group = students.filter((s) => s.formerPrimarySchool === school);
+      const done = group.filter((s) => s.registrationStatus === "SUDAH").length;
+      return { school, registered: done, notRegistered: group.length - done, total: group.length };
+    });
     const today = new Date().toISOString().slice(0, 10);
     return {
       activeStudents: students.length,
       registeredStudents: registered,
       notRegisteredStudents: students.length - registered,
+      registrationBySchool,
       registeredTodayCount: students.filter(
         (s) => s.registrationStatus === "SUDAH" && String(s.registeredAt || "").startsWith(today)
       ).length,
@@ -238,6 +248,8 @@ export function installPreview() {
         name: String(body.name || "").toUpperCase(),
         icNumber: String(body.icNumber || ""),
         formerPrimarySchool: body.formerPrimarySchool || SCHOOLS[0],
+        motherPhone: body.motherPhone || "",
+        fatherPhone: body.fatherPhone || "",
         tingkatan: 1,
         oku: Boolean(body.oku),
         registrationStatus: body.registrationStatus || "BELUM",
@@ -258,6 +270,8 @@ export function installPreview() {
       if (!s) return json({ error: "Murid tidak dijumpai." }, 404);
       const body = JSON.parse(init.body || "{}");
       s.registrationStatus = body.registrationStatus;
+      s.motherPhone = body.motherPhone || "";
+      s.fatherPhone = body.fatherPhone || "";
       s.registeredAt = body.registrationStatus === "SUDAH" ? new Date().toISOString() : null;
       s.registeredBy = body.registrationStatus === "SUDAH" ? fakeUser.email : "";
       return json({ student: publicStudent(s) });

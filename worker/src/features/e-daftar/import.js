@@ -19,6 +19,8 @@ function checkStudentRow(r) {
     transferSchool: r.transferSchool,
     transferReason: r.transferReason,
     transferNotes: r.transferNotes,
+    motherPhone: r.motherPhone,
+    fatherPhone: r.fatherPhone,
   });
 }
 
@@ -86,6 +88,8 @@ export async function importStudents(env, user, request) {
     transferSchool: r?.transferSchool,
     transferReason: r?.transferReason,
     transferNotes: r?.transferNotes,
+    motherPhone: r?.motherPhone,
+    fatherPhone: r?.fatherPhone,
   }));
 
   // Pelayan mengesahkan semula setiap baris, walaupun sudah dipratonton.

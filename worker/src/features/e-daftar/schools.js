@@ -1,6 +1,6 @@
 // Senarai awal, perlu disahkan oleh pihak sekolah.
 // Simpan senarai ini sama dengan frontend/src/features/e-daftar/constants.js.
-const SCHOOLS = [
+export const SCHOOLS = [
   "SK Bongkud", "SK Kirokot", "SK Langsat", "SK Lohan", "SK Nalapak",
   "SK Napong", "SK Narawang", "SK Perancangan", "SK Poring", "SK Sagiban",
 ];

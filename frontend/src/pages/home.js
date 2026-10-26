@@ -1,7 +1,7 @@
 import { apiFetch } from "../shared/api.js";
-import { formatRM } from "../shared/money.js";
-import { esc, formatDate, formatTime } from "../shared/dom.js";
-import { paymentLabel } from "../features/e-resit/constants.js";
+import { schools } from "../features/e-daftar/constants.js";
+import { searchStudents } from "../features/e-daftar/api.js";
+import { esc } from "../shared/dom.js";
 import { loadingState, readErrorState, wireReadRetry } from "../shared/feedback.js";
 
 /* Home.
@@ -43,6 +43,18 @@ export async function renderHome(root) {
   let d;
   try {
     d = await getDashboard();
+    if (!Array.isArray(d.registrationBySchool)) {
+      d.registrationBySchool = await Promise.all(
+        schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map(async (school) => {
+          const summary = await searchStudents("", { school, limit: 1 });
+          return {
+            school,
+            registered: summary.schoolRegisteredTotal ?? 0,
+            notRegistered: summary.schoolNotRegisteredTotal ?? 0,
+          };
+        })
+      );
+    }
   } catch (err) {
     box.innerHTML = readErrorState(err, "Ringkasan utama");
     wireReadRetry(box, () => renderHome(root));
@@ -50,9 +62,7 @@ export async function renderHome(root) {
   }
 
   const registered = d.registeredStudents ?? 0;
-  const notRegistered = d.notRegisteredStudents ?? 0;
-  const total = registered + notRegistered;
-  const percent = pct(registered, total);
+  const percent = pct(registered, registered + (d.notRegisteredStudents ?? 0));
 
   box.innerHTML = `
     <div class="home-grid">
@@ -68,62 +78,23 @@ export async function renderHome(root) {
           </div>
         </div>
 
-        <div class="stats cols-2">
-          <div class="stat">
-            <span class="stat-label">Sudah daftar</span>
-            <strong class="stat-value">${registered}</strong>
-            <span class="stat-note">daripada ${total} murid</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Belum daftar</span>
-            <strong class="stat-value">${notRegistered}</strong>
-            <span class="stat-note">masih menunggu</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Didaftarkan hari ini</span>
-            <strong class="stat-value">${d.registeredTodayCount ?? 0}</strong>
-            <span class="stat-note">sejak awal hari</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Ahli koperasi</span>
-            <strong class="stat-value">${d.koperasiStudents ?? 0}</strong>
-            <span class="stat-note">telah membayar keahlian</span>
-          </div>
-        </div>
       </section>
 
-      <section class="card">
-        <div class="card-head">
-          <h2>Jualan hari ini</h2>
-          <a class="btn secondary sm" href="#/laporan-koperasi">Lihat laporan</a>
-        </div>
-        <div class="stats cols-2" style="margin-bottom:var(--s4)">
-          <div class="stat">
-            <span class="stat-label">Jumlah kutipan</span>
-            <strong class="stat-value">${formatRM(d.todayTotalSen ?? 0)}</strong>
-            <span class="stat-note">${d.todayCount ?? 0} resit hari ini</span>
-          </div>
-        </div>
-        <h3 style="font-size:1rem;margin-bottom:var(--s2)">Resit terkini</h3>
-        ${(d.recent ?? []).length ? `
-          <ul class="receipt-mini">
-            ${(d.recent ?? []).map((r) => `
-              <li>
-                <a href="#/resit/${esc(r.receiptId)}">
-                  <span>
-                    <span class="rm-name">${esc(r.studentNameSnapshot)}</span>
-                    <span class="rm-meta">
-                      <span>${esc(r.receiptNo)}</span>
-                      <span>${esc(formatDate(r.createdAt))}</span>
-                      <span>${esc(paymentLabel(r.paymentMethod))}</span>
-                    </span>
-                  </span>
-                  <strong class="num">${formatRM(r.totalSen)}</strong>
-                </a>
-              </li>`).join("")}
-          </ul>` : `<p class="muted tiny">Belum ada resit hari ini.</p>`}
-      </section>
     </div>
+
+    <section class="card">
+      <div class="card-head"><h2>Laporan Pendaftaran Tingkatan 1</h2></div>
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">Bilangan murid sudah daftar, belum daftar dan jumlah pelajar mengikut sekolah rendah</caption>
+          <thead><tr><th scope="col">Sekolah Rendah</th><th scope="col">Bil. Sudah Daftar</th><th scope="col">Bil. Belum Daftar</th></tr></thead>
+          <tbody>${schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
+            const row = (d.registrationBySchool ?? []).find((item) => item.school === school);
+            return `<tr><th scope="row">${esc(school)}</th><td>${row?.registered ?? "—"}</td><td>${row?.notRegistered ?? "—"}</td></tr>`;
+          }).join("")}</tbody>
+        </table>
+      </div>
+    </section>
 
     <section class="card">
       <div class="card-head"><h2>Alat lain</h2></div>

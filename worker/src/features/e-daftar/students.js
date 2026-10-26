@@ -84,6 +84,10 @@ export function readStudentFields(src) {
   if (transferReason.length > 200) return { reason: "Sebab penempatan semula terlalu panjang (maksimum 200 aksara)." };
   const transferNotes = cleanText(src.transferNotes, 300);
   if (transferNotes.length > 300) return { reason: "Catatan terlalu panjang (maksimum 300 aksara)." };
+  const motherPhone = cleanText(src.motherPhone, 30);
+  const fatherPhone = cleanText(src.fatherPhone, 30);
+  if (motherPhone.length > 30) return { reason: "No. Tel. Ibu terlalu panjang (maksimum 30 aksara)." };
+  if (fatherPhone.length > 30) return { reason: "No. Tel. Bapa terlalu panjang (maksimum 30 aksara)." };
 
   return {
     digits,
@@ -93,7 +97,9 @@ export function readStudentFields(src) {
       formerPrimarySchool: school,
       tingkatan,
       oku,
-      registrationStatus,
+      registrationStatus: transferSchool ? "SUDAH" : registrationStatus,
+      motherPhone: motherPhone || null,
+      fatherPhone: fatherPhone || null,
       transferSchool: transferSchool || null,
       transferReason: transferReason || null,
       transferNotes: transferNotes || null,
@@ -113,6 +119,8 @@ function studentSource(body) {
     transferSchool: body?.transferSchool,
     transferReason: body?.transferReason,
     transferNotes: body?.transferNotes,
+    motherPhone: body?.motherPhone,
+    fatherPhone: body?.fatherPhone,
   };
 }
 

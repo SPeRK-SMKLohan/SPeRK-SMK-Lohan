@@ -114,6 +114,15 @@ export function renderRegistration(root) {
             <span class="err" id="f-school-err"></span>
           </div>
 
+          <div class="field">
+            <label class="label" for="f-mother-phone">No Tel. Ibu <span class="optional">(pilihan)</span></label>
+            <input id="f-mother-phone" class="input" type="tel" maxlength="30" autocomplete="tel">
+          </div>
+          <div class="field">
+            <label class="label" for="f-father-phone">No Tel. Bapa <span class="optional">(pilihan)</span></label>
+            <input id="f-father-phone" class="input" type="tel" maxlength="30" autocomplete="tel">
+          </div>
+
           <fieldset>
             <legend>Status OKU</legend>
             <div class="choice-grid">
@@ -690,6 +699,7 @@ export function renderRegistration(root) {
   function showTransfer(on) {
     transferToggle.checked = on;
     transferBox.hidden = !on;
+    if (on) setRadio("status", "SUDAH");
   }
 
   // Old records may hold free-text reasons; keep them visible and selectable.
@@ -711,7 +721,10 @@ export function renderRegistration(root) {
     if (found) transferNotesEl.value = found.notes;
   });
 
-  transferToggle.addEventListener("change", () => showTransfer(transferToggle.checked));
+  transferToggle.addEventListener("change", () => {
+    showTransfer(transferToggle.checked);
+    if (transferToggle.checked) setRadio("status", "SUDAH");
+  });
 
   function clearFormErrors() {
     formMsg.innerHTML = "";
@@ -738,6 +751,8 @@ export function renderRegistration(root) {
       $("#f-school").value = student.formerPrimarySchool;
       $("#f-name").value = student.name;
       $("#f-ic").value = student.icNumber;
+      $("#f-mother-phone").value = student.motherPhone || "";
+      $("#f-father-phone").value = student.fatherPhone || "";
       setRadio("oku", student.oku === true ? "true" : student.oku === false ? "false" : "");
       setRadio("status", student.registrationStatus);
       $("#f-transfer-school").value = student.transferSchool;
@@ -784,7 +799,9 @@ export function renderRegistration(root) {
       icNumber: ic,
       tingkatan: "Tingkatan 1",
       oku: checkedRadio("oku") === "true",
-      registrationStatus: checkedRadio("status") || "BELUM",
+      registrationStatus: transfer ? "SUDAH" : checkedRadio("status") || "BELUM",
+      motherPhone: $("#f-mother-phone").value.trim(),
+      fatherPhone: $("#f-father-phone").value.trim(),
       transferSchool: transfer ? transferSchool : "",
       transferReason: transfer ? transferReasonEl.value.trim() : "",
       transferNotes: transfer ? transferNotesEl.value.trim() : "",

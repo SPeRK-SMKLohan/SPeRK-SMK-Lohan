@@ -1,6 +1,7 @@
 import { getDoc, runQuery } from "./firestore.js";
 import { receiptSummary } from "./features/e-resit/receipts.js";
 import { getActiveStudents } from "./shared/students.js";
+import { SCHOOLS } from "./features/e-daftar/schools.js";
 import { DAY_MS, myDateKey, myDayStart } from "./util.js";
 
 /* ---------- Papan Pemuka: statistik kedua-dua ciri ---------- */
@@ -71,6 +72,19 @@ async function computeDashboard(env) {
 
   const tingkatanOne = students.filter((s) => s.tingkatan === 1);
   const registered = tingkatanOne.filter((s) => s.registrationStatus === "SUDAH").length;
+  const registrationBySchool = SCHOOLS
+    .slice()
+    .sort((a, b) => a.localeCompare(b, "ms"))
+    .map((school) => {
+      const schoolStudents = tingkatanOne.filter((s) => s.formerPrimarySchool === school);
+      const schoolRegistered = schoolStudents.filter((s) => s.registrationStatus === "SUDAH").length;
+      return {
+        school,
+        registered: schoolRegistered,
+        notRegistered: schoolStudents.length - schoolRegistered,
+        total: schoolStudents.length,
+      };
+    });
   const koperasiStudents = tingkatanOne.filter((s) => s.koperasiMember === true).length;
 
   // Kemajuan hari pendaftaran: murid yang ditandakan hadir hari ini (masa Malaysia).
@@ -86,6 +100,7 @@ async function computeDashboard(env) {
     activeStudents: tingkatanOne.length,
     registeredStudents: registered,
     notRegisteredStudents: tingkatanOne.length - registered,
+    registrationBySchool,
     registeredTodayCount,
     koperasiStudents,
     todayCount: dailyCounter?.count ?? 0,
