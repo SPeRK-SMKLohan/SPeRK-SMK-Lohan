@@ -55,7 +55,7 @@ export function publicStudent(s) {
 const SYNC_INTERVAL_MS = 30_000;      // sejajar penyegaran kaunter; kurangkan bacaan delta serentak
 const SHARED_MAX_AGE_S = 3 * 3600;    // hayat entri Cache API (3 jam)
 const SLACK_MS = 10_000;              // toleransi susunan commit untuk delta
-const SHARED_KEY = "https://sperk-cache.internal/students-active";
+const SHARED_KEY = "https://sperk-cache.internal/students-active-v2";
 const sharedRequest = () => new Request(SHARED_KEY);
 
 let mem = { data: null, checkedAt: 0, gen: 0 };
