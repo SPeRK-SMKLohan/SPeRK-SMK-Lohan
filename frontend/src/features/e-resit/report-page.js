@@ -110,7 +110,6 @@ export function renderCoopReport(root) {
             <tr>
               <th scope="col">No. resit</th>
               <th scope="col">Murid</th>
-              <th scope="col">Guru</th>
               <th scope="col">Bayaran</th>
               <th scope="col" class="num">Jumlah</th>
             </tr>
@@ -120,7 +119,6 @@ export function renderCoopReport(root) {
               <tr>
                 <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
                 <td>${esc(r.student)}</td>
-                <td>${esc(r.staffName || "—")}</td>
                 <td>${esc(paymentLabel(r.paymentMethod))}</td>
                 <td class="num"><strong>${formatRM(r.totalSen)}</strong></td>
               </tr>`).join("")}
@@ -165,7 +163,6 @@ export function renderCoopReport(root) {
         : `${filtered.length} daripada ${all.length} resit dipaparkan`;
 
       renderRows(filtered.map((r) => ({
-        staffName: r.staffName,
         receiptNo: r.receiptNo,
         receiptId: r.receiptId,
         student: r.studentNameSnapshot,
@@ -209,9 +206,8 @@ export function renderCoopReport(root) {
   });
 
   $("#report-csv").addEventListener("click", () => {
-    const header = ["Nama Guru", "Nama Murid", "No. Resit", "Jumlah (RM)", "Kaedah Pembayaran"];
+    const header = ["Nama Murid", "No. Resit", "Jumlah (RM)", "Kaedah Pembayaran"];
     const lines = reportRows.map((row) => [
-      row.staffName || "",
       row.student,
       row.receiptNo,
       (row.totalSen / 100).toFixed(2),

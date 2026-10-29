@@ -1,6 +1,5 @@
 import "./style.css";
 import { initAuth, isLoggedIn, signOutUser } from "./shared/auth.js";
-import { applyTextSizePreference, textSizePreference, wireTextSizeControl } from "./shared/accessibility.js";
 import { clearStatus } from "./shared/status.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
@@ -49,6 +48,15 @@ const app = document.querySelector("#app");
 document.title = APP_LONG_NAME;
 let renderSequence = 0;
 
+// Clear preferences and device-local names used by features that were removed.
+try {
+  localStorage.removeItem("sperk-device-staff-name");
+  localStorage.removeItem("sperk-text-size");
+  localStorage.removeItem("sperk-large-text");
+} catch {
+  /* Local storage may be unavailable. */
+}
+
 function currentRoute() {
   const raw = location.hash.replace(/^#/, "") || "/";
   const [path, query = ""] = raw.split("?");
@@ -70,16 +78,6 @@ const menuLink = (path, item) => {
     <span>${item.label}</span><span aria-hidden="true">›</span>
   </a></li>`;
 };
-
-const sizeControl = () => `
-  <label class="size-control">
-    <span>Saiz teks</span>
-    <select id="text-size-toggle" aria-label="Saiz teks">
-      <option value="normal"${textSizePreference() === "normal" ? " selected" : ""}>Biasa</option>
-      <option value="large"${textSizePreference() === "large" ? " selected" : ""}>Besar</option>
-      <option value="largest"${textSizePreference() === "largest" ? " selected" : ""}>Sangat besar</option>
-    </select>
-  </label>`;
 
 const brand = (href) => `
   <a class="brand" href="${href}">
@@ -118,9 +116,6 @@ function shellHtml(path) {
           <span class="menu-btn-icon" aria-hidden="true">☰</span>
           <span class="menu-btn-text">Menu</span>
         </button>
-        <div class="header-tools">
-          ${sizeControl()}
-        </div>
       </div>
     </header>
 
@@ -140,28 +135,6 @@ function shellHtml(path) {
     </main>
 
     ${footerHtml()}`;
-}
-
-/* The header can grow — at "Sangat besar" the navigation needs more room, and
-   hiding controls is worse than a taller bar. Measuring it keeps every scroll
-   offset (`scroll-padding-top`, the mobile menu) in step with reality. */
-let measuredHeader = 0;
-
-function syncHeaderHeight() {
-  const header = document.querySelector(".site-header");
-  const root = document.documentElement;
-
-  if (!header) {
-    root.style.removeProperty("--header-h");
-    measuredHeader = 0;
-    return;
-  }
-
-  const height = Math.round(header.getBoundingClientRect().height);
-  if (height > 0 && Math.abs(height - measuredHeader) > 1) {
-    measuredHeader = height;
-    root.style.setProperty("--header-h", `${height}px`);
-  }
 }
 
 /* Mobile menu: a full-screen list, opened by one button. Escape closes it and
@@ -223,8 +196,6 @@ async function renderPublicGuide(sequence) {
     <a class="skip-link" href="#view">Langkau ke kandungan</a>
     <div class="login-public-bar">
       ${brand("#/login")}
-      <span style="flex:1 1 auto"></span>
-      ${sizeControl()}
       <a class="btn secondary sm" href="#/login">Log Masuk</a>
     </div>
     <main id="view" class="page" tabindex="-1">
@@ -233,7 +204,6 @@ async function renderPublicGuide(sequence) {
     </main>
     ${footerHtml()}`;
   document.title = `Panduan · ${APP_NAME}`;
-  syncHeaderHeight();
   const body = app.querySelector("#page-body");
   try {
     const renderGuide = await routes["/panduan"]();
@@ -243,7 +213,6 @@ async function renderPublicGuide(sequence) {
     if (sequence !== renderSequence) return;
     showPageLoadError(body, err);
   }
-  wireTextSizeControl(app);
   wireLogout();
 }
 
@@ -275,8 +244,6 @@ async function render() {
 
   if (path === "/login") {
     document.title = `Log Masuk · ${APP_NAME}`;
-    measuredHeader = 0;
-    document.documentElement.style.removeProperty("--header-h");
     renderLogin(app);
     return;
   }
@@ -284,7 +251,6 @@ async function render() {
   app.innerHTML = shellHtml(path);
   const body = app.querySelector("#page-body");
   wireMenu(app);
-  syncHeaderHeight();
 
   const match = NAV.find((n) => isActive(path, n.path));
   document.title = match
@@ -314,18 +280,7 @@ async function render() {
   }
 
   wireLogout();
-  wireTextSizeControl(app);
   window.scrollTo(0, 0);
-  // Re-measure after the page paints, in case a font or the content changed it.
-  requestAnimationFrame(syncHeaderHeight);
-}
-
-applyTextSizePreference();
-
-// The header height depends on the text-size preference and the viewport.
-window.addEventListener("resize", syncHeaderHeight);
-if ("ResizeObserver" in window) {
-  new ResizeObserver(syncHeaderHeight).observe(document.body);
 }
 
 // Wait for Firebase to restore the session before starting the app.

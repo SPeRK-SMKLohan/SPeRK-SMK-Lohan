@@ -16,9 +16,9 @@ bayaran koperasi. Aplikasi digunakan oleh guru dan kakitangan yang dibenarkan.
 - **Panduan:** arahan ringkas untuk guru tersedia dalam aplikasi melalui menu
   **Panduan**.
 
-Nama guru dimasukkan semasa log masuk dan disimpan pada peranti tersebut untuk
-resit yang dijana daripada peranti itu. Menutup tab tidak melog keluar; gunakan
-**Log Keluar** selepas menggunakan peranti bersama.
+Log masuk menggunakan e-mel sekolah dan kata laluan akaun yang dibenarkan.
+Menutup tab tidak melog keluar; gunakan **Log Keluar** selepas menggunakan
+peranti bersama.
 
 ## Jalankan untuk pembangunan
 

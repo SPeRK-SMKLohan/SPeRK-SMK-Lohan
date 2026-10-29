@@ -36,13 +36,10 @@ export function renderGuide(root) {
           <h2>1. Log masuk</h2>
           <ol>
             <li>Masukkan e-mel sekolah dan kata laluan yang diberi pentadbir.</li>
-            <li>Masukkan <strong>nama guru</strong>. Nama ini dicetak pada resit yang anda jana.</li>
             <li>Tekan <strong>Log Masuk</strong>.</li>
           </ol>
           <p>Menutup tab tidak melog keluar. Pada peranti yang dikongsi, tekan
             <strong>Log Keluar</strong> di penjuru atas selepas selesai.</p>
-          <p class="notice"><strong>Nama guru disimpan pada peranti ini sahaja.</strong>
-            Jika anda menggunakan peranti lain, masukkan nama anda di peranti itu.</p>
         </section>
 
         <section class="card" id="guide-register">
@@ -119,9 +116,7 @@ export function renderGuide(root) {
           <p>Semak e-mel dan kata laluan. Jika akaun tidak dibenarkan atau kata laluan
             terlupa, hubungi pentadbir sistem sekolah.</p>
           <h3>Tulisan terlalu kecil</h3>
-          <p>Gunakan menu <strong>Saiz teks</strong> di penjuru atas dan pilih
-            <strong>Besar</strong> atau <strong>Sangat besar</strong>. Pilihan ini
-            diingati pada peranti ini.</p>
+          <p>Gunakan zum pelayar atau tetapan paparan pada peranti anda.</p>
           <h3>Skrin telefon</h3>
           <p>Tekan <strong>Menu</strong> di bahagian atas untuk melihat semua halaman.</p>
           <p class="notice">SPeRK memerlukan sambungan internet. Jangan kongsi kata laluan,

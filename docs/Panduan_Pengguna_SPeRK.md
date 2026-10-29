@@ -10,10 +10,7 @@ aplikasi.
 ## 1. Log masuk
 
 1. Buka laman SPeRK dan masukkan e-mel serta kata laluan akaun yang dibenarkan.
-2. Masukkan **Nama guru**. Nama disimpan pada peranti itu dan dicatat pada
-   resit baharu yang dibuat daripadanya. Guru yang menggunakan peranti lain
-   memasukkan nama masing-masing.
-3. Tekan **Log Masuk**.
+2. Tekan **Log Masuk**.
 
 Menutup tab tidak melog keluar. Pada peranti yang dikongsi, tekan **Log
 Keluar** selepas selesai. Jangan simpan kata laluan pada peranti awam.
@@ -59,16 +56,15 @@ menolak murid selain Tingkatan 1.
 4. Semak nama murid dan jumlah, sahkan pembayaran, kemudian tekan **Simpan
    Resit**.
 
-Nama guru pada resit datang daripada nama yang dimasukkan semasa log masuk pada
-peranti tersebut. Untuk menyemak atau mencetak resit lama, buka **Sejarah
-Resit**. Jika sambungan terputus semasa menyimpan, semak sejarah dahulu supaya
-resit tidak dijana dua kali.
+Untuk menyemak atau mencetak resit lama, buka **Sejarah Resit**. Jika sambungan
+terputus semasa menyimpan, semak sejarah dahulu supaya resit tidak dijana dua
+kali.
 
 ## 5. Laporan koperasi
 
 Buka **e-Resit Koperasi → Laporan Koperasi**. Pilih julat tarikh dan kaedah
-pembayaran untuk menapis. Jadual menunjukkan nama guru, nama murid, nombor
-resit, jumlah dan kaedah pembayaran. Gunakan **Muat turun CSV** untuk membuka
+pembayaran untuk menapis. Jadual menunjukkan nama murid, nombor resit, jumlah
+dan kaedah pembayaran. Gunakan **Muat turun CSV** untuk membuka
 data dalam hamparan. Untuk salinan kertas, buka fail CSV itu dan cetak dari
 hamparan — atau buka resit yang diperlukan dan gunakan butang **Cetak** di
 halaman resit.

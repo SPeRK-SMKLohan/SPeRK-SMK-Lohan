@@ -10,7 +10,7 @@
    06 Buttons           12 Steps             18 Screen: receipt
    19 Screen: report/import   20 Screen: guide
    21 Receipt document and print
-   22 Responsive  23 Accessibility preferences
+   22 Responsive  23 Accessibility
    ========================================================================== */
 
 /* Fonts are self-hosted (SIL Open Font License, see /fonts/OFL-*.txt).
@@ -116,7 +116,7 @@
   --font-display: "Lexend Deca", "Atkinson Hyperlegible", system-ui, sans-serif;
   --font-mono: "Atkinson Hyperlegible", ui-monospace, Consolas, monospace;
 
-  /* Spacing — rem, so it grows with the text-size preference. */
+  /* Spacing — rem, so it follows the browser's text scaling. */
   --s1: 0.25rem;
   --s2: 0.5rem;
   --s3: 0.75rem;
@@ -148,14 +148,11 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
-  font-size: 112.5%; /* 18px at a 16px browser default; still scales with user setting */
+  font-size: 112.5%; /* 18px at a 16px browser default; browser zoom still applies */
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-h) + var(--s4));
 }
-
-html.text-size-large { font-size: 131.25%; }  /* 21px */
-html.text-size-largest { font-size: 150%; }   /* 24px */
 
 body {
   margin: 0;
@@ -330,29 +327,6 @@ small { font-size: 0.875rem; }
 .nav a:hover { background: rgba(255, 255, 255, .14); color: #fff; }
 .nav a[aria-current="page"] { background: #fff; color: var(--brand-deep); }
 .nav a:focus-visible { box-shadow: 0 0 0 3px var(--brand-deep), 0 0 0 6px #fff; }
-
-.header-tools { margin-left: auto; display: flex; align-items: center; gap: var(--s3); }
-
-.size-control {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, .92);
-  white-space: nowrap;
-}
-.size-control select {
-  min-height: 44px;
-  padding: 0 var(--s2);
-  border: 1px solid rgba(255, 255, 255, .45);
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, .1);
-  color: #fff;
-  font: inherit;
-  font-size: 0.875rem;
-}
-.size-control select option { color: var(--ink); background: #fff; }
 
 .btn-logout {
   min-height: 44px;
@@ -1059,34 +1033,22 @@ dialog.modal > form {
 /* 15 Login ----------------------------------------------------------------- */
 
 .login-page {
-  flex: 1 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
-  gap: var(--s7);
-  align-items: center;
-  max-width: 1080px;
+  grid-template-columns: minmax(0, 460px);
+  justify-content: center;
+  align-content: center;
+  min-height: calc(100vh - 60px);
   width: 100%;
   margin: 0 auto;
-  padding: var(--s6) var(--gutter) var(--s7);
-}
-.login-intro .brand-mark { width: 64px; height: 64px; background: var(--surface); border: 1px solid var(--line); }
-.login-intro h1 { font-size: 2.25rem; margin: var(--s4) 0 var(--s3); }
-.login-intro p { color: var(--ink-2); font-size: 1.0625rem; }
-.login-points { list-style: none; margin: var(--s5) 0 0; padding: 0; display: grid; gap: var(--s3); }
-.login-points li { display: flex; gap: var(--s3); align-items: flex-start; font-size: 0.9375rem; color: var(--ink-2); }
-.login-points li::before {
-  content: "";
-  flex: none;
-  width: 10px;
-  height: 10px;
-  margin-top: .5em;
-  border-radius: 50%;
-  background: var(--brand);
+  padding: var(--s5) var(--gutter) var(--s7);
 }
 
 .login-card { padding: var(--s6) var(--s5); }
-.login-card h2 { font-size: 1.5rem; margin-bottom: var(--s1); }
+.login-card h1 { font-size: 1.75rem; margin-bottom: var(--s1); }
 .login-card .lede { margin-bottom: var(--s5); font-size: 0.9375rem; }
+.login-password { position: relative; }
+.login-password .input { padding-right: 7rem; }
+.login-password .btn { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); min-height: 44px; }
 
 .login-help a {
   display: inline-flex;
@@ -1113,22 +1075,15 @@ dialog.modal > form {
   width: 100%;
   padding: var(--s3) var(--gutter) 0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: var(--s3);
   align-items: center;
 }
-/* This bar sits on the page background, not on the dark header, so it needs the
-   dark-on-light version of the brand and controls. */
+/* This bar sits on the page background, not on the dark header. */
 .login-public-bar .brand { color: var(--ink); }
 .login-public-bar .brand-name { color: var(--ink); }
 .login-public-bar .brand-sub { color: var(--ink-3); opacity: 1; }
 .login-public-bar .brand-mark { border: 1px solid var(--line); }
-.login-public-bar .size-control { color: var(--ink-2); }
-.login-public-bar .size-control select {
-  background: var(--surface);
-  color: var(--ink);
-  border-color: var(--line-strong);
-}
 
 /* 16 Home ------------------------------------------------------------------ */
 
@@ -1625,8 +1580,6 @@ body.has-trolley .page { padding-bottom: 9rem; }
     cursor: pointer;
   }
   .menu-btn:hover { background: rgba(255, 255, 255, .14); }
-  .header-tools { margin-left: var(--s3); }
-  .size-control > span { display: none; }
   .home-grid { grid-template-columns: minmax(0, 1fr); }
   .guide-layout { grid-template-columns: minmax(0, 1fr); }
   .guide-nav { position: static; }
@@ -1636,8 +1589,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
 @media (max-width: 900px) {
   :root { --header-h: 64px; }
   .brand-sub { display: none; }
-  .login-page { grid-template-columns: minmax(0, 1fr); gap: var(--s5); padding-top: var(--s5); }
-  .login-intro { display: none; }
+  .login-page { grid-template-columns: minmax(0, 460px); }
   .import-grid { grid-template-columns: minmax(0, 1fr); }
   .trolley .btn { min-width: 0; flex: 1 1 100%; }
 }
@@ -1664,11 +1616,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
 }
 
 @media (max-width: 560px) {
-  /* One row at the normal and large text sizes: brand on the left, menu button
-     and text-size control on the right. The row is allowed to wrap, but only
-     when the largest-text setting makes it genuinely too wide — nothing is
-     hidden and no type is shrunk to force a fit. The real height is measured
-     at runtime and used for scroll offsets via --header-h. */
+  /* Keep the brand and menu button together on small screens. */
   :root { --header-h: 60px; }
   .site-header-in {
     flex-wrap: wrap;
@@ -1680,8 +1628,6 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .brand-mark { width: 32px; height: 32px; border-radius: 8px; padding: 3px; }
   .brand-name { font-size: 1rem; }
   .menu-btn { order: 2; margin-left: auto; min-height: 44px; padding: 0 var(--s3); }
-  .header-tools { order: 3; width: auto; margin-left: auto; }
-  .size-control select { min-height: 44px; padding: 0 var(--s2); font-size: 0.875rem; }
   /* On a phone the footer keeps only the logout button. The three tool links
      live in the menu already, and squeezing all four onto one row would break
      the labels over two lines. */

@@ -92,7 +92,6 @@ function makeReceipts(students) {
       items,
       totalSen: 1700,
       paymentMethod: methods[i % 2],
-      staffName: "CIKGU AHMAD",
       bankRef: i % 2 ? "MBB2026100100123" : null,
       status: "ISSUED",
       year: 2026,
@@ -124,7 +123,6 @@ const receiptSummary = (r) => ({
   studentNameSnapshot: r.studentNameSnapshot,
   totalSen: r.totalSen,
   paymentMethod: r.paymentMethod,
-  staffName: r.staffName,
   status: r.status,
 });
 
@@ -353,7 +351,6 @@ export function installPreview() {
         items,
         totalSen: items.reduce((t, i) => t + i.subtotalSen, 0),
         paymentMethod: body.paymentMethod,
-        staffName: body.staffName,
         bankRef: body.bankRef || null,
         status: "ISSUED",
         year: 2026,

@@ -5,7 +5,6 @@ import { paymentMethods } from "./constants.js";
 import { formatRM, grandTotal } from "../../shared/money.js";
 import { esc, maskIC } from "../../shared/dom.js";
 import { makeId } from "../../shared/id.js";
-import { getDeviceStaffName, setDeviceStaffName } from "../../shared/staff-name.js";
 import { loadingState } from "../../shared/feedback.js";
 import { showStatus } from "../../shared/status.js";
 
@@ -15,40 +14,6 @@ import { showStatus } from "../../shared/status.js";
    are about to charge or how to finish. */
 
 export async function renderNewReceipt(root, params = new URLSearchParams()) {
-  const deviceStaffName = getDeviceStaffName();
-
-  if (!deviceStaffName) {
-    root.innerHTML = `
-      <div class="page-head">
-        <h1>Jana resit koperasi</h1>
-        <p class="lede">Sebelum mula, simpan nama guru pada peranti ini. Nama ini akan
-          dicetak pada setiap resit yang anda jana di sini.</p>
-      </div>
-      <section class="card" style="max-width:560px">
-        <div class="field">
-          <label class="label" for="receipt-staff-name">Nama guru</label>
-          <input id="receipt-staff-name" class="input" type="text" autocomplete="name"
-                 maxlength="80" placeholder="Contoh: Cikgu Ahmad"
-                 aria-describedby="receipt-staff-name-help receipt-staff-name-error" required>
-          <p class="hint" id="receipt-staff-name-help">Disimpan pada peranti ini sahaja.</p>
-          <span class="err" id="receipt-staff-name-error"></span>
-        </div>
-        <button id="save-receipt-name" class="btn primary lg block" type="button">Simpan dan teruskan</button>
-      </section>`;
-    root.querySelector("#save-receipt-name").addEventListener("click", () => {
-      const input = root.querySelector("#receipt-staff-name");
-      if (!setDeviceStaffName(input.value)) {
-        root.querySelector("#receipt-staff-name-error").textContent =
-          "Sila isi nama guru, antara 2 dan 80 aksara.";
-        input.setAttribute("aria-invalid", "true");
-        input.focus();
-        return;
-      }
-      renderNewReceipt(root, params);
-    });
-    return;
-  }
-
   let student = null;
   let paymentMethod = "CASH";
   let bankRef = "";
@@ -62,8 +27,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Jana resit koperasi</h1>
-      <p class="lede">Guru: <strong>${esc(deviceStaffName)}</strong> · Pilih murid, tambah
-        barangan, pilih bayaran, kemudian simpan.</p>
+      <p class="lede">Pilih murid, tambah barangan, pilih bayaran, kemudian simpan.</p>
     </div>
 
     <ol class="steps" id="steps" aria-label="Langkah menjana resit">
@@ -485,7 +449,6 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       const { receipt } = await createReceipt({
         requestId,
         studentId: student.studentId,
-        staffName: deviceStaffName,
         paymentMethod,
         bankRef: paymentMethod === "BANK_TRANSFER" ? bankRef.trim() : undefined,
         lines: lines.map((l) => ({ itemId: l.itemId, quantity: l.quantity })),

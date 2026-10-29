@@ -94,7 +94,7 @@ npx wrangler secret put ALLOWED_EMAILS
 - Buat dan simpan sandaran melalui proses pentadbir yang diluluskan sekolah, sebelum import besar atau perubahan struktur data.
 - Import murid menerima fail `.xlsx`; had semasa ialah 2 MB dan 2,000 baris.
 - Sistem menguatkuasakan Tingkatan 1 untuk pendaftaran dan resit.
-- Nama guru resit disimpan pada storan setempat peranti selepas log masuk; menukar peranti bermakna guru perlu memasukkan nama pada peranti tersebut.
+- Akaun yang membuat perubahan dikenal pasti menggunakan UID Firebase; nama guru tidak diminta atau disimpan pada resit baharu.
 - Gunakan **Sejarah Resit** untuk menyemak simpanan yang statusnya tidak pasti; jangan ulang cipta resit sebelum menyemak rekod.
 
 ## Pemantauan dan penyelesaian masalah
