@@ -19,7 +19,7 @@ function whatsappNumber(input) {
 }
 
 export async function renderReceiptDetail(root, id) {
-  root.innerHTML = loadingState("Sedang mendapatkan resit yang disimpan…");
+  root.innerHTML = loadingState("Memuatkan resit…");
 
   let r;
   try {
@@ -57,8 +57,7 @@ export async function renderReceiptDetail(root, id) {
       <aside class="no-print">
         <section class="card">
           <h2 style="font-size:1.125rem">Hantar kepada ibu bapa</h2>
-          <p class="muted tiny">Mesej ringkasan disediakan automatik. No. IC tidak
-            disertakan dan nombor telefon tidak disimpan.</p>
+          <p class="muted tiny">No. IC tidak disertakan. Nombor telefon tidak disimpan.</p>
 
           <div class="field" style="margin-top:var(--s4)">
             <label class="label" for="wa-phone">Nombor WhatsApp <span class="optional">(pilihan)</span></label>
@@ -70,13 +69,13 @@ export async function renderReceiptDetail(root, id) {
             <input id="wa-pdf" type="checkbox" checked>
             <span class="choice-body">
               <span class="choice-title">Muat turun PDF juga</span>
-              <span class="choice-note">Lampirkan fail itu dalam WhatsApp.</span>
+              <span class="choice-note">Lampirkan fail dalam WhatsApp.</span>
             </span>
           </label>
 
           <button id="wa" class="btn primary block" type="button">Buka WhatsApp</button>
           <button id="wa-share" class="btn secondary block" type="button" hidden
-                  style="margin-top:var(--s2)">Kongsi PDF (peranti ini)</button>
+                  style="margin-top:var(--s2)">Kongsi PDF</button>
 
           <p id="wa-msg" class="hint" role="status" aria-live="polite"></p>
         </section>

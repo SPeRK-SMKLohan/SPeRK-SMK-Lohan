@@ -1066,7 +1066,6 @@ dialog.modal > form {
 
 .home-hero { margin-bottom: var(--s5); }
 .home-hero h1 { font-size: 2rem; margin-bottom: var(--s2); }
-.home-hero .lede { margin: 0; }
 
 .task-grid { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: var(--s5); }
 
@@ -1085,13 +1084,6 @@ dialog.modal > form {
 }
 .task-card:hover { border-color: var(--brand); text-decoration: none; color: var(--ink); }
 .task-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-.task-card .task-eyebrow {
-  font-size: 0.8125rem;
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--brand);
-}
 .task-card .task-title {
   font-family: var(--font-display);
   font-size: 1.5rem;

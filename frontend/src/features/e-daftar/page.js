@@ -22,7 +22,7 @@ export function renderRegistration(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Pendaftaran murid</h1>
-      <p class="lede">Urus pendaftaran murid Tingkatan 1.</p>
+      <p class="lede">Daftar dan kemas kini murid Tingkatan 1.</p>
     </div>
 
     <section class="card school-step">
@@ -91,10 +91,9 @@ export function renderRegistration(root) {
     </section>
 
     <details class="admin-panel" id="admin">
-      <summary>Tetapan pentadbir</summary>
+      <summary>Padam murid</summary>
       <div class="admin-body">
-        <p class="muted tiny">Padam murid yang salah dimasukkan. Tindakan ini
-          <strong>kekal</strong> dan memerlukan kata laluan anda.</p>
+        <p class="muted tiny">Pemadaman kekal. Sahkan dengan kata laluan.</p>
         <button id="start-select" class="btn secondary" type="button">Pilih murid untuk dipadam</button>
       </div>
     </details>
@@ -103,7 +102,7 @@ export function renderRegistration(root) {
       <form id="student-form" method="dialog" novalidate>
         <div class="modal-head">
           <h2 id="form-title">Daftar murid baharu</h2>
-          <p>Tingkatan ditetapkan kepada Tingkatan 1.</p>
+          <p>Tingkatan 1</p>
         </div>
         <div class="modal-body">
           <div class="field">
@@ -117,7 +116,7 @@ export function renderRegistration(root) {
             <input id="f-ic" class="input" type="text" inputmode="numeric" maxlength="14"
                    placeholder="140512-12-1234" autocomplete="off"
                    aria-describedby="f-ic-help f-ic-err" required>
-            <p class="hint" id="f-ic-help">Boleh taip dengan atau tanpa tanda sempang.</p>
+            <p class="hint" id="f-ic-help">Tanda sempang pilihan.</p>
             <span class="err" id="f-ic-err"></span>
           </div>
 
@@ -131,11 +130,11 @@ export function renderRegistration(root) {
           </div>
 
           <div class="field">
-            <label class="label" for="f-mother-phone">No Tel. Ibu <span class="optional">(pilihan)</span></label>
+            <label class="label" for="f-mother-phone">Telefon ibu <span class="optional">(pilihan)</span></label>
             <input id="f-mother-phone" class="input" type="tel" maxlength="30" autocomplete="tel">
           </div>
           <div class="field">
-            <label class="label" for="f-father-phone">No Tel. Bapa <span class="optional">(pilihan)</span></label>
+            <label class="label" for="f-father-phone">Telefon bapa <span class="optional">(pilihan)</span></label>
             <input id="f-father-phone" class="input" type="tel" maxlength="30" autocomplete="tel">
           </div>
 
@@ -162,12 +161,12 @@ export function renderRegistration(root) {
           </fieldset>
 
           <fieldset>
-            <legend>Penempatan semula <span class="optional">(jika berkenaan)</span></legend>
+            <legend>Permohonan pindah</legend>
             <label class="choice" style="margin-bottom:var(--s3)">
               <input id="f-transfer" type="checkbox">
               <span class="choice-body">
-                <span class="choice-title">Murid memohon pindah ke sekolah lain</span>
-                <span class="choice-note">Murid yang hadir tetap dikira sudah daftar.</span>
+                <span class="choice-title">Pindah ke sekolah lain</span>
+                <span class="choice-note">Kehadiran tetap dikira.</span>
               </span>
             </label>
 
@@ -185,7 +184,7 @@ export function renderRegistration(root) {
                 </select>
               </div>
               <div class="field" style="margin-bottom:0">
-                <label class="label" for="f-transfer-notes">Catatan <span class="optional">(boleh diedit)</span></label>
+                <label class="label" for="f-transfer-notes">Catatan <span class="optional">(pilihan)</span></label>
                 <textarea id="f-transfer-notes" class="input" maxlength="300" rows="3"></textarea>
               </div>
             </div>
@@ -223,7 +222,7 @@ export function renderRegistration(root) {
         </div>
         <div class="modal-body">
           <div class="field" style="margin-bottom:0">
-            <label class="label" for="bulk-del-password">Kata laluan anda</label>
+            <label class="label" for="bulk-del-password">Kata laluan</label>
             <input id="bulk-del-password" class="input" type="password" autocomplete="current-password">
             <p class="hint">Diperlukan untuk mengesahkan tindakan ini.</p>
           </div>

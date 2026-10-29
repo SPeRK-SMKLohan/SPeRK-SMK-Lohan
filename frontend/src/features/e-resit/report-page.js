@@ -25,22 +25,21 @@ export function renderCoopReport(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Laporan koperasi</h1>
-      <p class="lede">Ringkasan jualan berdasarkan resit yang telah dikeluarkan.</p>
     </div>
 
     <section class="card no-print" style="margin-bottom:var(--s4)" aria-label="Penapis laporan">
       <div class="filter-bar">
         <div class="field" style="grid-column:1/-1">
-          <label class="label" for="report-q">Cari resit atau nama murid <span class="optional">(pilihan)</span></label>
+          <label class="label" for="report-q">Cari resit atau murid</label>
           <input id="report-q" class="input" type="search" autocomplete="off"
-                 placeholder="Contoh: 2026-000001 atau Ahmad">
+                 placeholder="No. resit atau nama">
         </div>
         <div class="field">
-          <label class="label" for="report-from">Dari tarikh</label>
+          <label class="label" for="report-from">Dari</label>
           <input id="report-from" class="input" type="date">
         </div>
         <div class="field">
-          <label class="label" for="report-to">Hingga tarikh</label>
+          <label class="label" for="report-to">Hingga</label>
           <input id="report-to" class="input" type="date">
         </div>
         <div class="field">
@@ -75,7 +74,7 @@ export function renderCoopReport(root) {
         <h2>Butiran resit</h2>
         <button id="report-csv" class="btn secondary sm" type="button" disabled>Muat turun CSV</button>
       </div>
-      <div id="report-rows">${loadingState("Sedang mendapatkan laporan…")}</div>
+      <div id="report-rows">${loadingState("Memuatkan laporan…")}</div>
     </section>`;
 
   const $ = (sel) => root.querySelector(sel);
@@ -95,8 +94,7 @@ export function renderCoopReport(root) {
     reportRows = rows;
     if (!rows.length) {
       $("#report-rows").innerHTML = `<div class="record-empty">
-        <p>Tiada resit sepadan dengan carian dan penapis ini.</p>
-        <p class="muted tiny">Cuba julat tarikh yang lebih luas, atau kosongkan carian.</p>
+        <p>Tiada resit. Luaskan tarikh atau ubah carian.</p>
       </div>`;
       $("#report-csv").disabled = true;
       return;
@@ -131,7 +129,7 @@ export function renderCoopReport(root) {
   async function load() {
     const mine = ++seq;
     $("#report-message").textContent = "Memuatkan laporan…";
-    $("#report-rows").innerHTML = loadingState("Sedang mendapatkan laporan koperasi…");
+    $("#report-rows").innerHTML = loadingState("Memuatkan laporan…");
     $("#report-warning").innerHTML = "";
 
     try {
@@ -176,8 +174,8 @@ export function renderCoopReport(root) {
           <div class="status-body">
             <strong class="status-title">Laporan mencapai had ${LIMIT} resit</strong>
             <span class="status-text">${filteredView
-              ? "Penapis bayaran hanya digunakan pada 500 resit terkini, jadi jumlah di atas mungkin kurang daripada sebenar. Pilih tempoh tarikh yang lebih pendek."
-              : "Pilih tempoh tarikh yang lebih pendek untuk melihat semua rekod."}</span>
+              ? "Penapis hanya meliputi 500 resit terkini. Pilih tarikh lebih pendek untuk jumlah tepat."
+              : "Pilih tarikh lebih pendek untuk melihat semua rekod."}</span>
           </div>
         </div>`;
       }
@@ -188,7 +186,7 @@ export function renderCoopReport(root) {
         $(`#${id}`).textContent = "—";
       }
       $("#report-csv").disabled = true;
-      $("#report-message").textContent = "Laporan tidak dapat dimuatkan. Tarikh dan penapis anda masih tersimpan.";
+      $("#report-message").textContent = "Laporan gagal dimuatkan. Penapis dikekalkan.";
       $("#report-rows").innerHTML = readErrorState(error, "Laporan");
       wireReadRetry(root, load);
     }

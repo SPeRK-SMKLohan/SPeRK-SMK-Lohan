@@ -14,8 +14,8 @@ export function readErrorState(error, subject = "Maklumat", retryLabel = "Cuba s
   const connectionIssue = !error?.status || /rangkaian|internet|terlalu lama|sambungan/i.test(message);
   const title = connectionIssue ? "Sambungan terganggu" : `${subject} belum dapat dimuatkan`;
   const guidance = connectionIssue
-    ? "Semak sambungan internet anda. Pilihan yang telah dibuat masih disimpan."
-    : "Cuba semula. Jika masalah berterusan, maklumkan pentadbir sistem.";
+    ? "Semak internet. Pilihan dikekalkan."
+    : "Cuba lagi. Jika masih gagal, hubungi pentadbir.";
 
   return `<div class="fail" role="alert">
     <strong class="fail-title">${esc(title)}</strong>

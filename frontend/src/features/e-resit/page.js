@@ -27,7 +27,6 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Jana resit koperasi</h1>
-      <p class="lede">Pilih murid, tambah barangan, pilih bayaran, kemudian simpan.</p>
     </div>
 
     <ol class="steps" id="steps" aria-label="Langkah menjana resit">
@@ -39,25 +38,25 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
     <section class="step-block" id="step-1">
       <h2><span class="step-num">1</span> Pilih murid</h2>
-      <p class="step-help">Cari menggunakan nama atau sekurang-kurangnya 2 digit No. IC.</p>
+      <p class="step-help">Cari nama atau 2 digit terakhir No. IC.</p>
       <div id="student-box"></div>
     </section>
 
     <section class="step-block" id="step-2" hidden>
       <h2><span class="step-num">2</span> Pilih barangan</h2>
-      <p class="step-help">Tambah setiap barangan yang dibeli. Kuantiti boleh diubah kemudian.</p>
-      <div id="items-box">${loadingState("Sedang mendapatkan senarai barangan…")}</div>
+      <p class="step-help">Tambah barangan dan laras kuantiti.</p>
+      <div id="items-box">${loadingState("Memuatkan barangan…")}</div>
     </section>
 
     <section class="step-block" id="step-3" hidden>
       <h2><span class="step-num">3</span> Pilih bayaran</h2>
-      <p class="step-help">Pilih tunai atau pindahan bank. Pindahan bank memerlukan nombor rujukan.</p>
+      <p class="step-help">Pindahan bank memerlukan nombor rujukan.</p>
       <div id="payment-box"></div>
     </section>
 
     <section class="step-block" id="step-4" hidden>
       <h2><span class="step-num">4</span> Semak dan simpan</h2>
-      <p class="step-help">Pastikan nama murid dan jumlah betul sebelum menyimpan.</p>
+      <p class="step-help">Semak nama murid dan jumlah.</p>
       <div id="summary-box"></div>
     </section>
 
@@ -66,7 +65,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         <div class="trolley-info">
           <span class="trolley-label">Jumlah resit</span>
           <strong class="trolley-total" id="trolley-total">RM0.00</strong>
-          <span class="trolley-note" id="trolley-note" role="status" aria-live="polite">Pilih murid untuk bermula.</span>
+          <span class="trolley-note" id="trolley-note" role="status" aria-live="polite">Pilih murid.</span>
         </div>
         <button id="save" class="btn primary lg" type="button" disabled>Simpan Resit</button>
       </div>
@@ -110,11 +109,11 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     });
 
     trolleyNote.textContent = !hasStudent
-      ? "Pilih murid untuk bermula."
+      ? "Pilih murid."
       : !hasLines
-        ? "Seterusnya, tambah barangan."
+        ? "Tambah barangan."
         : !confirmed
-          ? "Sahkan pembayaran di langkah 4."
+          ? "Sahkan bayaran di langkah 4."
           : "Sedia untuk disimpan.";
   }
 
@@ -191,7 +190,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
                 <span class="sr-name">${esc(s.name)}</span>
                 <span class="sr-meta">${esc(s.icMasked)} · ${esc(s.formerPrimarySchool)}</span>
               </button>`).join("")
-            : `<p class="muted tiny">Tiada murid sepadan. Semak ejaan atau nombor IC.</p>`;
+            : `<p class="muted tiny">Tiada murid sepadan. Semak nama atau No. IC.</p>`;
         } catch (err) {
           if (mine !== seq) return;
           const offline = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
@@ -230,7 +229,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     if (!items.length) {
       itemsBox.innerHTML = `<div class="record-empty">
         <p>Tiada barangan aktif untuk dipilih.</p>
-        <p class="muted tiny">Hubungi pentadbir koperasi untuk mengaktifkan barangan.</p>
+          <p class="muted tiny">Hubungi pentadbir koperasi.</p>
       </div>`;
       return;
     }
@@ -312,7 +311,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         <label class="label" for="bankref">No. rujukan pindahan</label>
         <input id="bankref" class="input" type="text" autocomplete="off" maxlength="60"
                placeholder="Contoh: MBB2026010112345" value="${esc(bankRef)}">
-        <p class="hint">Salin nombor rujukan daripada slip atau penyata bank.</p>
+        <p class="hint">Rujuk slip atau penyata bank.</p>
       </div>`;
 
     paymentBox.querySelectorAll("input[name=pay]").forEach((el) => {
@@ -387,13 +386,13 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         <div class="total-line">
           <span class="label">Jumlah keseluruhan</span>
           <span class="value">${formatRM(total)}</span>
-        </div>` : `<p class="muted">Belum ada barangan. Tambah di langkah 2.</p>`}
+        </div>` : `<p class="muted">Belum ada barangan.</p>`}
 
       <label class="choice" style="margin-top:var(--s4)">
         <input type="checkbox" id="confirm"${confirmed ? " checked" : ""}>
         <span class="choice-body">
           <span class="choice-title">Pembayaran telah disahkan</span>
-          <span class="choice-note">Saya telah menerima bayaran mengikut prosedur koperasi.</span>
+          <span class="choice-note">Bayaran diterima mengikut prosedur koperasi.</span>
         </span>
       </label>
 
@@ -467,7 +466,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
   /* ----- items load ----- */
   async function loadItems() {
-    itemsBox.innerHTML = loadingState("Sedang mendapatkan senarai barangan…");
+    itemsBox.innerHTML = loadingState("Memuatkan barangan…");
     try {
       const data = await getItems();
       items = data.items.filter((i) => i.active);

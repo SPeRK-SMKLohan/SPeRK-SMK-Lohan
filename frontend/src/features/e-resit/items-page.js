@@ -8,16 +8,14 @@ import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedba
 export function renderItems(root) {
   root.innerHTML = `
     <div class="page-head">
-      <h1>Barangan koperasi</h1>
-      <p class="lede">Senarai harga yang diluluskan pihak sekolah. Harga ini digunakan
-        secara automatik semasa menjana resit.</p>
+      <h1>Harga barangan</h1>
     </div>
-    <div id="box">${loadingState("Sedang mendapatkan senarai barangan…")}</div>`;
+    <div id="box">${loadingState("Memuatkan barangan…")}</div>`;
 
   const box = root.querySelector("#box");
 
   async function load() {
-    box.innerHTML = loadingState("Sedang mendapatkan senarai barangan…");
+    box.innerHTML = loadingState("Memuatkan barangan…");
     try {
       const { items } = await getItems();
 
@@ -33,7 +31,7 @@ export function renderItems(root) {
               <div class="record-main">
                 <p class="record-name">${esc(i.name)}</p>
                 <div class="record-meta">
-                  <span>${i.fixedQuantity ? `Kuantiti tetap ${i.fixedQuantity}` : "Kuantiti boleh dipilih"}</span>
+                  <span>${i.fixedQuantity ? `Kuantiti tetap: ${i.fixedQuantity}` : "Kuantiti boleh dipilih"}</span>
                   ${i.active ? "" : `<span class="pill warn">Tidak aktif</span>`}
                 </div>
               </div>

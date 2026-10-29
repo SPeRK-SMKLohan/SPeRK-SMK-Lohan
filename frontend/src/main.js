@@ -10,20 +10,20 @@ import { renderLogin } from "./pages/login.js";
 const NAV = [
   { path: "/", label: "Utama", title: "Utama" },
   { path: "/pendaftaran", label: "Pendaftaran", title: "Pendaftaran murid" },
-  { path: "/jana-resit", label: "Jana Resit", title: "Jana resit koperasi" },
+  { path: "/jana-resit", label: "Resit", title: "Jana resit koperasi" },
   { path: "/laporan-koperasi", label: "Laporan", title: "Laporan koperasi" },
 ];
 
 // Everything else stays reachable: home page tools, footer, and the menu.
 const TOOLS = [
-  { path: "/import", label: "Import Data", desc: "Muat naik senarai murid dari fail Excel" },
-  { path: "/barangan", label: "Barangan", desc: "Senarai harga barangan koperasi" },
-  { path: "/panduan", label: "Panduan", desc: "Arahan ringkas untuk guru" },
+  { path: "/import", label: "Import senarai" },
+  { path: "/barangan", label: "Harga barangan" },
+  { path: "/panduan", label: "Panduan" },
 ];
 
 const MENU_GROUPS = [
   { title: "Kerja harian", items: NAV },
-  { title: "Alat lain", items: TOOLS },
+  { title: "Lagi", items: TOOLS },
 ];
 
 const routes = {

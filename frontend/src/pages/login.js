@@ -7,9 +7,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validate({ email, password }) {
   const errors = {};
-  if (!email) errors.email = "Sila isi e-mel sekolah anda.";
-  else if (!EMAIL_RE.test(email)) errors.email = "E-mel tidak lengkap. Contoh: nama@sekolah.edu.my";
-  if (!password) errors.password = "Sila isi kata laluan anda.";
+  if (!email) errors.email = "Masukkan e-mel sekolah.";
+  else if (!EMAIL_RE.test(email)) errors.email = "Format e-mel tidak sah.";
+  if (!password) errors.password = "Masukkan kata laluan.";
   return errors;
 }
 
@@ -30,7 +30,6 @@ export function renderLogin(root) {
     <main class="login-page">
       <form id="login-form" class="card login-card" novalidate>
         <h1>Log masuk</h1>
-        <p class="lede">Masukkan e-mel sekolah dan kata laluan anda.</p>
         <div id="login-alert" role="alert" aria-live="assertive"></div>
 
         <div class="field">
@@ -56,8 +55,8 @@ export function renderLogin(root) {
         <button class="btn primary lg block" type="submit">Log masuk</button>
 
         <div class="login-help">
-          <a href="#/panduan">Buka panduan penggunaan</a>
-          <span class="subtle tiny">Lupa kata laluan? Hubungi pentadbir sistem.</span>
+          <a href="#/panduan">Panduan</a>
+          <span class="subtle tiny">Lupa kata laluan? Hubungi pentadbir.</span>
         </div>
       </form>
     </main>`;
