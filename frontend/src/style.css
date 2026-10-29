@@ -1217,25 +1217,41 @@ dialog.modal > form {
 
 /* 17 Registration ---------------------------------------------------------- */
 
-.school-picker {
-  display: flex;
+.registration-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, .8fr) minmax(250px, 1fr) max-content max-content max-content;
+  grid-template-areas: "school search search search search" "status status count new more";
   align-items: end;
-  justify-content: space-between;
-  gap: var(--s3) var(--s5);
-  padding-bottom: var(--s4);
-  margin-bottom: var(--s4);
-  border-bottom: 1px solid var(--line);
+  gap: var(--s3);
+  margin-bottom: var(--s3);
 }
-.school-picker .field { flex: 0 1 440px; margin: 0; }
+.registration-school-field { grid-area: school; min-width: 0; margin: 0; }
 .school-select { width: 100%; }
-.school-prompt { margin: 0 0 var(--s2); color: var(--ink-3); font-size: .9375rem; }
+.registration-search { grid-area: search; min-width: 0; }
+.registration-status-filter { grid-area: status; display: flex; width: 100%; max-width: none; }
+.registration-status-filter button { flex: 1 1 0; min-width: 0; padding-inline: var(--s2); white-space: nowrap; }
+.registration-count { grid-area: count; align-self: center; margin: 0; text-align: right; white-space: nowrap; }
+.registration-new { grid-area: new; white-space: nowrap; }
+.registration-more { grid-area: more; margin-left: 0; align-self: center; }
+.registration-toolbar .search .input { width: 100%; }
+
+@media (max-width: 1080px) {
+  .registration-toolbar {
+    grid-template-columns: minmax(190px, .8fr) minmax(240px, 1fr) max-content;
+    grid-template-areas: "school search search" "status status new" "count count more";
+  }
+}
+@media (max-width: 760px) {
+  .registration-toolbar {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas: "school school" "search search" "status status" "count new" "more more";
+  }
+  .registration-status-filter button { padding-inline: var(--s3); }
+  .registration-more { justify-self: end; }
+}
 .school-grid { display: grid; gap: var(--s2); grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .school-grid .chip { justify-content: center; text-align: center; }
 
-.list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
-.list-toolbar .search { flex: 1 1 100%; }
-.list-toolbar .seg { flex: 1 1 100%; max-width: 100%; }
-.list-toolbar .seg button { flex: 1 1 auto; }
 .list-more { position: relative; margin-left: auto; }
 .list-more summary { cursor: pointer; list-style: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 var(--s3); border: 1px solid var(--line-strong); border-radius: var(--r-sm); font-weight: 600; }
 .list-more summary::-webkit-details-marker { display: none; }
@@ -1763,9 +1779,6 @@ body.has-trolley .page { padding-bottom: 9rem; }
   h1 { font-size: 1.75rem; }
   .home-hero h1 { font-size: 1.625rem; }
   .card, .step-block { padding: var(--s4); }
-  .school-picker { align-items: stretch; flex-direction: column; }
-  .school-picker .field { flex-basis: auto; }
-  .school-prompt { margin: 0; }
   .record-actions { justify-content: stretch; }
   .record-actions .btn { flex: 0 0 auto; }
   .item-row { grid-template-columns: minmax(0, 1fr) auto; }
@@ -1799,10 +1812,9 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .footer-links { display: none; }
   .site-footer-in { justify-content: flex-end; }
   .school-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* Filters keep their natural width and wrap onto another row rather than
-     squeezing "Sudah daftar" into a two-line button. */
-  .list-toolbar .seg { display: flex; }
-  .list-toolbar .seg button { flex: 0 1 auto; min-width: max-content; padding: 0 var(--s3); font-size: 0.9375rem; }
+  /* Keep each registration status label on one line at phone widths. */
+  .registration-status-filter { gap: 2px; }
+  .registration-status-filter button { flex-basis: auto; min-width: max-content; padding: 0 var(--s2); font-size: 0.875rem; }
   .school-grid .chip { min-height: 52px; padding: var(--s2) var(--s3); font-size: 0.9375rem; }
 }
 

@@ -26,33 +26,29 @@ export function renderRegistration(root) {
     </div>
 
     <section class="card registration-card">
-      <div class="school-picker">
-        <div class="field">
+      <div class="registration-toolbar">
+        <div class="field registration-school-field">
           <label class="label" for="schools">Sekolah rendah asal</label>
           <select class="select school-select" id="schools">
-            <option value="">Pilih sekolah rendah</option>
+            <option value="">Pilih sekolah</option>
             ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
           </select>
         </div>
-        <p class="school-prompt" id="school-prompt">Pilih sekolah untuk mencari dan mengurus murid.</p>
-      </div>
-
-      <div id="list-content" hidden>
-      <div class="list-toolbar">
-        <label class="search">
+        <label class="search registration-search">
           <span class="sr-only">Cari murid</span>
           <input id="q" class="input" type="search" autocomplete="off"
                  placeholder="Nama atau No. IC"
-                 aria-label="Cari nama atau nombor IC murid">
+                 aria-label="Cari nama atau nombor IC murid" disabled>
           <button id="clear-search" class="clear" type="button" hidden>Kosongkan</button>
         </label>
-        <div class="seg" id="status-filter" role="group" aria-label="Tapis status daftar">
-          <button type="button" data-status="" aria-pressed="true">Semua</button>
+        <div class="seg registration-status-filter" id="status-filter" role="group" aria-label="Tapis status daftar">
+          <button type="button" data-status="" aria-pressed="true" disabled>Semua</button>
           ${registrationStatusOptions.map((o) => `
-            <button type="button" data-status="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
+            <button type="button" data-status="${o.value}" aria-pressed="false" disabled>${o.label}</button>`).join("")}
         </div>
-        <button id="new" class="btn primary" type="button">+ Murid baharu</button>
-        <details class="list-more">
+        <p class="list-count registration-count" id="count" role="status" aria-live="polite"></p>
+        <button id="new" class="btn primary registration-new" type="button" disabled>+ Murid baharu</button>
+        <details class="list-more registration-more" id="list-more" hidden>
           <summary>Lagi</summary>
           <div class="list-more-menu">
             <button id="refresh" class="btn secondary" type="button">Muat semula</button>
@@ -62,8 +58,7 @@ export function renderRegistration(root) {
         </details>
       </div>
 
-      <p class="list-count" id="count" role="status" aria-live="polite"></p>
-
+      <div id="list-content" hidden>
       <div id="bulk-bar" class="bulk-bar" hidden>
         <span id="bulk-count">0 dipilih</span>
         <span class="spacer"></span>
@@ -244,7 +239,6 @@ export function renderRegistration(root) {
   const transferNotesEl = $("#f-transfer-notes");
 
   const listContent = $("#list-content");
-  const schoolPrompt = $("#school-prompt");
   const rowsEl = $("#rows");
   const countEl = $("#count");
   const schoolEl = $("#schools");
@@ -327,7 +321,10 @@ export function renderRegistration(root) {
     } catch { /* storage may be blocked; the session still works */ }
 
     listContent.hidden = !selectedSchool;
-    schoolPrompt.hidden = Boolean(selectedSchool);
+    qEl.disabled = !selectedSchool;
+    statusFilter.querySelectorAll("button").forEach((button) => { button.disabled = !selectedSchool; });
+    $("#new").disabled = !selectedSchool;
+    $("#list-more").hidden = !selectedSchool;
     if (!selectedSchool) {
       rowsEl.innerHTML = "";
       countEl.textContent = "";
@@ -928,7 +925,10 @@ export function renderRegistration(root) {
 
   schoolEl.value = selectedSchool;
   listContent.hidden = !selectedSchool;
-  schoolPrompt.hidden = Boolean(selectedSchool);
+  qEl.disabled = !selectedSchool;
+  statusFilter.querySelectorAll("button").forEach((button) => { button.disabled = !selectedSchool; });
+  $("#new").disabled = !selectedSchool;
+  $("#list-more").hidden = !selectedSchool;
   if (selectedSchool) {
     load();
   }
