@@ -22,15 +22,11 @@ export function renderRegistration(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Pendaftaran murid</h1>
-      <p class="lede">Pilih sekolah rendah, cari murid Tingkatan 1, kemudian tekan
-        <strong>Tanda daftar</strong>.</p>
+      <p class="lede">Urus pendaftaran murid Tingkatan 1.</p>
     </div>
 
     <section class="card school-step">
-      <h2 class="label">1. Pilih sekolah rendah</h2>
-      <p class="hint" style="margin-top:0;margin-bottom:var(--s3)">
-        Senarai murid akan dipaparkan selepas sekolah dipilih.
-      </p>
+      <h2 class="label">Sekolah rendah asal</h2>
       <div class="school-grid" id="schools" role="group" aria-label="Sekolah rendah asal">
         ${schools.map((s) => `
           <button class="chip" type="button" data-school="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join("")}
@@ -53,9 +49,14 @@ export function renderRegistration(root) {
           ${registrationStatusOptions.map((o) => `
             <button type="button" data-status="${o.value}" aria-pressed="false">${o.label}</button>`).join("")}
         </div>
-        <button id="refresh" class="btn secondary" type="button">Muat semula</button>
-        <button id="export-csv" class="btn secondary" type="button">Muat turun CSV</button>
         <button id="new" class="btn primary" type="button">+ Murid baharu</button>
+        <details class="list-more">
+          <summary>Lagi</summary>
+          <div class="list-more-menu">
+            <button id="refresh" class="btn secondary" type="button">Muat semula</button>
+            <button id="export-csv" class="btn secondary" type="button">Muat turun CSV</button>
+          </div>
+        </details>
       </div>
 
       <p class="list-count" id="count" role="status" aria-live="polite"></p>
@@ -67,7 +68,20 @@ export function renderRegistration(root) {
         <button id="bulk-del" class="btn danger sm" type="button">Padam murid terpilih</button>
       </div>
 
-      <ul class="record-list" id="rows" aria-label="Senarai murid"></ul>
+      <div class="table-wrap student-table-wrap">
+        <table class="table student-table">
+          <caption class="sr-only">Senarai murid Tingkatan 1</caption>
+          <thead><tr>
+            <th class="student-check-cell" scope="col"><span class="sr-only">Pilih</span></th>
+            <th scope="col">Nama murid</th>
+            <th scope="col">No. IC</th>
+            <th scope="col">Sekolah rendah asal</th>
+            <th scope="col">Status daftar</th>
+            <th scope="col"><span class="sr-only">Tindakan</span></th>
+          </tr></thead>
+          <tbody id="rows" aria-label="Senarai murid"></tbody>
+        </table>
+      </div>
 
       <div id="pager" class="pager" hidden>
         <button id="btn-prev" class="btn secondary" type="button">‹ Sebelumnya</button>
@@ -356,30 +370,24 @@ export function renderRegistration(root) {
       ? `<button class="btn secondary" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>Batal daftar</button>`
       : `<button class="btn ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
 
-    return `<li class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
-      <input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
-             aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}>
-      <div class="record-main">
-        <p class="record-name">${esc(s.name)}${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</p>
-        <div class="record-meta">
-          <span class="num">${esc(s.icMasked)}</span>
-          <span>${esc(s.formerPrimarySchool)}</span>
-          ${s.transferSchool ? `<span>Pindah: ${esc(s.transferSchool)}</span>` : ""}
-          ${statusCell(s)}
-        </div>
-      </div>
-      <div class="record-actions">
+    return `<tr class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
+      <td class="student-check-cell"><input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
+             aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}></td>
+      <td><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</td>
+      <td class="num">${esc(s.icMasked)}</td>
+      <td>${esc(s.formerPrimarySchool)}${s.transferSchool ? `<span class="student-note">Pindah: ${esc(s.transferSchool)}</span>` : ""}</td>
+      <td class="student-status">${statusCell(s)}</td>
+      <td><div class="record-actions">
         ${action}
         <button class="btn secondary" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
-      </div>
-    </li>`;
+      </div></td>
+    </tr>`;
   }
 
   function renderRows() {
     if (loading) {
-      rowsEl.innerHTML = `<li class="loading" role="status">
-        <span class="spinner" aria-hidden="true"></span>
-        <span>Memuatkan senarai untuk ${esc(selectedSchool)}…</span></li>`;
+      rowsEl.innerHTML = `<tr><td class="student-table-message" colspan="6"><span class="spinner" aria-hidden="true"></span>
+        Memuatkan senarai untuk ${esc(selectedSchool)}…</td></tr>`;
       return;
     }
     if (rows.length) {
@@ -400,7 +408,7 @@ export function renderRegistration(root) {
       body = `<p>Belum ada senarai murid untuk ${esc(selectedSchool)}.</p>
         <p><a class="btn secondary" href="#/import">Import senarai murid</a></p>`;
     }
-    rowsEl.innerHTML = `<li class="record-empty">${body}</li>`;
+    rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="6">${body}</td></tr>`;
   }
 
   function renderSummary(data) {
@@ -494,7 +502,7 @@ export function renderRegistration(root) {
         countEl.textContent = "";
         summaryEl.hidden = true;
         const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
-        rowsEl.innerHTML = `<li class="record-empty">
+        rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="6">
           <div class="fail" role="alert">
             <strong class="fail-title">${isConnectionError ? "Sambungan terganggu" : "Senarai belum dapat dimuatkan"}</strong>
             <span class="fail-text">${isConnectionError
@@ -502,7 +510,7 @@ export function renderRegistration(root) {
               : "Cuba semula sebentar lagi. Jika berterusan, maklumkan pentadbir sistem."}</span>
             <button class="btn primary" type="button" data-action="retry">Cuba semula</button>
           </div>
-        </li>`;
+        </td></tr>`;
       }
     }
   }
@@ -581,8 +589,8 @@ export function renderRegistration(root) {
       return;
     }
 
-    const li = btn.closest("li.record");
-    const s = rows.find((x) => x.studentId === li?.dataset.id);
+    const tr = btn.closest("tr.record");
+    const s = rows.find((x) => x.studentId === tr?.dataset.id);
     if (!s) return;
 
     if (action === "mark") return setStatus(s, "SUDAH");
@@ -616,12 +624,21 @@ export function renderRegistration(root) {
   }
 
   startSelectBtn.addEventListener("click", () => {
+    if (selecting) {
+      selecting = false;
+      selectedIds.clear();
+      rowsEl.classList.remove("selecting");
+      startSelectBtn.textContent = "Pilih murid untuk dipadam";
+      renderBulkBar();
+      return;
+    }
     if (!selectedSchool) {
       showStatus({ type: "warn", title: "Pilih sekolah dahulu", message: "Pilih sekolah rendah sebelum memilih murid untuk dipadam." });
       return;
     }
     selecting = true;
     rowsEl.classList.add("selecting");
+    startSelectBtn.textContent = "Tutup mod pilih";
     adminPanel.open = false;
     showStatus({
       type: "info",
@@ -933,6 +950,7 @@ export function renderRegistration(root) {
       renderBulkBar();
       selecting = false;
       rowsEl.classList.remove("selecting");
+      startSelectBtn.textContent = "Pilih murid untuk dipadam";
       showStatus({ type: "ok", title: "Murid dipadam", message: `${n} murid telah dibuang daripada senarai.` });
       await load();
     } catch (err) {
