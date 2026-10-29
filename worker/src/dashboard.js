@@ -70,36 +70,45 @@ async function computeDashboard(env) {
     }),
   ]);
 
-  const tingkatanOne = students.filter((s) => s.tingkatan === 1);
-  const registered = tingkatanOne.filter((s) => s.registrationStatus === "SUDAH").length;
-  const registrationBySchool = SCHOOLS
-    .slice()
-    .sort((a, b) => a.localeCompare(b, "ms"))
-    .map((school) => {
-      const schoolStudents = tingkatanOne.filter((s) => s.formerPrimarySchool === school);
-      const schoolRegistered = schoolStudents.filter((s) => s.registrationStatus === "SUDAH").length;
-      return {
-        school,
-        registered: schoolRegistered,
-        notRegistered: schoolStudents.length - schoolRegistered,
-        total: schoolStudents.length,
-      };
-    });
-  const koperasiStudents = tingkatanOne.filter((s) => s.koperasiMember === true).length;
+  const schools = new Map(SCHOOLS.map((school) => [school, { registered: 0, total: 0 }]));
+  let activeStudents = 0;
+  let registered = 0;
+  let koperasiStudents = 0;
+  let registeredTodayCount = 0;
 
-  // Kemajuan hari pendaftaran: murid yang ditandakan hadir hari ini (masa Malaysia).
+  // Ringkasan dikira dalam satu laluan merentasi cache murid.
   const startMs = start.getTime();
   const endMs = startMs + DAY_MS;
-  const registeredTodayCount = tingkatanOne.filter((s) => {
-    if (s.registrationStatus !== "SUDAH" || !s.registeredAt) return false;
-    const t = new Date(s.registeredAt).getTime();
-    return t >= startMs && t < endMs;
-  }).length;
+  for (const student of students) {
+    if (student.tingkatan !== 1) continue;
+    activeStudents++;
+    const isRegistered = student.registrationStatus === "SUDAH";
+    if (isRegistered) registered++;
+    if (student.koperasiMember === true) koperasiStudents++;
+    const school = schools.get(student.formerPrimarySchool);
+    if (school) {
+      school.total++;
+      if (isRegistered) school.registered++;
+    }
+    if (isRegistered && student.registeredAt) {
+      const time = new Date(student.registeredAt).getTime();
+      if (time >= startMs && time < endMs) registeredTodayCount++;
+    }
+  }
+
+  const registrationBySchool = [...schools]
+    .sort(([a], [b]) => a.localeCompare(b, "ms"))
+    .map(([school, counts]) => ({
+      school,
+      registered: counts.registered,
+      notRegistered: counts.total - counts.registered,
+      total: counts.total,
+    }));
 
   return {
-    activeStudents: tingkatanOne.length,
+    activeStudents,
     registeredStudents: registered,
-    notRegisteredStudents: tingkatanOne.length - registered,
+    notRegisteredStudents: activeStudents - registered,
     registrationBySchool,
     registeredTodayCount,
     koperasiStudents,

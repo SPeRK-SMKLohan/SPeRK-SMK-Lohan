@@ -56,7 +56,9 @@ const SYNC_INTERVAL_MS = 30_000;      // sejajar penyegaran kaunter; kurangkan b
 const SHARED_MAX_AGE_S = 3 * 3600;    // hayat entri Cache API (3 jam)
 const SLACK_MS = 10_000;              // toleransi susunan commit untuk delta
 const SHARED_KEY = "https://sperk-cache.internal/students-active-v2";
+const SHARED_GEN_KEY = "https://sperk-cache.internal/students-active-gen-v2";
 const sharedRequest = () => new Request(SHARED_KEY);
+const sharedGenRequest = () => new Request(SHARED_GEN_KEY);
 
 let mem = { data: null, checkedAt: 0, gen: 0 };
 let pending = null;
@@ -79,6 +81,20 @@ async function readShared() {
   }
 }
 
+// Isolate yang sudah panas hanya perlu membaca penanda kecil ini untuk
+// mengesan import/padam. Jangan muat turun dan parse senarai penuh murid bagi
+// setiap carian atau penukaran halaman.
+async function readSharedGen() {
+  try {
+    const hit = await caches.default.match(sharedGenRequest());
+    if (!hit) return null;
+    const parsed = await hit.json();
+    return typeof parsed?.gen === "number" ? parsed.gen : null;
+  } catch {
+    return null;
+  }
+}
+
 async function writeShared(state) {
   try {
     await caches.default.put(
@@ -87,6 +103,10 @@ async function writeShared(state) {
         { data: state.data, checkedAt: state.checkedAt, gen: state.gen ?? 0 },
         { headers: { "Cache-Control": `max-age=${SHARED_MAX_AGE_S}` } }
       )
+    );
+    await caches.default.put(
+      sharedGenRequest(),
+      Response.json({ gen: state.gen ?? 0 }, { headers: { "Cache-Control": `max-age=${SHARED_MAX_AGE_S}` } })
     );
   } catch {
     /* Cache API tidak tersedia (contoh: ujian tempatan). */
@@ -125,6 +145,14 @@ function mergeList(base, changed) {
 
 async function syncOne(env) {
   const now = Date.now();
+
+  // Laluan biasa: cache isolate masih segar dan tiada perubahan global.
+  // Penanda beberapa bait jauh lebih murah daripada membaca keseluruhan JSON.
+  if (mem.data && now - mem.checkedAt < SYNC_INTERVAL_MS) {
+    const sharedGen = await readSharedGen();
+    if (sharedGen === null || sharedGen === (mem.gen ?? 0)) return mem.data;
+  }
+
   const shared = await readShared();
 
   // Isolate lain telah melupuskan cache (import/padam). Jangan gabungkan delta ke senarai lapuk.

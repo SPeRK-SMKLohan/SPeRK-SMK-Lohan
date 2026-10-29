@@ -148,45 +148,53 @@ export async function listStudents(env, url) {
   const words = tokens.filter((t) => !/^\d+$/.test(t));
   const digits = tokens.filter((t) => /^\d+$/.test(t)).join("");
 
-  const all = (await getActiveStudents(env)).filter((s) => s.tingkatan === TINGKATAN_ONLY);
-  const matched = all.filter((s) => {
-    if (school && s.formerPrimarySchool !== school) return false;
-    if (tingkatan && String(s.tingkatan ?? "") !== tingkatan) return false;
-    if (status && s.registrationStatus !== status) return false;
-    if (!words.every((w) => s.name.toLowerCase().includes(w))) return false;
-    if (digits.length >= 2 && !String(s.icNumber).replace(/\D/g, "").includes(digits)) return false;
-    return true;
-  });
+  const all = await getActiveStudents(env);
+  const matched = [];
+  let totalActive = 0;
+  let registered = 0;
+  let registeredToday = 0;
+  let schoolTotal = 0;
+  let schoolRegistered = 0;
+  const startMs = myDayStart(myDateKey()).getTime();
+  const endMs = startMs + DAY_MS;
+
+  // Count summaries and apply filters in one pass. The former implementation
+  // created several full-list arrays before sorting the visible results.
+  for (const s of all) {
+    if (s.tingkatan !== TINGKATAN_ONLY) continue;
+    totalActive++;
+    const isRegistered = s.registrationStatus === "SUDAH";
+    if (isRegistered) registered++;
+    if (isRegistered && s.registeredAt) {
+      const time = new Date(s.registeredAt).getTime();
+      if (time >= startMs && time < endMs) registeredToday++;
+    }
+    if (school && s.formerPrimarySchool === school) {
+      schoolTotal++;
+      if (isRegistered) schoolRegistered++;
+    }
+
+    if (school && s.formerPrimarySchool !== school) continue;
+    if (tingkatan && String(s.tingkatan ?? "") !== tingkatan) continue;
+    if (status && s.registrationStatus !== status) continue;
+    if (!words.every((w) => s.name.toLowerCase().includes(w))) continue;
+    if (digits.length >= 2 && !String(s.icNumber).replace(/\D/g, "").includes(digits)) continue;
+    matched.push(s);
+  }
   // Hari pendaftaran disusun mengikut sekolah rendah supaya guru boleh
   // mengurus satu kumpulan sekolah pada satu masa.
   matched.sort((a, b) =>
     a.formerPrimarySchool.localeCompare(b.formerPrimarySchool, "ms") || a.name.localeCompare(b.name, "ms")
   );
 
-  // Ringkasan status daftar bagi keseluruhan senarai aktif (bukan hanya yang
-  // ditapis) — digunakan oleh penunjuk angka pada halaman e-Daftar.
-  const registered = all.filter((s) => s.registrationStatus === "SUDAH").length;
-
-  // Kemajuan hari pendaftaran: murid yang ditandakan hari ini (masa Malaysia).
-  const startMs = myDayStart(myDateKey()).getTime();
-  const endMs = startMs + DAY_MS;
-  const registeredToday = all.filter((s) => {
-    if (s.registrationStatus !== "SUDAH" || !s.registeredAt) return false;
-    const t = new Date(s.registeredAt).getTime();
-    return t >= startMs && t < endMs;
-  }).length;
-
-  const schoolStudents = school ? all.filter((s) => s.formerPrimarySchool === school) : [];
-  const schoolRegistered = schoolStudents.filter((s) => s.registrationStatus === "SUDAH").length;
-
   return {
     total: matched.length,
     registeredTotal: registered,
-    notRegisteredTotal: all.length - registered,
+    notRegisteredTotal: totalActive - registered,
     registeredTodayCount: registeredToday,
-    schoolTotal: schoolStudents.length,
+    schoolTotal,
     schoolRegisteredTotal: schoolRegistered,
-    schoolNotRegisteredTotal: schoolStudents.length - schoolRegistered,
+    schoolNotRegisteredTotal: schoolTotal - schoolRegistered,
     students: matched.slice(offset, offset + limit).map(publicStudent),
     offset,
     hasMore: offset + limit < matched.length,
