@@ -67,23 +67,5 @@ export async function renderHome(root) {
           }).join("")}</tbody>
         </table>
       </div>
-    </section>
-
-    <section class="card">
-      <div class="card-head"><h2>Lagi</h2></div>
-      <ul class="tool-list">
-        <li><a href="#/import">
-          <span><span>Import senarai murid</span></span>
-          <span aria-hidden="true">›</span>
-        </a></li>
-        <li><a href="#/barangan">
-          <span><span>Harga barangan</span></span>
-          <span aria-hidden="true">›</span>
-        </a></li>
-        <li><a href="#/panduan">
-          <span><span>Panduan</span></span>
-          <span aria-hidden="true">›</span>
-        </a></li>
-      </ul>
     </section>`;
 }

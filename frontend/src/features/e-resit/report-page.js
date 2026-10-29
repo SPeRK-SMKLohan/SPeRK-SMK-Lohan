@@ -1,4 +1,4 @@
-import { listReceipts } from "./api.js";
+import { getItems, listReceipts } from "./api.js";
 import { paymentLabel } from "./constants.js";
 import { formatRM } from "../../shared/money.js";
 import { esc } from "../../shared/dom.js";
@@ -21,7 +21,7 @@ function csvCell(value) {
   return `"${safe.replaceAll('"', '""')}"`;
 }
 
-export function renderCoopReport(root) {
+export function renderCoopReport(root, params = new URLSearchParams()) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Laporan koperasi</h1>
@@ -75,6 +75,11 @@ export function renderCoopReport(root) {
         <button id="report-csv" class="btn secondary sm" type="button" disabled>Muat turun CSV</button>
       </div>
       <div id="report-rows">${loadingState("Memuatkan laporan…")}</div>
+    </section>
+
+    <section class="card report-items" id="report-items" style="margin-top:var(--s4)">
+      <div class="card-head"><h2>Senarai harga barangan</h2></div>
+      <div id="report-items-box">${loadingState("Memuatkan senarai barangan…")}</div>
     </section>`;
 
   const $ = (sel) => root.querySelector(sel);
@@ -82,6 +87,30 @@ export function renderCoopReport(root) {
   const toInput = $("#report-to");
   const paymentInput = $("#report-payment");
   const qInput = $("#report-q");
+
+  async function loadItems() {
+    const box = $("#report-items-box");
+    try {
+      const { items } = await getItems();
+      box.innerHTML = items.length ? `
+        <ul class="record-list">
+          ${items.map((item) => `
+            <li class="record${item.active ? "" : " is-inactive"}">
+              <div class="record-main">
+                <p class="record-name">${esc(item.name)}</p>
+                <div class="record-meta">
+                  <span>${item.fixedQuantity ? `Kuantiti tetap: ${item.fixedQuantity}` : "Kuantiti boleh dipilih"}</span>
+                  ${item.active ? "" : '<span class="pill warn">Tidak aktif</span>'}
+                </div>
+              </div>
+              <strong class="num">${formatRM(item.priceSen)}</strong>
+            </li>`).join("")}
+        </ul>` : `<div class="record-empty"><p>Tiada barangan dalam senarai.</p></div>`;
+    } catch (error) {
+      box.innerHTML = readErrorState(error, "Senarai barangan");
+      wireReadRetry(box, loadItems);
+    }
+  }
 
   fromInput.value = `${todayKey().slice(0, 4)}-01-01`;
   toInput.value = todayKey();
@@ -221,4 +250,8 @@ export function renderCoopReport(root) {
   });
 
   load();
+  loadItems();
+  if (params.get("items") === "1") {
+    requestAnimationFrame(() => $("#report-items").scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
 }

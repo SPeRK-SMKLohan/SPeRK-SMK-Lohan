@@ -328,6 +328,55 @@ small { font-size: 0.875rem; }
 .nav a[aria-current="page"] { background: #fff; color: var(--brand-deep); }
 .nav a:focus-visible { box-shadow: 0 0 0 3px var(--brand-deep), 0 0 0 6px #fff; }
 
+.nav-more { position: relative; }
+.nav-more > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--s3);
+  border-radius: var(--r-sm);
+  color: rgba(255,255,255,.92);
+  font-size: .9375rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+.nav-more > summary::-webkit-details-marker { display: none; }
+.nav-more > summary::after { content: " ▾"; opacity: .8; }
+.nav-more[open] > summary, .nav-more > summary:hover { background: rgba(255,255,255,.14); color: #fff; }
+.nav-more > ul {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  margin: 0;
+  padding: var(--s2);
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.nav-more > ul a, .nav-more > ul .menu-logout {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: .9375rem;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-more > ul a:hover, .nav-more > ul .menu-logout:hover { background: var(--surface-3); }
+
 .btn-logout {
   min-height: 44px;
   padding: 0 var(--s4);
@@ -686,15 +735,31 @@ legend { font-size: 1rem; font-weight: 650; padding: 0; margin-bottom: var(--s2)
 
 /* 09 Record lists ---------------------------------------------------------- */
 
-.student-table { min-width: 1180px; table-layout: fixed; }
+.record-list { list-style: none; margin: 0; padding: 0; }
+.record-list .record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line);
+}
+.record-list .record:last-child { border-bottom: 0; }
+.record-main { min-width: 0; }
+.record-name { margin: 0; font-weight: 650; }
+.record-meta { display: flex; flex-wrap: wrap; gap: var(--s2); color: var(--ink-3); font-size: .875rem; }
+.record.is-inactive { opacity: .75; }
+.report-items .record > strong { flex: none; }
+
+.student-table { width: 100%; min-width: 0; table-layout: fixed; }
 .student-table th, .student-table td { padding: var(--s2) var(--s3); vertical-align: middle; }
-.student-table thead th { text-transform: none; letter-spacing: 0.02em; }
+.table.student-table thead th { text-transform: none; letter-spacing: 0.02em; white-space: normal; overflow-wrap: anywhere; }
 .student-table .student-check-cell { width: 4%; }
-.student-table .student-name-cell { width: 27%; }
-.student-table .student-ic-cell { width: 17%; white-space: nowrap; }
-.student-table .student-school-cell { width: 18%; }
+.student-table .student-name-cell { width: 25%; }
+.student-table .student-ic-cell { width: 15%; overflow-wrap: anywhere; }
+.student-table .student-school-cell { width: 18%; overflow-wrap: anywhere; }
 .student-table .student-status { width: 16%; }
-.student-table .student-actions-cell { width: 22%; text-align: right; white-space: nowrap; }
+.student-table .student-actions-cell { width: 22%; text-align: right; }
 .student-table tbody tr { background: var(--surface); }
 .student-table tbody tr:hover { background: var(--surface-2); }
 .student-table tbody tr.is-done { background: var(--ok-soft); }
@@ -705,8 +770,8 @@ legend { font-size: 1rem; font-weight: 650; padding: 0; margin-bottom: var(--s2)
 .student-check-cell { display: none; white-space: nowrap; }
 .student-table tbody.selecting .student-check-cell { display: table-cell; }
 .record-select { width: 22px; height: 22px; accent-color: var(--brand); }
-.record-actions { display: flex; flex-wrap: nowrap; gap: var(--s1); justify-content: flex-end; }
-.record-actions .btn { min-height: 38px; padding: var(--s1) var(--s2); font-size: 0.875rem; white-space: nowrap; }
+.record-actions { display: flex; flex-wrap: wrap; gap: var(--s1); justify-content: flex-end; }
+.record-actions .btn { min-height: 38px; padding: var(--s1) var(--s2); font-size: 0.875rem; white-space: normal; line-height: 1.25; }
 .student-table-message {
   padding: var(--s6) var(--s5) !important;
   text-align: center;
@@ -720,6 +785,7 @@ legend { font-size: 1rem; font-weight: 650; padding: 0; margin-bottom: var(--s2)
 /* 10 Tables ---------------------------------------------------------------- */
 
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.student-table-wrap { width: 100%; overflow-x: hidden; }
 
 .table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; background: var(--surface); }
 .table th, .table td { padding: var(--s3); text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -1557,6 +1623,65 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .login-page { grid-template-columns: minmax(0, 460px); }
   .import-grid { grid-template-columns: minmax(0, 1fr); }
   .trolley .btn { min-width: 0; flex: 1 1 100%; }
+}
+
+/* Keep student records readable on narrow screens without a sideways table. */
+@media (max-width: 760px) {
+  .student-table thead { display: none; }
+  .student-table tbody tr.record {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s2) var(--s3);
+    padding: var(--s3);
+    border-bottom: 1px solid var(--line-2);
+  }
+  .student-table tbody tr.record td {
+    display: block;
+    width: auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .student-table tbody tr.record .student-check-cell { display: none; }
+  .student-table tbody tr.record .student-name-cell,
+  .student-table tbody tr.record .student-actions-cell { grid-column: 1 / -1; }
+  .student-table tbody tr.record .student-ic-cell,
+  .student-table tbody tr.record .student-school-cell { grid-column: span 1; }
+  .student-table tbody tr.record .student-status {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2);
+  }
+  .student-ic-cell::before,
+  .student-school-cell::before,
+  .student-status::before {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--ink-3);
+    font-size: .75rem;
+    font-weight: 650;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .student-ic-cell::before { content: "No. IC"; }
+  .student-school-cell::before { content: "Sekolah rendah asal"; }
+  .student-status::before { content: "Status daftar"; flex-basis: 100%; }
+  .student-table tbody.selecting tr.record { grid-template-columns: 30px minmax(0, 1fr); }
+  .student-table tbody.selecting tr.record .student-check-cell {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1;
+    align-items: center;
+  }
+  .student-table tbody.selecting tr.record .student-name-cell { grid-column: 2; grid-row: 1; }
+  .student-table tbody.selecting tr.record .student-ic-cell,
+  .student-table tbody.selecting tr.record .student-school-cell,
+  .student-table tbody.selecting tr.record .student-status,
+  .student-table tbody.selecting tr.record .student-actions-cell { grid-column: 2; }
+  .student-table tbody.selecting tr.record .student-actions-cell .record-actions { justify-content: flex-start; }
 }
 
 @media (max-width: 640px) {

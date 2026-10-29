@@ -4,8 +4,7 @@ import { clearStatus } from "./shared/status.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
 
-/* SPeRK: two features share one student database.
-   Navigation is flat and visible — no dropdowns, no hover-only menus. */
+/* SPeRK: two features share one student database. */
 
 const NAV = [
   { path: "/", label: "Utama", title: "Utama" },
@@ -14,10 +13,9 @@ const NAV = [
   { path: "/laporan-koperasi", label: "Laporan", title: "Laporan koperasi" },
 ];
 
-// Everything else stays reachable: home page tools, footer, and the menu.
+// Secondary tools live in one compact menu so daily routes stay easy to scan.
 const TOOLS = [
   { path: "/import", label: "Import senarai" },
-  { path: "/barangan", label: "Harga barangan" },
   { path: "/panduan", label: "Panduan" },
 ];
 
@@ -31,7 +29,6 @@ const routes = {
   "/pendaftaran": () => import("./features/e-daftar/page.js").then((m) => m.renderRegistration),
   "/import": () => import("./features/e-daftar/import-page.js").then((m) => m.renderImportData),
   "/jana-resit": () => import("./features/e-resit/page.js").then((m) => m.renderNewReceipt),
-  "/barangan": () => import("./features/e-resit/items-page.js").then((m) => m.renderItems),
   "/laporan-koperasi": () => import("./features/e-resit/report-page.js").then((m) => m.renderCoopReport),
   "/panduan": () => import("./pages/guide.js").then((m) => m.renderGuide),
 };
@@ -42,6 +39,7 @@ const REDIRECTS = {
   "/e-daftar": "/pendaftaran",
   "/e-resit": "/jana-resit",
   "/sejarah": "/laporan-koperasi",
+  "/barangan": "/laporan-koperasi?items=1",
 };
 
 const app = document.querySelector("#app");
@@ -88,18 +86,6 @@ const brand = (href) => `
     </span>
   </a>`;
 
-function footerHtml() {
-  return `
-    <footer class="site-footer no-print">
-      <div class="site-footer-in">
-        <nav class="footer-links" aria-label="Pautan lain">
-          ${TOOLS.map((t) => `<a href="#${t.path}">${t.label}</a>`).join("")}
-        </nav>
-        <button class="btn-logout js-logout" type="button">Log Keluar</button>
-      </div>
-    </footer>`;
-}
-
 function shellHtml(path) {
   return `
     ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</div>` : ""}
@@ -110,6 +96,12 @@ function shellHtml(path) {
         ${brand("#/")}
         <nav class="nav" aria-label="Navigasi utama">
           ${NAV.map((item) => navLink(path, item)).join("")}
+          <details class="nav-more">
+            <summary>Lagi</summary>
+            <ul>${TOOLS.map((item) => menuLink(path, item)).join("")}
+              <li><button class="menu-logout js-logout" type="button">Log Keluar</button></li>
+            </ul>
+          </details>
         </nav>
         <button id="menu-toggle" class="menu-btn" type="button"
                 aria-expanded="false" aria-controls="mobile-menu">
@@ -134,7 +126,7 @@ function shellHtml(path) {
       <div id="page-body"></div>
     </main>
 
-    ${footerHtml()}`;
+    `;
 }
 
 /* Mobile menu: a full-screen list, opened by one button. Escape closes it and
@@ -202,7 +194,7 @@ async function renderPublicGuide(sequence) {
       <div id="status-region" class="status-region" role="status" aria-live="polite"></div>
       <div id="page-body"></div>
     </main>
-    ${footerHtml()}`;
+    `;
   document.title = `Panduan · ${APP_NAME}`;
   const body = app.querySelector("#page-body");
   try {

@@ -12,8 +12,9 @@ aplikasi.
 1. Buka laman SPeRK dan masukkan e-mel serta kata laluan akaun yang dibenarkan.
 2. Tekan **Log Masuk**.
 
-Menutup tab tidak melog keluar. Pada peranti yang dikongsi, tekan **Log
-Keluar** selepas selesai. Jangan simpan kata laluan pada peranti awam.
+Menutup tab tidak melog keluar. Pada peranti yang dikongsi, buka **Lagi** pada
+bar navigasi dan tekan **Log Keluar** selepas selesai. Jangan simpan kata
+laluan pada peranti awam.
 
 ## 2. Daftar murid mengikut sekolah rendah
 
@@ -28,6 +29,10 @@ sekolah rendah pada satu masa.
 4. Gunakan penapis untuk melihat murid yang sudah atau belum daftar. Senarai
    disegarkan secara automatik; **Muat semula** boleh digunakan untuk mencuba
    sekali lagi.
+
+Untuk memadam rekod, pilih sekolah dahulu, buka **Lagi** pada senarai murid,
+kemudian pilih **Padam murid**. Pilih rekod dan sahkan dengan kata laluan.
+Pemadaman kekal dan tidak boleh dibatalkan.
 
 Jika murid tiada dalam senarai, semak sekolah dan ejaan carian. Jika rekod
 memang belum ada, tambah melalui **Murid baharu** atau minta pentadbir menyemak
@@ -56,9 +61,9 @@ menolak murid selain Tingkatan 1.
 4. Semak nama murid dan jumlah, sahkan pembayaran, kemudian tekan **Simpan
    Resit**.
 
-Untuk menyemak atau mencetak resit lama, buka **Sejarah Resit**. Jika sambungan
-terputus semasa menyimpan, semak sejarah dahulu supaya resit tidak dijana dua
-kali.
+Untuk menyemak atau mencetak resit lama, buka **Laporan Koperasi** dan cari
+menggunakan nama murid atau nombor resit. Jika sambungan terputus semasa
+menyimpan, semak laporan dahulu supaya resit tidak dijana dua kali.
 
 ## 5. Laporan koperasi
 
@@ -67,7 +72,7 @@ pembayaran untuk menapis. Jadual menunjukkan nama murid, nombor resit, jumlah
 dan kaedah pembayaran. Gunakan **Muat turun CSV** untuk membuka
 data dalam hamparan. Untuk salinan kertas, buka fail CSV itu dan cetak dari
 hamparan — atau buka resit yang diperlukan dan gunakan butang **Cetak** di
-halaman resit.
+halaman resit. Senarai harga barangan turut tersedia di bahagian bawah laporan.
 
 ## 6. Jika berlaku masalah
 
@@ -77,7 +82,7 @@ halaman resit.
   dan pastikan senarai telah diimport.
 - **Tidak dapat log masuk:** semak e-mel dan kata laluan. Jika akaun tidak
   dibenarkan atau kata laluan terlupa, hubungi pentadbir sistem sekolah.
-- **Simpanan resit terganggu:** buka **Sejarah Resit** dahulu dan cari murid
+- **Simpanan resit terganggu:** buka **Laporan Koperasi** dahulu dan cari murid
   atau nombor resit sebelum mencuba semula.
 - **Telefon atau skrin kecil:** tekan **Menu** untuk membuka navigasi. Kad dan
   butang boleh digunakan dengan sentuhan atau papan kekunci.

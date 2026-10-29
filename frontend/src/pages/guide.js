@@ -33,7 +33,7 @@ export function renderGuide(root) {
         <section class="card" id="guide-login">
           <h2>1. Log masuk</h2>
           <p>Masukkan e-mel sekolah dan kata laluan, kemudian tekan <strong>Log masuk</strong>.</p>
-          <p>Tekan <strong>Log Keluar</strong> pada peranti bersama.</p>
+          <p>Pada peranti bersama, buka menu <strong>Lagi</strong> pada bar navigasi dan tekan <strong>Log Keluar</strong>.</p>
         </section>
 
         <section class="card" id="guide-register">
@@ -48,6 +48,7 @@ export function renderGuide(root) {
             <strong>Batal daftar</strong> kemudian.</p>
           <h3>Tambah atau betulkan murid</h3>
           <p>Tekan <strong>+ Murid baharu</strong> untuk tambah, atau <strong>Butiran</strong> untuk edit.</p>
+          <p>Untuk pemadaman kekal, pilih murid melalui menu <strong>Lagi</strong> pada senarai. Tindakan ini memerlukan kata laluan.</p>
         </section>
 
         <section class="card" id="guide-import">
@@ -81,6 +82,7 @@ export function renderGuide(root) {
             <li>Semak jumlah jualan dan senarai resit.</li>
             <li>Gunakan <strong>Muat turun CSV</strong> atau <strong>Cetak</strong>.</li>
           </ol>
+          <p>Senarai harga barangan ada di bahagian bawah laporan.</p>
           <p class="muted">Had: 500 resit. Pilih tarikh lebih pendek jika had dicapai.</p>
         </section>
 

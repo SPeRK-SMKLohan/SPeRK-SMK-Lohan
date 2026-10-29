@@ -53,6 +53,7 @@ export function renderRegistration(root) {
           <div class="list-more-menu">
             <button id="refresh" class="btn secondary" type="button">Muat semula</button>
             <button id="export-csv" class="btn secondary" type="button">Muat turun CSV</button>
+            <button id="start-select" class="btn danger" type="button">Padam murid</button>
           </div>
         </details>
       </div>
@@ -87,14 +88,6 @@ export function renderRegistration(root) {
         <button id="btn-next" class="btn secondary" type="button">Seterusnya ›</button>
       </div>
     </section>
-
-    <details class="admin-panel" id="admin">
-      <summary>Padam murid</summary>
-      <div class="admin-body">
-        <p class="muted tiny">Pemadaman kekal. Sahkan dengan kata laluan.</p>
-        <button id="start-select" class="btn secondary" type="button">Pilih murid untuk dipadam</button>
-      </div>
-    </details>
 
     <dialog id="form-dialog" class="modal" aria-labelledby="form-title">
       <form id="student-form" method="dialog" novalidate>
@@ -258,7 +251,6 @@ export function renderRegistration(root) {
   const pagerInfo = $("#pager-info");
   const bulkBar = $("#bulk-bar");
   const bulkCount = $("#bulk-count");
-  const adminPanel = $("#admin");
   const startSelectBtn = $("#start-select");
   const exportCsvBtn = $("#export-csv");
 
@@ -361,17 +353,16 @@ export function renderRegistration(root) {
 
   function rowHtml(s) {
     const done = s.registrationStatus === "SUDAH";
-    const action = done
-      ? `<button class="btn secondary" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>Batal daftar</button>`
-      : `<button class="btn ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>Tanda daftar</button>`;
+    const action = `<button class="btn ${done ? "secondary" : "ok"}" type="button"
+      data-action="toggle-status" aria-pressed="${done}" aria-label="${done ? "Batal daftar" : "Tanda daftar"} ${esc(s.name)}"${s._pending ? " disabled" : ""}>${done ? "Batal daftar" : "Tanda daftar"}</button>`;
 
     return `<tr class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
       <td class="student-check-cell"><input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
              aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}></td>
       <td class="student-name-cell"><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</td>
-      <td class="num student-ic-cell">${esc(s.icMasked)}</td>
-      <td class="student-school-cell">${esc(s.formerPrimarySchool)}${s.transferSchool ? `<span class="student-note">Pindah: ${esc(s.transferSchool)}</span>` : ""}</td>
-      <td class="student-status">${statusCell(s)}</td>
+      <td class="num student-ic-cell" data-label="No. IC">${esc(s.icMasked)}</td>
+      <td class="student-school-cell" data-label="Sekolah rendah asal">${esc(s.formerPrimarySchool)}${s.transferSchool ? `<span class="student-note">Pindah: ${esc(s.transferSchool)}</span>` : ""}</td>
+      <td class="student-status" data-label="Status daftar">${statusCell(s)}</td>
       <td class="student-actions-cell"><div class="record-actions">
         ${action}
         <button class="btn secondary" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
@@ -563,8 +554,7 @@ export function renderRegistration(root) {
     const s = rows.find((x) => x.studentId === tr?.dataset.id);
     if (!s) return;
 
-    if (action === "mark") return setStatus(s, "SUDAH");
-    if (action === "unmark") return setStatus(s, "BELUM");
+    if (action === "toggle-status") return setStatus(s, s.registrationStatus === "SUDAH" ? "BELUM" : "SUDAH");
     if (action === "edit") {
       btn.disabled = true;
       try {
@@ -609,7 +599,7 @@ export function renderRegistration(root) {
     selecting = true;
     rowsEl.classList.add("selecting");
     startSelectBtn.textContent = "Tutup mod pilih";
-    adminPanel.open = false;
+    $(".list-more").open = false;
     showStatus({
       type: "info",
       title: "Mod pilih",
