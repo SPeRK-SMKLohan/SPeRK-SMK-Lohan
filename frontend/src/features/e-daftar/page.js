@@ -25,15 +25,19 @@ export function renderRegistration(root) {
       <p class="lede">Daftar dan kemas kini murid Tingkatan 1.</p>
     </div>
 
-    <section class="card school-step">
-      <label class="label" for="schools">Sekolah rendah asal</label>
-      <select class="select school-select" id="schools">
-        <option value="">Pilih sekolah rendah</option>
-        ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
-      </select>
-    </section>
+    <section class="card registration-card">
+      <div class="school-picker">
+        <div class="field">
+          <label class="label" for="schools">Sekolah rendah asal</label>
+          <select class="select school-select" id="schools">
+            <option value="">Pilih sekolah rendah</option>
+            ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
+          </select>
+        </div>
+        <p class="school-prompt" id="school-prompt">Pilih sekolah untuk mencari dan mengurus murid.</p>
+      </div>
 
-    <section class="card" id="list-card" hidden>
+      <div id="list-content" hidden>
       <div class="list-toolbar">
         <label class="search">
           <span class="sr-only">Cari murid</span>
@@ -86,6 +90,7 @@ export function renderRegistration(root) {
         <button id="btn-prev" class="btn secondary" type="button">‹ Sebelumnya</button>
         <span id="pager-info" class="muted"></span>
         <button id="btn-next" class="btn secondary" type="button">Seterusnya ›</button>
+      </div>
       </div>
     </section>
 
@@ -238,7 +243,8 @@ export function renderRegistration(root) {
   const transferReasonEl = $("#f-transfer-reason");
   const transferNotesEl = $("#f-transfer-notes");
 
-  const listCard = $("#list-card");
+  const listContent = $("#list-content");
+  const schoolPrompt = $("#school-prompt");
   const rowsEl = $("#rows");
   const countEl = $("#count");
   const schoolEl = $("#schools");
@@ -320,7 +326,8 @@ export function renderRegistration(root) {
       else localStorage.removeItem("sperk-registration-school");
     } catch { /* storage may be blocked; the session still works */ }
 
-    listCard.hidden = !selectedSchool;
+    listContent.hidden = !selectedSchool;
+    schoolPrompt.hidden = Boolean(selectedSchool);
     if (!selectedSchool) {
       rowsEl.innerHTML = "";
       countEl.textContent = "";
@@ -920,10 +927,9 @@ export function renderRegistration(root) {
   } catch { /* use manual choice */ }
 
   schoolEl.value = selectedSchool;
+  listContent.hidden = !selectedSchool;
+  schoolPrompt.hidden = Boolean(selectedSchool);
   if (selectedSchool) {
-    listCard.hidden = false;
     load();
-  } else {
-    listCard.hidden = true;
   }
 }
