@@ -28,8 +28,8 @@ export function renderRegistration(root) {
     <section class="card registration-card">
       <div class="registration-toolbar">
         <div class="field registration-school-field">
-          <label class="label" for="schools">Sekolah rendah asal</label>
-          <select class="select school-select" id="schools">
+          <label class="label" for="schools">Sekolah</label>
+          <select class="select school-select" id="schools" aria-label="Tapis mengikut sekolah">
             <option value="">Pilih sekolah</option>
             ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
           </select>
@@ -68,12 +68,11 @@ export function renderRegistration(root) {
 
       <div class="table-wrap student-table-wrap">
         <table class="table student-table">
-          <caption class="sr-only">Senarai murid Tingkatan 1</caption>
+          <caption class="sr-only" id="student-caption">Senarai murid Tingkatan 1</caption>
           <thead><tr>
             <th class="student-check-cell" scope="col"><span class="sr-only">Pilih</span></th>
             <th scope="col">Nama murid</th>
             <th class="student-ic-cell" scope="col">No. IC</th>
-            <th scope="col">Sekolah rendah asal</th>
             <th scope="col">Status daftar</th>
             <th class="student-actions-cell" scope="col">Tindakan</th>
           </tr></thead>
@@ -325,6 +324,9 @@ export function renderRegistration(root) {
     statusFilter.querySelectorAll("button").forEach((button) => { button.disabled = !selectedSchool; });
     $("#new").disabled = !selectedSchool;
     $("#list-more").hidden = !selectedSchool;
+    $("#student-caption").textContent = selectedSchool
+      ? `Murid Tingkatan 1 dari ${selectedSchool}`
+      : "Senarai murid Tingkatan 1";
     if (!selectedSchool) {
       rowsEl.innerHTML = "";
       countEl.textContent = "";
@@ -351,9 +353,8 @@ export function renderRegistration(root) {
     return `<tr class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
       <td class="student-check-cell"><input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
              aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}></td>
-      <td class="student-name-cell"><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</td>
+      <td class="student-name-cell"><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}${s.transferSchool ? `<span class="student-note">Mohon pindah ke: ${esc(s.transferSchool)}</span>` : ""}</td>
       <td class="num student-ic-cell" data-label="No. IC">${esc(s.icMasked)}</td>
-      <td class="student-school-cell" data-label="Sekolah rendah asal">${esc(s.formerPrimarySchool)}${s.transferSchool ? `<span class="student-note">Pindah: ${esc(s.transferSchool)}</span>` : ""}</td>
       <td class="student-status" data-label="Status daftar">${statusCell(s)}</td>
       <td class="student-actions-cell"><div class="record-actions">
         ${action}
@@ -364,7 +365,7 @@ export function renderRegistration(root) {
 
   function renderRows() {
     if (loading) {
-      rowsEl.innerHTML = `<tr><td class="student-table-message" colspan="6"><span class="spinner" aria-hidden="true"></span>
+      rowsEl.innerHTML = `<tr><td class="student-table-message" colspan="5"><span class="spinner" aria-hidden="true"></span>
         Memuatkan senarai untuk ${esc(selectedSchool)}…</td></tr>`;
       return;
     }
@@ -386,7 +387,7 @@ export function renderRegistration(root) {
       body = `<p>Belum ada senarai murid untuk ${esc(selectedSchool)}.</p>
         <p><a class="btn secondary" href="#/import">Import senarai murid</a></p>`;
     }
-    rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="6">${body}</td></tr>`;
+    rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="5">${body}</td></tr>`;
   }
 
   function renderPager() {
@@ -455,7 +456,7 @@ export function renderRegistration(root) {
       if (!silent || !rows.length) {
         countEl.textContent = "";
         const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
-        rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="6">
+        rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="5">
           <div class="fail" role="alert">
             <strong class="fail-title">${isConnectionError ? "Sambungan terganggu" : "Senarai belum dapat dimuatkan"}</strong>
             <span class="fail-text">${isConnectionError
@@ -929,6 +930,9 @@ export function renderRegistration(root) {
   statusFilter.querySelectorAll("button").forEach((button) => { button.disabled = !selectedSchool; });
   $("#new").disabled = !selectedSchool;
   $("#list-more").hidden = !selectedSchool;
+  $("#student-caption").textContent = selectedSchool
+    ? `Murid Tingkatan 1 dari ${selectedSchool}`
+    : "Senarai murid Tingkatan 1";
   if (selectedSchool) {
     load();
   }
