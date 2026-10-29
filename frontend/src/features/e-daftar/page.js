@@ -33,8 +33,6 @@ export function renderRegistration(root) {
       </div>
     </section>
 
-    <div id="school-summary" class="school-summary" hidden></div>
-
     <section class="card" id="list-card" hidden>
       <div class="list-toolbar">
         <label class="search">
@@ -258,7 +256,6 @@ export function renderRegistration(root) {
   const btnPrev = $("#btn-prev");
   const btnNext = $("#btn-next");
   const pagerInfo = $("#pager-info");
-  const summaryEl = $("#school-summary");
   const bulkBar = $("#bulk-bar");
   const bulkCount = $("#bulk-count");
   const adminPanel = $("#admin");
@@ -410,28 +407,6 @@ export function renderRegistration(root) {
     rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="6">${body}</td></tr>`;
   }
 
-  function renderSummary(data) {
-    if (!selectedSchool) { summaryEl.hidden = true; return; }
-    summaryEl.hidden = false;
-    if (!data) {
-      summaryEl.innerHTML = `<p class="muted" style="margin:0">Memuatkan kemajuan ${esc(selectedSchool)}…</p>`;
-      return;
-    }
-    const total = data.schoolTotal ?? 0;
-    const done = data.schoolRegisteredTotal ?? 0;
-    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-    summaryEl.innerHTML = `
-      <div>
-        <h2>${esc(selectedSchool)}</h2>
-        <span class="pill ${pct === 100 ? "ok" : "brand"}">${pct}% selesai</span>
-      </div>
-      <div class="counts">
-        <div><span>Belum daftar</span><strong>${data.schoolNotRegisteredTotal ?? 0}</strong></div>
-        <div><span>Sudah daftar</span><strong>${done}</strong></div>
-        <div><span>Jumlah</span><strong>${total}</strong></div>
-      </div>`;
-  }
-
   function renderPager() {
     pagerEl.hidden = page === 0 && !hasMore;
     btnPrev.disabled = page === 0;
@@ -455,7 +430,6 @@ export function renderRegistration(root) {
       loading = true;
       rows = [];
       countEl.textContent = "Memuatkan…";
-      renderSummary(null);
       renderRows();
     }
 
@@ -477,7 +451,6 @@ export function renderRegistration(root) {
       loading = false;
       rows = data.students;
       hasMore = data.hasMore ?? false;
-      renderSummary(data);
       selectedIds.clear();
       renderBulkBar();
 
@@ -499,7 +472,6 @@ export function renderRegistration(root) {
       loading = false;
       if (!silent || !rows.length) {
         countEl.textContent = "";
-        summaryEl.hidden = true;
         const isConnectionError = !err.status || /rangkaian|internet|terlalu lama/i.test(err.message);
         rowsEl.innerHTML = `<tr><td class="record-empty student-table-message" colspan="6">
           <div class="fail" role="alert">
