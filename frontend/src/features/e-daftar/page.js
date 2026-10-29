@@ -27,13 +27,10 @@ export function renderRegistration(root) {
 
     <section class="card registration-card">
       <div class="registration-toolbar">
-        <div class="field registration-school-field">
-          <label class="label" for="schools">Sekolah</label>
-          <select class="select school-select" id="schools" aria-label="Tapis mengikut sekolah">
-            <option value="">Pilih sekolah</option>
-            ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
-          </select>
-        </div>
+        <select class="select school-select" id="schools" aria-label="Tapis mengikut sekolah">
+          <option value="">Pilih sekolah</option>
+          ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
+        </select>
         <label class="search registration-search">
           <span class="sr-only">Cari murid</span>
           <input id="q" class="input" type="search" autocomplete="off"
@@ -41,11 +38,10 @@ export function renderRegistration(root) {
                  aria-label="Cari nama atau nombor IC murid" disabled>
           <button id="clear-search" class="clear" type="button" hidden>Kosongkan</button>
         </label>
-        <div class="seg registration-status-filter" id="status-filter" role="group" aria-label="Tapis status daftar">
-          <button type="button" data-status="" aria-pressed="true" disabled>Semua</button>
-          ${registrationStatusOptions.map((o) => `
-            <button type="button" data-status="${o.value}" aria-pressed="false" disabled>${o.label}</button>`).join("")}
-        </div>
+        <select class="select registration-status-filter" id="status-filter" aria-label="Tapis status daftar" disabled>
+          <option value="">Semua status</option>
+          ${registrationStatusOptions.map((o) => `<option value="${o.value}">${o.label}</option>`).join("")}
+        </select>
         <p class="list-count registration-count" id="count" role="status" aria-live="polite"></p>
         <button id="new" class="btn primary registration-new" type="button" disabled>+ Murid baharu</button>
         <details class="list-more registration-more" id="list-more" hidden>
@@ -321,7 +317,7 @@ export function renderRegistration(root) {
 
     listContent.hidden = !selectedSchool;
     qEl.disabled = !selectedSchool;
-    statusFilter.querySelectorAll("button").forEach((button) => { button.disabled = !selectedSchool; });
+    statusFilter.disabled = !selectedSchool;
     $("#new").disabled = !selectedSchool;
     $("#list-more").hidden = !selectedSchool;
     $("#student-caption").textContent = selectedSchool
@@ -353,7 +349,7 @@ export function renderRegistration(root) {
     return `<tr class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
       <td class="student-check-cell"><input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
              aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}></td>
-      <td class="student-name-cell"><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}${s.transferSchool ? `<span class="student-note">Mohon pindah ke: ${esc(s.transferSchool)}</span>` : ""}</td>
+      <td class="student-name-cell"><strong class="student-name" title="${esc([s.name, s.transferSchool ? `Mohon pindah ke: ${s.transferSchool}` : ""].filter(Boolean).join(" · "))}">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}${s.transferSchool ? `<span class="student-note">Mohon pindah ke: ${esc(s.transferSchool)}</span>` : ""}</td>
       <td class="num student-ic-cell" data-label="No. IC">${esc(s.icMasked)}</td>
       <td class="student-status" data-label="Status daftar">${statusCell(s)}</td>
       <td class="student-actions-cell"><div class="record-actions">
@@ -533,9 +529,7 @@ export function renderRegistration(root) {
     if (action === "retry") return load();
     if (action === "clear-filter") {
       status = "";
-      for (const b of statusFilter.querySelectorAll("button")) {
-        b.setAttribute("aria-pressed", String(b.dataset.status === ""));
-      }
+      statusFilter.value = "";
       return load();
     }
     if (action === "new-from-search") {
@@ -608,13 +602,8 @@ export function renderRegistration(root) {
   });
 
   /* ----- filters and search ----- */
-  statusFilter.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-status]");
-    if (!btn) return;
-    for (const b of statusFilter.querySelectorAll("button")) {
-      b.setAttribute("aria-pressed", String(b === btn));
-    }
-    status = btn.dataset.status;
+  statusFilter.addEventListener("change", () => {
+    status = statusFilter.value;
     page = 0;
     load();
   });
@@ -927,7 +916,7 @@ export function renderRegistration(root) {
   schoolEl.value = selectedSchool;
   listContent.hidden = !selectedSchool;
   qEl.disabled = !selectedSchool;
-  statusFilter.querySelectorAll("button").forEach((button) => { button.disabled = !selectedSchool; });
+  statusFilter.disabled = !selectedSchool;
   $("#new").disabled = !selectedSchool;
   $("#list-more").hidden = !selectedSchool;
   $("#student-caption").textContent = selectedSchool

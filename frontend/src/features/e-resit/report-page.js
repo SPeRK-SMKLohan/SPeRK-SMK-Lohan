@@ -114,6 +114,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
   toInput.value = todayKey();
 
   let seq = 0;
+  let allReceipts = [];
   let reportRows = [];
   let truncated = false;
 
@@ -153,6 +154,47 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
     $("#report-csv").disabled = false;
   }
 
+  // Kaedah bayaran ialah penapis setempat: tukar tanpa menunggu permintaan API.
+  function renderReport() {
+    const method = paymentInput.value;
+    const filtered = [];
+    let total = 0;
+    let cash = 0;
+    let bank = 0;
+    for (const receipt of allReceipts) {
+      if (method !== "ALL" && receipt.paymentMethod !== method) continue;
+      const amount = receipt.totalSen || 0;
+      filtered.push(receipt);
+      total += amount;
+      if (receipt.paymentMethod === "CASH") cash += amount;
+      else if (receipt.paymentMethod === "BANK_TRANSFER") bank += amount;
+    }
+
+    $("#report-total").textContent = formatRM(total);
+    $("#report-cash").textContent = formatRM(cash);
+    $("#report-bank").textContent = formatRM(bank);
+    $("#report-count").textContent = String(filtered.length);
+    $("#report-message").textContent = filtered.length === allReceipts.length
+      ? `${filtered.length} resit dalam tempoh ini`
+      : `${filtered.length} daripada ${allReceipts.length} resit dipaparkan`;
+    renderRows(filtered.map((r) => ({
+      receiptNo: r.receiptNo,
+      receiptId: r.receiptId,
+      student: r.studentNameSnapshot,
+      totalSen: r.totalSen,
+      paymentMethod: r.paymentMethod,
+    })));
+
+    $("#report-warning").innerHTML = truncated ? `<div class="status warn" role="status">
+      <div class="status-body">
+        <strong class="status-title">Laporan mencapai had ${LIMIT} resit</strong>
+        <span class="status-text">${method === "ALL"
+          ? "Pilih tarikh lebih pendek untuk melihat semua rekod."
+          : "Penapis hanya meliputi 500 resit terkini. Pilih tarikh lebih pendek untuk jumlah tepat."}</span>
+      </div>
+    </div>` : "";
+  }
+
   async function load() {
     const mine = ++seq;
     $("#report-message").textContent = "Memuatkan laporan…";
@@ -169,45 +211,11 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       if (mine !== seq) return;
 
       truncated = Boolean(result.truncated);
-      const all = result.receipts || [];
-      const filtered = paymentInput.value === "ALL"
-        ? all
-        : all.filter((r) => r.paymentMethod === paymentInput.value);
-
-      const sum = (method) => filtered
-        .filter((r) => r.paymentMethod === method)
-        .reduce((t, r) => t + (r.totalSen || 0), 0);
-      const total = filtered.reduce((t, r) => t + (r.totalSen || 0), 0);
-
-      $("#report-total").textContent = formatRM(total);
-      $("#report-cash").textContent = formatRM(sum("CASH"));
-      $("#report-bank").textContent = formatRM(sum("BANK_TRANSFER"));
-      $("#report-count").textContent = String(filtered.length);
-      $("#report-message").textContent = filtered.length === all.length
-        ? `${filtered.length} resit dalam tempoh ini`
-        : `${filtered.length} daripada ${all.length} resit dipaparkan`;
-
-      renderRows(filtered.map((r) => ({
-        receiptNo: r.receiptNo,
-        receiptId: r.receiptId,
-        student: r.studentNameSnapshot,
-        totalSen: r.totalSen,
-        paymentMethod: r.paymentMethod,
-      })));
-
-      if (truncated) {
-        const filteredView = paymentInput.value !== "ALL";
-        $("#report-warning").innerHTML = `<div class="status warn" role="status">
-          <div class="status-body">
-            <strong class="status-title">Laporan mencapai had ${LIMIT} resit</strong>
-            <span class="status-text">${filteredView
-              ? "Penapis hanya meliputi 500 resit terkini. Pilih tarikh lebih pendek untuk jumlah tepat."
-              : "Pilih tarikh lebih pendek untuk melihat semua rekod."}</span>
-          </div>
-        </div>`;
-      }
+      allReceipts = result.receipts || [];
+      renderReport();
     } catch (error) {
       if (mine !== seq) return;
+      allReceipts = [];
       reportRows = [];
       for (const id of ["report-total", "report-cash", "report-bank", "report-count"]) {
         $(`#${id}`).textContent = "—";
@@ -221,7 +229,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
 
   fromInput.addEventListener("change", load);
   toInput.addEventListener("change", load);
-  paymentInput.addEventListener("change", load);
+  paymentInput.addEventListener("change", renderReport);
 
   let searchTimer;
   qInput.addEventListener("input", () => {
