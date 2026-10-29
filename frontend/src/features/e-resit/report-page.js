@@ -27,9 +27,9 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       <h1>Laporan koperasi</h1>
     </div>
 
-    <section class="card no-print" style="margin-bottom:var(--s4)" aria-label="Penapis laporan">
-      <div class="filter-bar">
-        <div class="field" style="grid-column:1/-1">
+    <section class="card report-filter-card no-print" aria-label="Penapis laporan">
+      <div class="filter-bar report-filter-bar">
+        <div class="field">
           <label class="label" for="report-q">Cari resit atau murid</label>
           <input id="report-q" class="input" type="search" autocomplete="off"
                  placeholder="No. resit atau nama">
@@ -50,22 +50,17 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
             <option value="BANK_TRANSFER">Pindahan bank</option>
           </select>
         </div>
-        <div class="field">
-          <div class="filter-actions">
-            <button id="report-refresh" class="btn secondary" type="button">Muat semula</button>
-          </div>
-        </div>
       </div>
     </section>
 
     <p id="report-message" class="list-count" role="status" aria-live="polite"></p>
 
-    <div class="totals">
-      <div class="total-card"><span>Jumlah jualan</span><strong id="report-total">—</strong></div>
-      <div class="total-card"><span>Tunai</span><strong id="report-cash">—</strong></div>
-      <div class="total-card"><span>Pindahan bank</span><strong id="report-bank">—</strong></div>
-      <div class="total-card"><span>Bilangan resit</span><strong id="report-count">—</strong></div>
-    </div>
+    <section class="report-summary" aria-label="Ringkasan jualan">
+      <div class="report-total-main"><span>Jumlah jualan</span><strong id="report-total">—</strong></div>
+      <div class="report-stat"><span>Tunai</span><strong id="report-cash">—</strong></div>
+      <div class="report-stat"><span>Pindahan bank</span><strong id="report-bank">—</strong></div>
+      <div class="report-stat"><span>Bilangan resit</span><strong id="report-count">—</strong></div>
+    </section>
 
     <div id="report-warning"></div>
 
@@ -77,21 +72,24 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       <div id="report-rows">${loadingState("Memuatkan laporan…")}</div>
     </section>
 
-    <section class="card report-items" id="report-items" style="margin-top:var(--s4)">
-      <div class="card-head"><h2>Senarai harga barangan</h2></div>
+    <details class="card report-items" id="report-items">
+      <summary>Senarai harga barangan</summary>
       <div id="report-items-box">${loadingState("Memuatkan senarai barangan…")}</div>
-    </section>`;
+    </details>`;
 
   const $ = (sel) => root.querySelector(sel);
   const fromInput = $("#report-from");
   const toInput = $("#report-to");
   const paymentInput = $("#report-payment");
   const qInput = $("#report-q");
+  const itemsSection = $("#report-items");
+  let itemsLoaded = false;
 
   async function loadItems() {
     const box = $("#report-items-box");
     try {
       const { items } = await getItems();
+      itemsLoaded = true;
       box.innerHTML = items.length ? `
         <ul class="record-list">
           ${items.map((item) => `
@@ -221,7 +219,6 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
     }
   }
 
-  $("#report-refresh").addEventListener("click", load);
   fromInput.addEventListener("change", load);
   toInput.addEventListener("change", load);
   paymentInput.addEventListener("change", load);
@@ -249,9 +246,12 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
+  itemsSection.addEventListener("toggle", () => {
+    if (itemsSection.open && !itemsLoaded) loadItems();
+  });
   load();
-  loadItems();
   if (params.get("items") === "1") {
+    itemsSection.open = true;
     requestAnimationFrame(() => $("#report-items").scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 }

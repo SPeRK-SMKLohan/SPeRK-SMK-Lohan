@@ -26,11 +26,11 @@ export function renderRegistration(root) {
     </div>
 
     <section class="card school-step">
-      <h2 class="label">Sekolah rendah asal</h2>
-      <div class="school-grid" id="schools" role="group" aria-label="Sekolah rendah asal">
-        ${schools.map((s) => `
-          <button class="chip" type="button" data-school="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join("")}
-      </div>
+      <label class="label" for="schools">Sekolah rendah asal</label>
+      <select class="select school-select" id="schools">
+        <option value="">Pilih sekolah rendah</option>
+        ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
+      </select>
     </section>
 
     <section class="card" id="list-card" hidden>
@@ -309,19 +309,8 @@ export function renderRegistration(root) {
   }
 
   /* ----- school choice ----- */
-  function paintSchools() {
-    for (const btn of schoolEl.querySelectorAll("[data-school]")) {
-      const on = btn.dataset.school === selectedSchool;
-      btn.setAttribute("aria-pressed", String(on));
-    }
-  }
-
-  schoolEl.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-school]");
-    if (!btn) return;
-    selectedSchool = btn.dataset.school === selectedSchool ? "" : btn.dataset.school;
-    paintSchools();
-
+  schoolEl.addEventListener("change", () => {
+    selectedSchool = schoolEl.value;
     page = 0;
     rows = [];
     qEl.value = "";
@@ -338,7 +327,6 @@ export function renderRegistration(root) {
       return;
     }
     load();
-    qEl.focus();
   });
 
   /* ----- list rendering ----- */
@@ -931,7 +919,7 @@ export function renderRegistration(root) {
     if (schools.includes(saved)) selectedSchool = saved;
   } catch { /* use manual choice */ }
 
-  paintSchools();
+  schoolEl.value = selectedSchool;
   if (selectedSchool) {
     listCard.hidden = false;
     load();
