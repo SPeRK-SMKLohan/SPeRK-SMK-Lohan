@@ -48,7 +48,11 @@ export function myDayStart(key) {
 
 export function parseDateKey(value) {
   if (!value) return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(myDayStart(value).getTime())) {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+    Number.isNaN(myDayStart(value).getTime()) ||
+    myDateKey(myDayStart(value)) !== value
+  ) {
     throw new HttpError(400, "Tarikh tidak sah.");
   }
   return value;

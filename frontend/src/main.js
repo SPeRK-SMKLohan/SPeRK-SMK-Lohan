@@ -4,14 +4,6 @@ import { applyTextSizePreference, textSizePreference, wireTextSizeControl } from
 import { clearStatus } from "./shared/status.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
 import { renderLogin } from "./pages/login.js";
-import { renderGuide } from "./pages/guide.js";
-import { renderHome } from "./pages/home.js";
-import { renderRegistration } from "./features/e-daftar/page.js";
-import { renderImportData } from "./features/e-daftar/import-page.js";
-import { renderNewReceipt } from "./features/e-resit/page.js";
-import { renderItems } from "./features/e-resit/items-page.js";
-import { renderCoopReport } from "./features/e-resit/report-page.js";
-import { renderReceiptDetail } from "./features/e-resit/receipt-page.js";
 
 /* SPeRK: two features share one student database.
    Navigation is flat and visible — no dropdowns, no hover-only menus. */
@@ -36,13 +28,13 @@ const MENU_GROUPS = [
 ];
 
 const routes = {
-  "/": renderHome,
-  "/pendaftaran": renderRegistration,
-  "/import": renderImportData,
-  "/jana-resit": renderNewReceipt,
-  "/barangan": renderItems,
-  "/laporan-koperasi": renderCoopReport,
-  "/panduan": renderGuide,
+  "/": () => import("./pages/home.js").then((m) => m.renderHome),
+  "/pendaftaran": () => import("./features/e-daftar/page.js").then((m) => m.renderRegistration),
+  "/import": () => import("./features/e-daftar/import-page.js").then((m) => m.renderImportData),
+  "/jana-resit": () => import("./features/e-resit/page.js").then((m) => m.renderNewReceipt),
+  "/barangan": () => import("./features/e-resit/items-page.js").then((m) => m.renderItems),
+  "/laporan-koperasi": () => import("./features/e-resit/report-page.js").then((m) => m.renderCoopReport),
+  "/panduan": () => import("./pages/guide.js").then((m) => m.renderGuide),
 };
 
 // Old addresses, kept so existing bookmarks still work.
@@ -55,6 +47,7 @@ const REDIRECTS = {
 
 const app = document.querySelector("#app");
 document.title = APP_LONG_NAME;
+let renderSequence = 0;
 
 function currentRoute() {
   const raw = location.hash.replace(/^#/, "") || "/";
@@ -214,7 +207,18 @@ function wireLogout() {
   }
 }
 
-function renderPublicGuide() {
+function showPageLoadError(container, err) {
+  console.error("Gagal memuat halaman:", err);
+  container.innerHTML = `
+    <div class="card" role="alert">
+      <h1>Halaman tidak dapat dimuatkan</h1>
+      <p class="lede">Semak sambungan internet dan cuba muat semula halaman.</p>
+      <button class="btn primary" type="button" data-reload-page>Cuba Lagi</button>
+    </div>`;
+  container.querySelector("[data-reload-page]").addEventListener("click", () => location.reload());
+}
+
+async function renderPublicGuide(sequence) {
   app.innerHTML = `
     <a class="skip-link" href="#view">Langkau ke kandungan</a>
     <div class="login-public-bar">
@@ -230,12 +234,21 @@ function renderPublicGuide() {
     ${footerHtml()}`;
   document.title = `Panduan · ${APP_NAME}`;
   syncHeaderHeight();
-  renderGuide(app.querySelector("#page-body"));
+  const body = app.querySelector("#page-body");
+  try {
+    const renderGuide = await routes["/panduan"]();
+    if (sequence !== renderSequence) return;
+    renderGuide(body);
+  } catch (err) {
+    if (sequence !== renderSequence) return;
+    showPageLoadError(body, err);
+  }
   wireTextSizeControl(app);
   wireLogout();
 }
 
-function render() {
+async function render() {
+  const sequence = ++renderSequence;
   const { path, params } = currentRoute();
   // A result banner belongs to the screen that produced it, never to the next one.
   clearStatus();
@@ -243,7 +256,7 @@ function render() {
 
   // The guide is readable before signing in, including from the login page.
   if (path === "/panduan" && !isLoggedIn()) {
-    renderPublicGuide();
+    await renderPublicGuide(sequence);
     return;
   }
 
@@ -278,17 +291,26 @@ function render() {
     ? `${match.title} · ${APP_NAME}`
     : path.startsWith("/resit/") ? `Resit · ${APP_NAME}` : APP_NAME;
 
-  if (path.startsWith("/resit/")) {
-    renderReceiptDetail(body, decodeURIComponent(path.slice("/resit/".length)));
-  } else if (routes[path]) {
-    routes[path](body, params);
-  } else {
-    body.innerHTML = `
-      <div class="page-head"><h1>Halaman tidak dijumpai</h1></div>
-      <div class="card">
-        <p>Alamat ini tiada dalam sistem.</p>
-        <p><a class="btn primary" href="#/">Kembali ke Utama</a></p>
-      </div>`;
+  try {
+    if (path.startsWith("/resit/")) {
+      const renderReceiptDetail = await import("./features/e-resit/receipt-page.js").then((m) => m.renderReceiptDetail);
+      if (sequence !== renderSequence) return;
+      renderReceiptDetail(body, decodeURIComponent(path.slice("/resit/".length)));
+    } else if (routes[path]) {
+      const renderPage = await routes[path]();
+      if (sequence !== renderSequence) return;
+      renderPage(body, params);
+    } else {
+      body.innerHTML = `
+        <div class="page-head"><h1>Halaman tidak dijumpai</h1></div>
+        <div class="card">
+          <p>Alamat ini tiada dalam sistem.</p>
+          <p><a class="btn primary" href="#/">Kembali ke Utama</a></p>
+        </div>`;
+    }
+  } catch (err) {
+    if (sequence !== renderSequence) return;
+    showPageLoadError(body, err);
   }
 
   wireLogout();

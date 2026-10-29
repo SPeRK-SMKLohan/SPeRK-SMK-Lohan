@@ -275,6 +275,7 @@ export function renderRegistration(root) {
   let mutationGen = 0;
   let busy = 0;
   let loading = false;
+  let lastDataFingerprint = "";
   let timer;
   let page = 0;
   let hasMore = false;
@@ -459,6 +460,12 @@ export function renderRegistration(root) {
         limit: PAGE_SIZE,
       });
       if (mine !== seq || gen !== mutationGen) return;
+
+      // Quiet refreshes run in the background. Keep the existing DOM (and its
+      // focus/selection state) when neither the visible page nor its totals changed.
+      const fingerprint = JSON.stringify(data);
+      if (silent && fingerprint === lastDataFingerprint) return;
+      lastDataFingerprint = fingerprint;
 
       loading = false;
       rows = data.students;

@@ -24,6 +24,7 @@ const JWKS = createRemoteJWKSet(
 // Cache token JWT yang sudah disahkan (5 minit) supaya permintaan serentak
 // daripada akaun yang sama tidak memerlukan pengesahan JWT berulang.
 const TOKEN_CACHE_TTL_MS = 5 * 60 * 1000;
+const TOKEN_CACHE_MAX_ENTRIES = 1000;
 const tokenCache = new Map(); // token -> { payload, expiresAt }
 
 function splitList(value) {
@@ -84,7 +85,16 @@ async function authenticate(request, env) {
     return { ok: false, status: 403, error: "Akaun tidak dibenarkan." };
   }
 
-  tokenCache.set(token, { payload, expiresAt: Date.now() + TOKEN_CACHE_TTL_MS });
+  const now = Date.now();
+  if (tokenCache.size >= TOKEN_CACHE_MAX_ENTRIES) {
+    for (const [cachedToken, entry] of tokenCache) {
+      if (entry.expiresAt <= now) tokenCache.delete(cachedToken);
+    }
+    while (tokenCache.size >= TOKEN_CACHE_MAX_ENTRIES) {
+      tokenCache.delete(tokenCache.keys().next().value);
+    }
+  }
+  tokenCache.set(token, { payload, expiresAt: now + TOKEN_CACHE_TTL_MS });
   return { ok: true, user: payload };
 }
 
