@@ -72,10 +72,10 @@ export function renderRegistration(root) {
           <thead><tr>
             <th class="student-check-cell" scope="col"><span class="sr-only">Pilih</span></th>
             <th scope="col">Nama murid</th>
-            <th scope="col">No. IC</th>
+            <th class="student-ic-cell" scope="col">No. IC</th>
             <th scope="col">Sekolah rendah asal</th>
             <th scope="col">Status daftar</th>
-            <th scope="col"><span class="sr-only">Tindakan</span></th>
+            <th class="student-actions-cell" scope="col">Tindakan</th>
           </tr></thead>
           <tbody id="rows" aria-label="Senarai murid"></tbody>
         </table>
@@ -341,7 +341,6 @@ export function renderRegistration(root) {
 
     listCard.hidden = !selectedSchool;
     if (!selectedSchool) {
-      summaryEl.hidden = true;
       rowsEl.innerHTML = "";
       countEl.textContent = "";
       return;
@@ -356,24 +355,24 @@ export function renderRegistration(root) {
     // The time is a separate item so a long status never forces the row wider
     // than the screen at the largest text size.
     return done
-      ? `<span class="pill ok">✓ Sudah daftar</span>${s.registeredAt ? `<span>${esc(formatTime(s.registeredAt))}</span>` : ""}`
-      : `<span class="pill warn">○ Belum daftar</span>`;
+      ? `<span class="pill ok">Sudah daftar</span>${s.registeredAt ? `<span>${esc(formatTime(s.registeredAt))}</span>` : ""}`
+      : `<span class="pill warn">Belum daftar</span>`;
   }
 
   function rowHtml(s) {
     const done = s.registrationStatus === "SUDAH";
     const action = done
       ? `<button class="btn secondary" type="button" data-action="unmark"${s._pending ? " disabled" : ""}>Batal daftar</button>`
-      : `<button class="btn ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>✓ Tanda daftar</button>`;
+      : `<button class="btn ok" type="button" data-action="mark"${s._pending ? " disabled" : ""}>Tanda daftar</button>`;
 
     return `<tr class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
       <td class="student-check-cell"><input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
              aria-label="Pilih ${esc(s.name)}"${selectedIds.has(s.studentId) ? " checked" : ""}></td>
-      <td><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</td>
-      <td class="num">${esc(s.icMasked)}</td>
-      <td>${esc(s.formerPrimarySchool)}${s.transferSchool ? `<span class="student-note">Pindah: ${esc(s.transferSchool)}</span>` : ""}</td>
+      <td class="student-name-cell"><strong class="student-name">${esc(s.name)}</strong>${s.oku === true ? ' <span class="pill warn">OKU</span>' : ""}</td>
+      <td class="num student-ic-cell">${esc(s.icMasked)}</td>
+      <td class="student-school-cell">${esc(s.formerPrimarySchool)}${s.transferSchool ? `<span class="student-note">Pindah: ${esc(s.transferSchool)}</span>` : ""}</td>
       <td class="student-status">${statusCell(s)}</td>
-      <td><div class="record-actions">
+      <td class="student-actions-cell"><div class="record-actions">
         ${action}
         <button class="btn secondary" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
       </div></td>
@@ -948,6 +947,5 @@ export function renderRegistration(root) {
     load();
   } else {
     listCard.hidden = true;
-    summaryEl.hidden = true;
   }
 }
