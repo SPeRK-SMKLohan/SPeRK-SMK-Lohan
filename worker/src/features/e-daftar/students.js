@@ -1,7 +1,7 @@
 import { SCHOOL_LOOKUP } from "./schools.js";
 import { batchGet, commit, fieldFilter, getDoc, runQuery, toValue } from "../../firestore.js";
 import {
-  getActiveStudents, invalidateStudentsCache, mergeStudentIntoCache, publicStudent, studentFromDoc,
+  getActiveStudents, getActiveStudentsForSchool, invalidateStudentsCache, mergeStudentIntoCache, publicStudent, studentFromDoc,
 } from "../../shared/students.js";
 import { HttpError, ID_RE, DAY_MS, clampInt, myDateKey, myDayStart, readJson } from "../../util.js";
 
@@ -148,7 +148,9 @@ export async function listStudents(env, url) {
   const words = tokens.filter((t) => !/^\d+$/.test(t));
   const digits = tokens.filter((t) => /^\d+$/.test(t)).join("");
 
-  const all = await getActiveStudents(env);
+  const all = school
+    ? await getActiveStudentsForSchool(env, school)
+    : await getActiveStudents(env);
   const matched = [];
   let totalActive = 0;
   let registered = 0;

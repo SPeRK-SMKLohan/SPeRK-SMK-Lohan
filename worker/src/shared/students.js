@@ -64,6 +64,9 @@ const sharedGenRequest = () => new Request(SHARED_GEN_KEY);
 
 let mem = { data: null, checkedAt: 0, gen: 0 };
 let pending = null;
+const SCHOOL_CACHE_TTL_MS = 30_000;
+const schoolMem = new Map();
+const schoolPending = new Map();
 
 function sortStudents(list) {
   return list.sort((a, b) => a.name.localeCompare(b.name));
@@ -121,6 +124,68 @@ async function loadFull(env) {
     where: fieldFilter("active", "EQUAL", toValue(true)),
   });
   return sortStudents(docs.map((d) => studentFromDoc(d)));
+}
+
+// Pendaftaran sentiasa memaparkan satu sekolah pada satu masa. Pada cache sejuk,
+// baca sekolah itu sahaja dan bukannya memuat turun seluruh kohort untuk kemudian
+// membuang sembilan persepuluh daripadanya. Cache per sekolah dikongsi dalam PoP.
+export async function getActiveStudentsForSchool(env, school) {
+  const sharedGen = await readSharedGen();
+  const gen = sharedGen ?? mem.gen ?? 0;
+  const now = Date.now();
+  const local = schoolMem.get(school);
+  if (local && local.gen === gen && now - local.checkedAt < SCHOOL_CACHE_TTL_MS) {
+    return local.data;
+  }
+  if (schoolPending.has(school)) return schoolPending.get(school);
+
+  const request = (async () => {
+    try {
+      const cacheKey = new Request(`https://sperk-cache.internal/students-school-v1/${encodeURIComponent(school)}`);
+      try {
+        const hit = await caches.default.match(cacheKey);
+        if (hit) {
+          const cached = await hit.json();
+          if (Array.isArray(cached?.data) && cached.gen === gen && Date.now() - cached.checkedAt < SCHOOL_CACHE_TTL_MS) {
+            const state = { data: cached.data, checkedAt: cached.checkedAt, gen };
+            schoolMem.set(school, state);
+            return state.data;
+          }
+        }
+      } catch {
+        /* Cache miss: dapatkan senarai terkini daripada Firestore. */
+      }
+
+      const docs = await runQuery(env, {
+        from: [{ collectionId: "students" }],
+        where: fieldFilter("formerPrimarySchool", "EQUAL", toValue(school)),
+        select: {
+          fields: [
+            "active", "name", "icNumber", "formerPrimarySchool", "tingkatan", "oku",
+            "registrationStatus", "registeredAt", "registeredBy", "transferSchool",
+            "transferReason", "transferNotes",
+          ].map((fieldPath) => ({ fieldPath })),
+        },
+      });
+      const data = sortStudents(docs
+        .filter((doc) => doc.active === true)
+        .map((doc) => studentFromDoc(doc)));
+      const state = { data, checkedAt: Date.now(), gen };
+      schoolMem.set(school, state);
+      try {
+        await caches.default.put(cacheKey, Response.json(state, {
+          headers: { "Cache-Control": `max-age=${Math.ceil(SCHOOL_CACHE_TTL_MS / 1000)}` },
+        }));
+      } catch {
+        /* Data tetap dipaparkan jika Cache API tidak tersedia. */
+      }
+      return data;
+    } finally {
+      schoolPending.delete(school);
+    }
+  })();
+  schoolPending.set(school, request);
+  return request;
 }
 
 async function loadDelta(env, sinceMs) {
@@ -224,6 +289,7 @@ export async function getActiveStudents(env) {
 export async function mergeStudentIntoCache(doc) {
   const s = studentFromDoc(doc);
   if (!s.studentId) return;
+  const now = Date.now();
 
   if (mem.data) {
     const i = mem.data.findIndex((x) => x.studentId === s.studentId);
@@ -239,6 +305,25 @@ export async function mergeStudentIntoCache(doc) {
     else state.data.push(s);
     sortStudents(state.data);
     await writeShared(state);
+  }
+
+  // Keep a warm school list in step with a write from this same PoP, so the
+  // follow-up refresh after registering or editing a student stays immediate.
+  for (const [school, cached] of schoolMem) {
+    if (now - cached.checkedAt >= SCHOOL_CACHE_TTL_MS) continue;
+    const data = cached.data.filter((student) => student.studentId !== s.studentId);
+    if (doc.active !== false && s.tingkatan === 1 && s.formerPrimarySchool === school) data.push(s);
+    sortStudents(data);
+    const state = { data, checkedAt: now, gen: cached.gen };
+    schoolMem.set(school, state);
+    try {
+      const cacheKey = new Request(`https://sperk-cache.internal/students-school-v1/${encodeURIComponent(school)}`);
+      await caches.default.put(cacheKey, Response.json(state, {
+        headers: { "Cache-Control": `max-age=${Math.ceil(SCHOOL_CACHE_TTL_MS / 1000)}` },
+      }));
+    } catch {
+      /* Perubahan tetap disimpan pada cache memori. */
+    }
   }
 }
 
