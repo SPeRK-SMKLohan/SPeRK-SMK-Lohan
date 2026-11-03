@@ -52,6 +52,12 @@ export function renderLogin(root) {
           <span class="err" id="password-err"></span>
         </div>
 
+        <div class="field">
+          <label class="label" for="teacher-name">Nama guru</label>
+          <input id="teacher-name" class="input" type="text" maxlength="100" autocomplete="name" required>
+          <span class="hint">Disimpan pada peranti ini untuk nama pada resit.</span>
+        </div>
+
         <button class="btn primary lg block" type="submit">Log masuk</button>
 
         <div class="login-help">
@@ -65,6 +71,8 @@ export function renderLogin(root) {
   const alertBox = root.querySelector("#login-alert");
   const button = form.querySelector("button[type=submit]");
   const passwordInput = root.querySelector("#password");
+  const teacherInput = root.querySelector("#teacher-name");
+  try { teacherInput.value = localStorage.getItem("sperk-device-staff-name") || ""; } catch {}
   const toggle = root.querySelector("#toggle-password");
 
   toggle.addEventListener("click", () => {
@@ -102,8 +110,10 @@ export function renderLogin(root) {
 
     const email = root.querySelector("#email").value.trim();
     const password = passwordInput.value;
+    const teacherName = teacherInput.value.trim();
     const errors = validate({ email, password });
-    const first = ["email", "password"].find((id) => errors[id]);
+    if (!teacherName) errors.teacherName = "Masukkan nama guru.";
+    const first = ["email", "password", "teacher-name"].find((id) => errors[id] || (id === "teacher-name" && !teacherName));
     if (first) {
       for (const id of ["email", "password"]) setFieldError(id, errors[id]);
       root.querySelector(`#${first}`).focus();
@@ -115,6 +125,7 @@ export function renderLogin(root) {
 
     try {
       await signIn(email, password);
+      localStorage.setItem("sperk-device-staff-name", teacherName);
 
       // The server also checks that this account is approved for the system.
       try {

@@ -9,7 +9,7 @@ import { renderLogin } from "./pages/login.js";
 const NAV = [
   { path: "/", label: "Utama", title: "Utama" },
   { path: "/pendaftaran", label: "Pendaftaran", title: "Pendaftaran murid" },
-  { path: "/jana-resit", label: "Resit", title: "Jana resit koperasi" },
+  { path: "/jana-resit", label: "Koperasi", title: "Jana resit koperasi" },
   { path: "/laporan-koperasi", label: "Laporan", title: "Laporan koperasi" },
 ];
 
@@ -48,7 +48,6 @@ let renderSequence = 0;
 
 // Clear preferences and device-local names used by features that were removed.
 try {
-  localStorage.removeItem("sperk-device-staff-name");
   localStorage.removeItem("sperk-text-size");
   localStorage.removeItem("sperk-large-text");
 } catch {

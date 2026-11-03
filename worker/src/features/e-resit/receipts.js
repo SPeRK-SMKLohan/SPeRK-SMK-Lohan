@@ -5,6 +5,7 @@ import {
   DAY_MS, HttpError, ID_RE, UUID_RE, clampInt, myDateKey, myDayStart, myYear, parseDateKey, readJson,
 } from "../../util.js";
 import { mergeStudentIntoCache } from "../../shared/students.js";
+import { SCHOOLS } from "../e-daftar/schools.js";
 
 /* ---------- e-Resit Koperasi: jana, senarai dan butiran resit ---------- */
 const PAYMENT_METHODS = ["BANK_TRANSFER", "CASH"];
@@ -15,6 +16,8 @@ export function receiptSummary(d) {
     receiptNo: d.receiptNo,
     createdAt: d.createdAt,
     studentNameSnapshot: String(d.studentNameSnapshot ?? "").toUpperCase(),
+    formerPrimarySchoolSnapshot: d.formerPrimarySchoolSnapshot ?? "",
+    createdByName: d.createdByName ?? "",
     totalSen: d.totalSen,
     paymentMethod: d.paymentMethod,
     status: d.status,
@@ -151,9 +154,11 @@ export async function createReceipt(env, user, request) {
         const daily = await getDoc(env, "counters", dailyId, tx);
         const dailyCount = (daily?.count ?? 0) + 1;
         const dailyTotal = (daily?.totalSen ?? 0) + totalSen;
+        const schoolCounterId = `receipts-school-${SCHOOLS.indexOf(student.formerPrimarySchool)}`;
+        const schoolCounter = await getDoc(env, "counters", schoolCounterId, tx);
 
         const receipt = {
-          receiptNo: `${year}-${String(next).padStart(6, "0")}`,
+          receiptNo: `${year}-${String(next).padStart(3, "0")}`,
           year,
           studentId,
           studentNameSnapshot: String(student.name ?? "").toUpperCase(),
@@ -165,6 +170,7 @@ export async function createReceipt(env, user, request) {
           status: "ISSUED",
           createdAt: now,
           createdByAccountId: user.sub,
+          createdByName: String(body.createdByName ?? "").trim().slice(0, 100),
           requestId,
           hasKoperasiMembership: hasKoperasi,
         };
@@ -172,6 +178,7 @@ export async function createReceipt(env, user, request) {
         const writes = [
           { collection: "counters", id: counterId, data: { value: next, year, updatedAt: now } },
           { collection: "receipts", id: requestId, data: receipt, mustNotExist: true },
+          { collection: "counters", id: schoolCounterId, data: { count: (schoolCounter?.count ?? 0) + 1 }, mask: true },
           {
             collection: "counters",
             id: dailyId,
@@ -229,6 +236,7 @@ export async function listReceipts(env, url) {
   const to = parseDateKey(url.searchParams.get("to"));
   const limit = clampInt(url.searchParams.get("limit"), 1, 500, 100);
   const includeItems = url.searchParams.get("includeItems") === "true";
+  const school = (url.searchParams.get("school") || "").trim();
 
   const filters = [];
   if (from) filters.push(fieldFilter("createdAt", "GREATER_THAN_OR_EQUAL", toValue(myDayStart(from))));
@@ -244,11 +252,11 @@ export async function listReceipts(env, url) {
   else if (filters.length > 1) query.where = { compositeFilter: { op: "AND", filters } };
 
   const docs = await runQuery(env, query);
-  const list = q
+  const list = (q
     ? docs.filter(
         (d) => d.receiptNo.toLowerCase().includes(q) || d.studentNameSnapshot.toLowerCase().includes(q)
       )
-    : docs;
+    : docs).filter((d) => !school || d.formerPrimarySchoolSnapshot === school);
 
   return {
     receipts: list.slice(0, limit).map(includeItems ? reportReceipt : receiptSummary),

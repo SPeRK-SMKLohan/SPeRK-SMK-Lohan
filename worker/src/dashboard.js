@@ -1,4 +1,4 @@
-import { getDoc, runQuery } from "./firestore.js";
+import { batchGet, getDoc, runQuery } from "./firestore.js";
 import { receiptSummary } from "./features/e-resit/receipts.js";
 import { getActiveStudents } from "./shared/students.js";
 import { SCHOOLS } from "./features/e-daftar/schools.js";
@@ -60,7 +60,8 @@ async function computeDashboard(env) {
   // Ahli koperasi disimpan sebagai medan murid (koperasiMember),
   // jadi tiada lagi imbasan penuh koleksi resit. Bilangan item tidak dipaparkan
   // pada papan pemuka, jadi jangan tambah satu lagi bacaan Firestore untuknya.
-  const [students, dailyCounter, recentDocs] = await Promise.all([
+  const schoolReceiptRefs = SCHOOLS.map((_, i) => ({ collection: "counters", id: `receipts-school-${i}` }));
+  const [students, dailyCounter, recentDocs, schoolReceiptCounters] = await Promise.all([
     getActiveStudents(env),
     getDoc(env, "counters", `daily-${dateKey}`),
     runQuery(env, {
@@ -68,6 +69,7 @@ async function computeDashboard(env) {
       orderBy: [{ field: { fieldPath: "createdAt" }, direction: "DESCENDING" }],
       limit: 5,
     }),
+    batchGet(env, schoolReceiptRefs),
   ]);
 
   const schools = new Map(SCHOOLS.map((school) => [school, { registered: 0, total: 0 }]));
@@ -103,6 +105,7 @@ async function computeDashboard(env) {
       registered: counts.registered,
       notRegistered: counts.total - counts.registered,
       total: counts.total,
+      receipts: schoolReceiptCounters.get(`counters/receipts-school-${SCHOOLS.indexOf(school)}`)?.count ?? 0,
     }));
 
   return {

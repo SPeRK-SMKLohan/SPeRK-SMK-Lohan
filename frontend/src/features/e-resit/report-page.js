@@ -3,6 +3,7 @@ import { paymentLabel } from "./constants.js";
 import { formatRM } from "../../shared/money.js";
 import { esc } from "../../shared/dom.js";
 import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedback.js";
+import { schools } from "../e-daftar/constants.js";
 
 /* Cooperative report.
    Totals first, then the receipts that make them up, then export. The payment
@@ -50,6 +51,10 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
             <option value="BANK_TRANSFER">Pindahan bank</option>
           </select>
         </div>
+        <div class="field">
+          <label class="label" for="report-school">Sekolah</label>
+          <select id="report-school" class="select"><option value="">Semua sekolah</option>${schools.map((school) => `<option value="${esc(school)}">${esc(school)}</option>`).join("")}</select>
+        </div>
       </div>
     </section>
 
@@ -82,6 +87,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
   const toInput = $("#report-to");
   const paymentInput = $("#report-payment");
   const qInput = $("#report-q");
+  const schoolInput = $("#report-school");
   const itemsSection = $("#report-items");
   let itemsLoaded = false;
 
@@ -163,6 +169,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
     let bank = 0;
     for (const receipt of allReceipts) {
       if (method !== "ALL" && receipt.paymentMethod !== method) continue;
+      if (schoolInput.value && receipt.formerPrimarySchoolSnapshot !== schoolInput.value) continue;
       const amount = receipt.totalSen || 0;
       filtered.push(receipt);
       total += amount;
@@ -207,6 +214,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
         from: fromInput.value,
         to: toInput.value,
         limit: LIMIT,
+        school: schoolInput.value,
       });
       if (mine !== seq) return;
 
@@ -230,6 +238,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
   fromInput.addEventListener("change", load);
   toInput.addEventListener("change", load);
   paymentInput.addEventListener("change", renderReport);
+  schoolInput.addEventListener("change", load);
 
   let searchTimer;
   qInput.addEventListener("input", () => {

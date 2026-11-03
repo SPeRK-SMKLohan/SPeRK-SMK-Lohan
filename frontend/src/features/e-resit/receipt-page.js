@@ -38,7 +38,7 @@ export async function renderReceiptDetail(root, id) {
       <div class="page-head-row">
         <div>
           <h1>Resit ${esc(r.receiptNo)}</h1>
-          <p class="lede">${esc(r.studentNameSnapshot)} · ${esc(r.formerPrimarySchoolSnapshot ?? "")}</p>
+          <p class="lede">${esc(r.studentNameSnapshot)}</p>
         </div>
       </div>
     </div>

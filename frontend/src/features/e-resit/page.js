@@ -448,6 +448,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       const { receipt } = await createReceipt({
         requestId,
         studentId: student.studentId,
+        createdByName: localStorage.getItem("sperk-device-staff-name") || "",
         paymentMethod,
         bankRef: paymentMethod === "BANK_TRANSFER" ? bankRef.trim() : undefined,
         lines: lines.map((l) => ({ itemId: l.itemId, quantity: l.quantity })),

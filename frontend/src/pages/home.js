@@ -60,10 +60,10 @@ export async function renderHome(root) {
       <div class="table-wrap">
         <table class="table home-summary-table">
           <caption class="sr-only">Bilangan murid sudah dan belum daftar mengikut sekolah rendah</caption>
-          <thead><tr><th scope="col">Sekolah</th><th scope="col">Sudah daftar</th><th scope="col">Belum daftar</th></tr></thead>
+          <thead><tr><th scope="col">Sekolah</th><th scope="col">Sudah daftar</th><th scope="col">Belum daftar</th><th scope="col">Bil resit</th></tr></thead>
           <tbody>${schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
             const row = (d.registrationBySchool ?? []).find((item) => item.school === school);
-            return `<tr><th scope="row">${esc(school)}</th><td>${row?.registered ?? "—"}</td><td>${row?.notRegistered ?? "—"}</td></tr>`;
+            return `<tr><th scope="row">${esc(school)}</th><td>${row?.registered ?? "—"}</td><td>${row?.notRegistered ?? "—"}</td><td>${row?.receipts ?? 0}</td></tr>`;
           }).join("")}</tbody>
         </table>
       </div>
