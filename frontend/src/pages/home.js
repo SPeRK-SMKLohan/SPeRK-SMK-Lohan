@@ -58,7 +58,7 @@ export async function renderHome(root) {
     <section class="card">
       <div class="card-head"><h2>Ringkasan pendaftaran</h2></div>
       <div class="table-wrap">
-        <table class="table">
+        <table class="table home-summary-table">
           <caption class="sr-only">Bilangan murid sudah dan belum daftar mengikut sekolah rendah</caption>
           <thead><tr><th scope="col">Sekolah</th><th scope="col">Sudah daftar</th><th scope="col">Belum daftar</th></tr></thead>
           <tbody>${schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
