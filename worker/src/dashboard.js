@@ -3,6 +3,10 @@ import { receiptSummary } from "./features/e-resit/receipts.js";
 import { getActiveStudents } from "./shared/students.js";
 import { SCHOOLS } from "./features/e-daftar/schools.js";
 import { DAY_MS, myDateKey, myDayStart } from "./util.js";
+import {
+  dashboardCache, dashboardCacheRequest, dashboardPending, getDashboardRevision,
+  clearDashboardPending, setDashboardCache, setDashboardPending,
+} from "./dashboard-cache.js";
 
 /* ---------- Papan Pemuka: statistik kedua-dua ciri ---------- */
 
@@ -10,24 +14,21 @@ import { DAY_MS, myDateKey, myDayStart } from "./util.js";
 // masa yang sama tidak mencetuskan bacaan Firestore berulang. Cache API
 // dikongsi antara isolate dalam PoP yang sama.
 const DASHBOARD_TTL_MS = 30_000;
-const DASHBOARD_CACHE_KEY = "https://sperk-cache.internal/dashboard-v2";
-const dashboardCacheRequest = () => new Request(DASHBOARD_CACHE_KEY);
-let dashboardCache = { at: 0, data: null };
-let dashboardPending = null;
 
 export async function getDashboard(env) {
   if (dashboardCache.data && Date.now() - dashboardCache.at < DASHBOARD_TTL_MS) {
     return dashboardCache.data;
   }
   if (dashboardPending) return dashboardPending;
+  const revision = getDashboardRevision();
 
-  dashboardPending = (async () => {
+  const pending = (async () => {
     try {
       try {
         const hit = await caches.default.match(dashboardCacheRequest());
         if (hit) {
           const data = await hit.json();
-          dashboardCache = { at: Date.now(), data };
+          setDashboardCache(data, revision);
           return data;
         }
       } catch {
@@ -35,21 +36,24 @@ export async function getDashboard(env) {
       }
 
       const data = await computeDashboard(env);
-      dashboardCache = { at: Date.now(), data };
+      setDashboardCache(data, revision);
       try {
-        await caches.default.put(
-          dashboardCacheRequest(),
-          Response.json(data, { headers: { "Cache-Control": "max-age=30" } })
-        );
+        if (revision === getDashboardRevision()) {
+          await caches.default.put(
+            dashboardCacheRequest(),
+            Response.json(data, { headers: { "Cache-Control": "max-age=30" } })
+          );
+        }
       } catch {
         /* Simpanan cache gagal: data tetap dikembalikan. */
       }
       return data;
     } finally {
-      dashboardPending = null;
+      clearDashboardPending(pending);
     }
   })();
-  return dashboardPending;
+  setDashboardPending(pending);
+  return pending;
 }
 
 async function computeDashboard(env) {

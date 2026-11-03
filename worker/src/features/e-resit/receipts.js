@@ -6,6 +6,7 @@ import {
 } from "../../util.js";
 import { mergeStudentIntoCache } from "../../shared/students.js";
 import { SCHOOLS } from "../e-daftar/schools.js";
+import { invalidateDashboardCache } from "../../dashboard-cache.js";
 
 /* ---------- e-Resit Koperasi: jana, senarai dan butiran resit ---------- */
 const PAYMENT_METHODS = ["BANK_TRANSFER", "CASH"];
@@ -204,6 +205,11 @@ export async function createReceipt(env, user, request) {
 
         await commit(env, writes, tx);
         committed = true;
+
+        // Resit dan kaunter sudah menjadi satu transaksi. Padam ringkasan
+        // papan pemuka sebelum memulangkan kejayaan supaya kiraan baharu terus
+        // kelihatan apabila pengguna kembali ke halaman utama.
+        await invalidateDashboardCache();
 
         // Kemas kini cache murid supaya statistik koperasi segera terkini.
         if (hasKoperasi && student.koperasiMember !== true) {
