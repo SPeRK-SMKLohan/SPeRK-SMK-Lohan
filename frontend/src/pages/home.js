@@ -1,6 +1,5 @@
 import { apiFetch } from "../shared/api.js";
 import { schools } from "../features/e-daftar/constants.js";
-import { searchStudents } from "../features/e-daftar/api.js";
 import { esc } from "../shared/dom.js";
 import { loadingState, readErrorState, wireReadRetry } from "../shared/feedback.js";
 
@@ -9,6 +8,33 @@ import { loadingState, readErrorState, wireReadRetry } from "../shared/feedback.
    state of registration day. Numbers support the tasks; they do not lead. */
 
 const getDashboard = () => apiFetch("/api/dashboard");
+const DASHBOARD_STORAGE_KEY = "sperk-dashboard-summary-v1";
+
+function readDashboardCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(DASHBOARD_STORAGE_KEY) || "null");
+    return cached && Array.isArray(cached.registrationBySchool) ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderDashboard(box, d) {
+  box.innerHTML = `
+    <section class="card">
+      <div class="card-head"><h2>Ringkasan pendaftaran</h2></div>
+      <div class="table-wrap">
+        <table class="table home-summary-table">
+          <caption class="sr-only">Bilangan murid sudah dan belum daftar mengikut sekolah rendah</caption>
+          <thead><tr><th scope="col">Sekolah</th><th scope="col">Sudah daftar</th><th scope="col">Belum daftar</th><th scope="col">Bil resit</th></tr></thead>
+          <tbody>${schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
+            const row = d.registrationBySchool.find((item) => item.school === school);
+            return `<tr><th scope="row">${esc(school)}</th><td>${row?.registered ?? "—"}</td><td>${row?.notRegistered ?? "—"}</td><td>${row?.receipts ?? 0}</td></tr>`;
+          }).join("")}</tbody>
+        </table>
+      </div>
+    </section>`;
+}
 
 export async function renderHome(root) {
   root.innerHTML = `
@@ -32,40 +58,24 @@ export async function renderHome(root) {
     <div id="home-data">${loadingState("Memuatkan ringkasan…")}</div>`;
 
   const box = root.querySelector("#home-data");
+  let cached = readDashboardCache();
+  if (cached) renderDashboard(box, cached);
 
   let d;
   try {
     d = await getDashboard();
     if (!Array.isArray(d.registrationBySchool)) {
-      d.registrationBySchool = await Promise.all(
-        schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map(async (school) => {
-          const summary = await searchStudents("", { school, limit: 1 });
-          return {
-            school,
-            registered: summary.schoolRegisteredTotal ?? 0,
-            notRegistered: summary.schoolNotRegisteredTotal ?? 0,
-          };
-        })
-      );
+      throw new Error("Ringkasan dashboard tidak lengkap.");
     }
+    try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(d)); } catch { /* Cache peranti pilihan sahaja. */ }
   } catch (err) {
+    if (cached) {
+      box.insertAdjacentHTML("afterbegin", '<p class="muted tiny" role="status">Menunjukkan ringkasan terakhir; data terkini belum dapat disegerakkan.</p>');
+      return;
+    }
     box.innerHTML = readErrorState(err, "Ringkasan utama");
     wireReadRetry(box, () => renderHome(root));
     return;
   }
-
-  box.innerHTML = `
-    <section class="card">
-      <div class="card-head"><h2>Ringkasan pendaftaran</h2></div>
-      <div class="table-wrap">
-        <table class="table home-summary-table">
-          <caption class="sr-only">Bilangan murid sudah dan belum daftar mengikut sekolah rendah</caption>
-          <thead><tr><th scope="col">Sekolah</th><th scope="col">Sudah daftar</th><th scope="col">Belum daftar</th><th scope="col">Bil resit</th></tr></thead>
-          <tbody>${schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
-            const row = (d.registrationBySchool ?? []).find((item) => item.school === school);
-            return `<tr><th scope="row">${esc(school)}</th><td>${row?.registered ?? "—"}</td><td>${row?.notRegistered ?? "—"}</td><td>${row?.receipts ?? 0}</td></tr>`;
-          }).join("")}</tbody>
-        </table>
-      </div>
-    </section>`;
+  renderDashboard(box, d);
 }
