@@ -55,8 +55,10 @@ export function publicStudent(s) {
 const SYNC_INTERVAL_MS = 30_000;      // sejajar penyegaran kaunter; kurangkan bacaan delta serentak
 const SHARED_MAX_AGE_S = 3 * 3600;    // hayat entri Cache API (3 jam)
 const SLACK_MS = 10_000;              // toleransi susunan commit untuk delta
-const SHARED_KEY = "https://sperk-cache.internal/students-active-v2";
-const SHARED_GEN_KEY = "https://sperk-cache.internal/students-active-gen-v2";
+// Bump the cache namespace after the bulk Firestore reset so every Cloudflare
+// location discards its old per-PoP student snapshot and reloads Firestore.
+const SHARED_KEY = "https://sperk-cache.internal/students-active-v3";
+const SHARED_GEN_KEY = "https://sperk-cache.internal/students-active-gen-v3";
 const sharedRequest = () => new Request(SHARED_KEY);
 const sharedGenRequest = () => new Request(SHARED_GEN_KEY);
 

@@ -10,7 +10,7 @@ import { DAY_MS, myDateKey, myDayStart } from "./util.js";
 // masa yang sama tidak mencetuskan bacaan Firestore berulang. Cache API
 // dikongsi antara isolate dalam PoP yang sama.
 const DASHBOARD_TTL_MS = 30_000;
-const DASHBOARD_CACHE_KEY = "https://sperk-cache.internal/dashboard";
+const DASHBOARD_CACHE_KEY = "https://sperk-cache.internal/dashboard-v2";
 const dashboardCacheRequest = () => new Request(DASHBOARD_CACHE_KEY);
 let dashboardCache = { at: 0, data: null };
 let dashboardPending = null;
