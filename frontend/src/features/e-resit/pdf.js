@@ -89,7 +89,6 @@ export async function buildReceiptDoc(r) {
   meta("No. Resit", r.receiptNo);
   meta("Tarikh", formatDateTime(r.createdAt));
   meta("Nama Murid", r.studentNameSnapshot);
-  meta("Disediakan oleh", r.createdByName || "—");
   y += 2;
 
   /* ----- Jadual item (lajur seimbang) ----- */

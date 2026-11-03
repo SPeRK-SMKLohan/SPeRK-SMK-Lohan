@@ -31,7 +31,6 @@ export function receiptHtml(r) {
         <div><span>No. Resit</span><strong>${esc(r.receiptNo)}</strong></div>
         <div><span>Tarikh</span><strong>${esc(formatDateTime(r.createdAt))}</strong></div>
         <div><span>Nama Murid</span><strong>${esc(r.studentNameSnapshot)}</strong></div>
-        <div><span>Disediakan oleh</span><strong>${esc(r.createdByName || "—")}</strong></div>
       </div>
       <table class="table receipt-print-items" role="table">
         <thead role="rowgroup">
@@ -61,7 +60,6 @@ export function whatsappText(r) {
     `${RECEIPT_TITLE} ${KOPERASI_NAME}`,
     `Nombor Resit: ${r.receiptNo}`,
     `Nama Murid: ${r.studentNameSnapshot}`,
-    `Disediakan oleh: ${r.createdByName || "—"}`,
     `Jumlah Bayaran: ${formatRM(r.totalSen)}`,
     `Kaedah Pembayaran: ${paymentLabel(r.paymentMethod)}`,
   ];
