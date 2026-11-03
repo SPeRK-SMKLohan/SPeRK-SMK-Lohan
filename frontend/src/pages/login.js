@@ -1,5 +1,4 @@
-import { signIn, signOutUser, loginErrorMessage } from "../shared/auth.js";
-import { apiFetch } from "../shared/api.js";
+import { signIn, loginErrorMessage } from "../shared/auth.js";
 import { APP_NAME } from "../shared/config.js";
 
 /* Sign in with the approved school account. Validation messages stay in Malay. */
@@ -126,21 +125,8 @@ export function renderLogin(root) {
     try {
       await signIn(email, password);
       localStorage.setItem("sperk-device-staff-name", teacherName);
-
-      // The server also checks that this account is approved for the system.
-      try {
-        await apiFetch("/api/me");
-      } catch (err) {
-        await signOutUser();
-        throw new Error(
-          err.status === 403
-            ? "Akaun ini tidak dibenarkan menggunakan sistem. Hubungi pentadbir sekolah."
-            : err.status
-              ? "Pengesahan akaun gagal. Sila cuba lagi."
-              : err.message
-        );
-      }
-
+      // Terus buka skrin utama. Permintaan dashboard pertama juga mengesahkan
+      // kelayakan akaun, jadi tiada perjalanan rangkaian /api/me berasingan.
       location.hash = "/";
     } catch (err) {
       const message = err.code ? loginErrorMessage(err) : err.message;
