@@ -1,7 +1,10 @@
 import { getIdToken, signOutUser } from "./auth.js";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8787").replace(/\/$/, "");
-const READ_TIMEOUT_MS = 15000;
+// Firestore REST may make one transient retry (up to 16s total) on a cold
+// Worker. Leave room for that response so the browser does not abort a read
+// just before the Worker can populate its shared student cache.
+const READ_TIMEOUT_MS = 25000;
 const READ_ATTEMPTS = 2;
 const readRequests = new Map();
 

@@ -310,7 +310,7 @@ previewBoot
       <main class="page">
         <div class="card">
           <h1>Sistem tidak dapat dimulakan</h1>
-          <p class="err" role="alert">Sambungan pengesahan gagal. Semak sambungan internet dan cuba muat semula halaman.</p>
+          <p class="err" role="alert">Sesi belum dapat dipulihkan. Semak sambungan internet dan pilih Cuba Lagi. Sesi anda tidak dipadam.</p>
           <button id="retry-startup" class="btn primary" type="button">Cuba Lagi</button>
         </div>
       </main>`;
