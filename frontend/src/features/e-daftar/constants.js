@@ -2,7 +2,7 @@
 // Senarai sekolah rendah asal (perlu disahkan oleh pihak sekolah).
 // Simpan senarai ini sama dengan worker/src/features/e-daftar/schools.js.
 export const schools = [
-  "SK Bongkud", "SK Kirokot", "SK Langsat", "SK Lohan", "SK Nalapak",
+  "SK Bongkud", "SK Kilimu", "SK Kinapopon", "SK Kirokot", "SK Langsat", "SK Lohan", "SK Nalapak",
   "SK Napong", "SK Narawang", "SK Perancangan", "SK Poring", "SK Sagiban",
 ];
 
