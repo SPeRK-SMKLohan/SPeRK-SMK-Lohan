@@ -769,9 +769,13 @@ legend { font-size: 1rem; font-weight: 650; padding: 0; margin-bottom: var(--s2)
 .student-status > span + span { display: inline; margin-left: var(--s1); font-size: 0.8125rem; color: var(--ink-3); }
 .student-check-cell { display: none; white-space: nowrap; }
 .student-table tbody.selecting .student-check-cell { display: table-cell; }
+/* The selection column must be present in the header too, otherwise the
+   browser shifts every heading one column left while rows keep the checkbox. */
+.student-table:has(tbody.selecting) thead .student-check-cell { display: table-cell; }
 .record-select { width: 22px; height: 22px; accent-color: var(--brand); }
 .record-actions { display: flex; flex-wrap: nowrap; gap: var(--s1); justify-content: flex-end; }
 .record-actions .btn { min-height: 38px; padding: var(--s1) var(--s2); font-size: 0.875rem; white-space: nowrap; line-height: 1.25; }
+.action-label-short { display: none; }
 .student-table-message {
   padding: var(--s6) var(--s5) !important;
   text-align: center;
@@ -1230,6 +1234,7 @@ dialog.modal > form {
 .registration-status-filter { grid-area: status; width: 100%; min-width: 0; }
 .registration-count { grid-area: count; align-self: center; margin: 0; white-space: nowrap; }
 .registration-new { grid-area: new; white-space: nowrap; }
+.new-label-short { display: none; }
 .registration-more { grid-area: more; margin-left: 0; align-self: center; }
 .registration-toolbar .search .input { width: 100%; }
 
@@ -1250,9 +1255,14 @@ dialog.modal > form {
 }
 @media (max-width: 760px) {
   .registration-toolbar {
-    grid-template-columns: minmax(0, 1fr) max-content;
-    grid-template-areas: "school school" "search search" "status status" "count new" "more more";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) max-content;
+    grid-template-areas: "school school status" "search search search" "count new more";
+    column-gap: var(--s2);
   }
+  .registration-count { font-size: .875rem; }
+  .registration-new { justify-self: stretch; min-width: 0; padding-inline: var(--s2); font-size: .875rem; }
+  .registration-new .new-label-full { display: none; }
+  .registration-new .new-label-short { display: inline; white-space: nowrap; }
   .registration-more { justify-self: end; }
 }
 .school-grid { display: grid; gap: var(--s2); grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
@@ -1264,6 +1274,25 @@ dialog.modal > form {
 .list-more summary::after { content: " ▾"; color: var(--ink-3); }
 .list-more-menu { position: absolute; z-index: 4; right: 0; top: calc(100% + 4px); display: grid; gap: var(--s2); min-width: 180px; padding: var(--s2); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--shadow-2); }
 .list-more-menu .btn { justify-content: flex-start; }
+
+@media (max-width: 760px) {
+  /* Give each menu action a steady width so its label never breaks into
+     awkward two-line buttons on a phone. */
+  .list-more-menu {
+    width: max-content;
+    min-width: 210px;
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
+  }
+  .list-more-menu .btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: var(--s3);
+    font-size: .875rem;
+    white-space: nowrap;
+  }
+}
 
 .list-count { font-size: 0.9375rem; color: var(--ink-2); margin: 0 0 var(--s3); }
 
@@ -1522,7 +1551,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
 .report-items > div { padding: 0 var(--s5) var(--s4); }
 
 @media (max-width: 900px) {
-  .report-filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filter-bar.report-filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .report-filter-bar .field:first-child { grid-column: 1 / -1; }
   .report-summary { grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 1fr)); gap: var(--s3); padding-inline: var(--s4); }
   .report-stat { padding-left: var(--s3); }
@@ -1727,8 +1756,8 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .student-table thead { display: none; }
   .student-table tbody tr.record {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--s2) var(--s3);
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 6px var(--s3);
     padding: var(--s3);
     border-bottom: 1px solid var(--line-2);
   }
@@ -1741,40 +1770,54 @@ body.has-trolley .page { padding-bottom: 9rem; }
     overflow-wrap: anywhere;
   }
   .student-table tbody tr.record .student-check-cell { display: none; }
-  .student-table tbody tr.record .student-name-cell,
-  .student-table tbody tr.record .student-actions-cell { grid-column: 1 / -1; }
-  .student-table tbody tr.record .student-ic-cell { grid-column: 1 / -1; }
+  .student-table tbody tr.record .student-name-cell { grid-column: 1 / -1; grid-row: 1; }
+  .student-table tbody tr.record .student-ic-cell { grid-column: 1 / -1; grid-row: 2; }
   .student-table tbody tr.record .student-status {
-    grid-column: 1 / -1;
+    grid-column: 1;
+    grid-row: 3;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: var(--s2);
+    gap: var(--s1);
   }
-  .student-ic-cell::before,
-  .student-status::before {
-    display: block;
-    margin-bottom: 2px;
+  .student-table tbody tr.record .student-ic-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .75rem; }
+  .student-table tbody tr.record .student-ic-cell.num { text-align: left; }
+  .student-table tbody tr.record .student-actions-cell { grid-column: 2; grid-row: 3; }
+  .student-ic-cell::before {
+    display: inline;
+    margin-right: var(--s1);
     color: var(--ink-3);
     font-size: .75rem;
     font-weight: 650;
     letter-spacing: .03em;
     text-transform: uppercase;
   }
-  .student-ic-cell::before { content: "No. IC"; }
-  .student-status::before { content: "Status daftar"; flex-basis: 100%; }
-  .student-table tbody.selecting tr.record { grid-template-columns: 30px minmax(0, 1fr); }
+  .student-ic-cell::before { content: "IC"; }
+  .action-label-full { display: none; }
+  .action-label-short { display: inline; }
+  .student-table tbody tr.record .student-actions-cell .record-actions { gap: var(--s1); }
+  .student-table tbody tr.record .student-actions-cell .record-actions .btn {
+    min-height: 36px;
+    padding-inline: 8px;
+    font-size: .75rem;
+  }
+  .student-table tbody.selecting tr.record { grid-template-columns: 28px minmax(0, 1fr) max-content; }
   .student-table tbody.selecting tr.record .student-check-cell {
     display: flex;
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 1 / span 4;
     align-items: center;
   }
-  .student-table tbody.selecting tr.record .student-name-cell { grid-column: 2; grid-row: 1; }
-  .student-table tbody.selecting tr.record .student-ic-cell,
-  .student-table tbody.selecting tr.record .student-status,
-  .student-table tbody.selecting tr.record .student-actions-cell { grid-column: 2; }
-  .student-table tbody.selecting tr.record .student-actions-cell .record-actions { justify-content: flex-start; }
+  .student-table tbody.selecting tr.record .student-name-cell { grid-column: 2 / -1; grid-row: 1; }
+  .student-table tbody.selecting tr.record .student-ic-cell { grid-column: 2 / -1; grid-row: 2; }
+  .student-table tbody.selecting tr.record .student-status { grid-column: 2; grid-row: 3; }
+  .student-table tbody.selecting tr.record .student-actions-cell { grid-column: 3; grid-row: 3; }
+}
+
+@media (max-width: 420px) {
+  .student-table tbody tr.record .student-status { grid-column: 1 / -1; }
+  .student-table tbody tr.record .student-actions-cell { grid-column: 2; grid-row: 4; }
+  .student-table tbody.selecting tr.record .student-status { grid-column: 2 / -1; }
+  .student-table tbody.selecting tr.record .student-actions-cell { grid-column: 3; grid-row: 4; }
 }
 
 @media (max-width: 640px) {
@@ -1783,11 +1826,14 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .card, .step-block { padding: var(--s4); }
   .record-actions { justify-content: stretch; }
   .record-actions .btn { flex: 0 0 auto; }
+  .report-filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-filter-bar .field:first-child,
+  .report-filter-bar .field:last-child { grid-column: 1 / -1; }
+  .report-filter-bar input[type="date"] { padding-inline: var(--s2); font-size: .875rem; }
   .item-row { grid-template-columns: minmax(0, 1fr) auto; }
   .item-row .item-controls { grid-column: 1 / -1; justify-content: space-between; }
   .modal-foot { flex-direction: column-reverse; }
   .modal-foot .btn { flex: 1 1 auto; }
-  .steps { gap: var(--s1) var(--s3); font-size: 0.875rem; }
   .receipt-heading-full { display: none; }
   .receipt-heading-short { display: inline; }
   .filter-bar { grid-template-columns: minmax(0, 1fr); }
@@ -1815,6 +1861,45 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .site-footer-in { justify-content: flex-end; }
   .school-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .school-grid .chip { min-height: 52px; padding: var(--s2) var(--s3); font-size: 0.9375rem; }
+
+  /* Keep all four receipt steps in a balanced, predictable 2-by-2 layout.
+     The previous flex wrap could strand the final step on its own row. */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+    margin-bottom: var(--s4);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+  }
+  .steps li {
+    min-width: 0;
+    min-height: 40px;
+    gap: 6px;
+    padding: 5px 7px;
+    border-radius: var(--r-sm);
+    font-size: clamp(.68rem, 3.1vw, .8125rem);
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+  .steps li::before { width: 26px; height: 26px; font-size: .75rem; }
+  .steps li.is-current { background: var(--surface); box-shadow: var(--shadow-1); }
+  .steps li.is-done { color: var(--ok); }
+
+  body.has-trolley .page { padding-bottom: 7rem; }
+  .trolley-in { display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: center; gap: var(--s2); }
+  .trolley-info { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; }
+  .trolley-label { font-size: .6875rem; }
+  .trolley-total { font-size: 1.25rem; }
+  .trolley-note { font-size: .75rem; line-height: 1.2; }
+  .trolley .btn { min-width: 0; width: auto; flex: none; padding-inline: var(--s3); font-size: .875rem; }
+
+  .receipt-picked { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: var(--s1) var(--s2); padding: var(--s3); }
+  .receipt-picked .avatar { grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 40px; height: 40px; font-size: 1rem; }
+  .receipt-picked .picked-body { grid-column: 2; grid-row: 1; }
+  .receipt-picked strong { font-size: .9375rem; overflow-wrap: anywhere; }
+  .receipt-picked #change-student { grid-column: 2; grid-row: 2; justify-self: end; min-height: 40px; padding-inline: var(--s3); }
 }
 
 @media (max-width: 420px) {
@@ -1836,12 +1921,22 @@ body.has-trolley .page { padding-bottom: 9rem; }
   }
   .task-card { padding: var(--s4); }
   .task-card .task-title { font-size: 1.25rem; }
+  .school-select, .registration-status-filter { padding-inline: var(--s2); font-size: .875rem; }
+  .registration-new { min-height: 44px; padding-inline: var(--s2); font-size: .875rem; }
+  .student-ic-cell::before { content: none; }
 }
 
 /* Stat cards need room: a two-column grid squeezes "Didaftarkan hari ini" and
    "telah membayar keahlian" into three broken lines on a phone. */
 @media (max-width: 480px) {
   .stats.cols-2 { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 380px) {
+  .registration-toolbar { grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 6px; }
+  .registration-count { font-size: .8125rem; }
+  .registration-new { padding-inline: 7px; font-size: .75rem; }
+  .registration-more summary { padding-inline: 8px; }
 }
 
 /* On a phone the receipt table becomes a stack of rows: the item name gets the
@@ -1913,6 +2008,55 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .receipt-print-items tfoot th,
   .receipt-print-items tfoot td { border-top: 0; padding: 0; }
   .receipt-print-items tfoot td { font-size: 1rem; }
+
+  #report-rows .table-wrap { overflow: visible; }
+  #report-rows .table,
+  #report-rows .table tbody { display: block; }
+  #report-rows .table thead { display: none; }
+  #report-rows .table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--s1) var(--s3);
+    padding: var(--s3) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  #report-rows .table tbody td { min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; }
+  #report-rows .table tbody td:first-child { grid-column: 1 / -1; font-weight: 650; }
+  #report-rows .table tbody td:nth-child(2) { grid-column: 1; }
+  #report-rows .table tbody td:nth-child(3) { grid-column: 1; color: var(--ink-3); font-size: .8125rem; }
+  #report-rows .table tbody td:nth-child(3)::before { content: "Bayaran · "; }
+  #report-rows .table tbody td:nth-child(4) { grid-column: 2; grid-row: 2 / span 2; align-self: center; white-space: nowrap; }
+  #report-rows .table tbody td:nth-child(4)::before {
+    content: "Jumlah";
+    display: block;
+    color: var(--ink-3);
+    font-size: .6875rem;
+    font-weight: 650;
+    text-align: right;
+  }
+
+  .summary-table,
+  .summary-table tbody { display: block; }
+  .summary-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(58px, auto) minmax(64px, auto) 44px;
+    align-items: center;
+    gap: var(--s1);
+    padding: var(--s2) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .summary-table tbody td { min-width: 0; padding: 0; border: 0; }
+  .summary-table tbody td:first-child { grid-column: 1 / -1; }
+  .summary-table tbody td:nth-child(2)::before,
+  .summary-table tbody td:nth-child(3)::before {
+    display: block;
+    color: var(--ink-3);
+    font-size: .6875rem;
+    font-weight: 650;
+  }
+  .summary-table tbody td:nth-child(2)::before { content: "Kuantiti"; }
+  .summary-table tbody td:nth-child(3)::before { content: "Jumlah"; }
+  .summary-table tbody td:nth-child(4) { text-align: right; }
 }
 
 /* 23 Accessibility preferences --------------------------------------------- */

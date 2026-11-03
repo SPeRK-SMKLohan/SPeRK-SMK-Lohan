@@ -39,11 +39,12 @@ export function renderRegistration(root) {
           <button id="clear-search" class="clear" type="button" hidden>Kosongkan</button>
         </label>
         <select class="select registration-status-filter" id="status-filter" aria-label="Tapis status daftar" disabled>
-          <option value="">Semua status</option>
-          ${registrationStatusOptions.map((o) => `<option value="${o.value}">${o.label}</option>`).join("")}
+          <option value="">Semua</option>
+          <option value="SUDAH">Sudah</option>
+          <option value="BELUM">Belum</option>
         </select>
         <p class="list-count registration-count" id="count" role="status" aria-live="polite"></p>
-        <button id="new" class="btn primary registration-new" type="button" disabled>+ Murid baharu</button>
+        <button id="new" class="btn primary registration-new" type="button" disabled><span class="new-label-full">+ Murid baharu</span><span class="new-label-short">Murid baharu</span></button>
         <details class="list-more registration-more" id="list-more" hidden>
           <summary>Lagi</summary>
           <div class="list-more-menu">
@@ -344,7 +345,7 @@ export function renderRegistration(root) {
   function rowHtml(s) {
     const done = s.registrationStatus === "SUDAH";
     const action = `<button class="btn ${done ? "secondary" : "ok"}" type="button"
-      data-action="toggle-status" aria-pressed="${done}" aria-label="${done ? "Batal daftar" : "Tanda daftar"} ${esc(s.name)}"${s._pending ? " disabled" : ""}>${done ? "Batal daftar" : "Tanda daftar"}</button>`;
+      data-action="toggle-status" aria-pressed="${done}" aria-label="${done ? "Batal daftar" : "Tanda daftar"} ${esc(s.name)}"${s._pending ? " disabled" : ""}><span class="action-label-full">${done ? "Batal daftar" : "Tanda daftar"}</span><span class="action-label-short">${done ? "Batal" : "Daftar"}</span></button>`;
 
     return `<tr class="record${done ? " is-done" : ""}" data-id="${esc(s.studentId)}">
       <td class="student-check-cell"><input type="checkbox" class="record-select" data-id="${esc(s.studentId)}"
@@ -354,7 +355,7 @@ export function renderRegistration(root) {
       <td class="student-status" data-label="Status daftar">${statusCell(s)}</td>
       <td class="student-actions-cell"><div class="record-actions">
         ${action}
-        <button class="btn secondary" type="button" data-action="edit"${s._pending ? " disabled" : ""}>Butiran</button>
+        <button class="btn secondary" type="button" data-action="edit"${s._pending ? " disabled" : ""}><span class="action-label-full">Butiran</span><span class="action-label-short">Lihat</span></button>
       </div></td>
     </tr>`;
   }
