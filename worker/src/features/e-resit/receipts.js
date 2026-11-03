@@ -10,10 +10,17 @@ import { SCHOOLS } from "../e-daftar/schools.js";
 /* ---------- e-Resit Koperasi: jana, senarai dan butiran resit ---------- */
 const PAYMENT_METHODS = ["BANK_TRANSFER", "CASH"];
 
+function displayReceiptNo(value) {
+  const match = String(value ?? "").match(/^(\d{4})-(\d+)$/);
+  if (!match) return String(value ?? "");
+  const sequence = Number(match[2]);
+  return `${match[1]}-${String(sequence).padStart(3, "0")}`;
+}
+
 export function receiptSummary(d) {
   return {
     receiptId: d.id,
-    receiptNo: d.receiptNo,
+    receiptNo: displayReceiptNo(d.receiptNo),
     createdAt: d.createdAt,
     studentNameSnapshot: String(d.studentNameSnapshot ?? "").toUpperCase(),
     formerPrimarySchoolSnapshot: d.formerPrimarySchoolSnapshot ?? "",
@@ -254,7 +261,7 @@ export async function listReceipts(env, url) {
   const docs = await runQuery(env, query);
   const list = (q
     ? docs.filter(
-        (d) => d.receiptNo.toLowerCase().includes(q) || d.studentNameSnapshot.toLowerCase().includes(q)
+        (d) => displayReceiptNo(d.receiptNo).toLowerCase().includes(q) || d.receiptNo.toLowerCase().includes(q) || d.studentNameSnapshot.toLowerCase().includes(q)
       )
     : docs).filter((d) => !school || d.formerPrimarySchoolSnapshot === school);
 
