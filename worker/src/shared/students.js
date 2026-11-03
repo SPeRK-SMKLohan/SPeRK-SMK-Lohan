@@ -184,10 +184,21 @@ async function syncOne(env) {
     const checkedAt = Date.now();
     state = { data, checkedAt, gen: mem.gen ?? shared?.gen ?? 0 };
   } else {
-    const changed = await loadDelta(env, state.checkedAt);
-    const merged = mergeList(state.data, changed);
-    const checkedAt = Date.now();
-    state = { data: merged, checkedAt, gen: state.gen ?? mem.gen ?? 0 };
+    try {
+      const changed = await loadDelta(env, state.checkedAt);
+      const merged = mergeList(state.data, changed);
+      const checkedAt = Date.now();
+      state = { data: merged, checkedAt, gen: state.gen ?? mem.gen ?? 0 };
+    } catch (error) {
+      // A temporary Firestore/network problem must not blank the registration
+      // list when a usable snapshot is already available. Serve that snapshot
+      // and pause delta attempts for one normal sync interval; the next read
+      // will retry and reconcile changes. Never use this path on a cold cache.
+      console.warn("Student delta sync failed; serving cached snapshot", error?.message || error);
+      state = { data: state.data, checkedAt: now, gen: state.gen ?? mem.gen ?? 0 };
+      mem = state;
+      return mem.data;
+    }
   }
 
   mem = state;

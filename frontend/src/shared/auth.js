@@ -54,17 +54,24 @@ export async function reauthenticate(password) {
 export async function getIdToken() {
   const user = auth.currentUser;
   if (!user) throw new Error("Belum log masuk.");
-  let timer;
-  try {
-    return await Promise.race([
-      user.getIdToken(),
-      new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error("Pengesahan mengambil masa terlalu lama. Semak rangkaian dan cuba semula.")), 15000);
-      }),
-    ]);
-  } finally {
-    clearTimeout(timer);
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let timer;
+    try {
+      return await Promise.race([
+        user.getIdToken(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error("Pengesahan mengambil masa terlalu lama. Semak rangkaian dan cuba semula.")), 20000);
+        }),
+      ]);
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 350));
+    } finally {
+      clearTimeout(timer);
+    }
   }
+  throw lastError;
 }
 
 // Mesej sengaja tidak menyatakan sama ada e-mel atau kata laluan yang salah.
