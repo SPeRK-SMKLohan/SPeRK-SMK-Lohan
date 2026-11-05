@@ -22,7 +22,7 @@ export function renderRegistration(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Pendaftaran murid</h1>
-      <p class="lede">Daftar dan kemas kini murid Tingkatan 1.</p>
+      <p class="lede">Daftar murid Tingkatan 1.</p>
     </div>
 
     <section class="card registration-card">
