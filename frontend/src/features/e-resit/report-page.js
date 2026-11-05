@@ -142,6 +142,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
             <tr>
               <th scope="col">No. resit</th>
               <th scope="col">Murid</th>
+              <th scope="col">Sekolah</th>
               <th scope="col">Guru</th>
               <th scope="col">Bayaran</th>
               <th scope="col" class="num">Jumlah</th>
@@ -152,6 +153,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
               <tr>
                 <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
                 <td>${esc(r.student)}</td>
+                <td>${esc(r.school || "—")}</td>
                 <td>${esc(r.teacher || "—")}</td>
                 <td>${esc(paymentLabel(r.paymentMethod))}</td>
                 <td class="num"><strong>${formatRM(r.totalSen)}</strong></td>
@@ -190,6 +192,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       receiptNo: r.receiptNo,
       receiptId: r.receiptId,
       student: r.studentNameSnapshot,
+      school: r.formerPrimarySchoolSnapshot,
       teacher: r.createdByName,
       totalSen: r.totalSen,
       paymentMethod: r.paymentMethod,
@@ -250,10 +253,12 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
   });
 
   $("#report-csv").addEventListener("click", () => {
-    const header = ["Nama Murid", "No. Resit", "Jumlah (RM)", "Kaedah Pembayaran"];
+    const header = ["Nama Murid", "Sekolah", "No. Resit", "Nama Guru", "Jumlah (RM)", "Kaedah Pembayaran"];
     const lines = reportRows.map((row) => [
       row.student,
+      row.school,
       row.receiptNo,
+      row.teacher,
       (row.totalSen / 100).toFixed(2),
       paymentLabel(row.paymentMethod),
     ]);

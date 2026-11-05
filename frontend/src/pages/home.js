@@ -20,17 +20,19 @@ function readDashboardCache() {
 }
 
 function renderDashboard(box, d) {
+  const receiptTotal = d.registrationBySchool.reduce((total, row) => total + (row.receipts || 0), 0);
   box.innerHTML = `
     <section class="card">
       <div class="card-head"><h2>Ringkasan pendaftaran</h2></div>
       <div class="table-wrap">
         <table class="table home-summary-table">
-          <caption class="sr-only">Bilangan murid sudah dan belum daftar mengikut sekolah rendah</caption>
-          <thead><tr><th scope="col">Sekolah</th><th scope="col">Sudah daftar</th><th scope="col">Belum daftar</th><th scope="col">Bil resit</th></tr></thead>
+          <caption class="sr-only">Bilangan murid dan resit mengikut sekolah rendah serta jumlah keseluruhan</caption>
+          <thead><tr><th scope="col">Sekolah</th><th scope="col" class="num">Sudah daftar</th><th scope="col" class="num">Belum daftar</th><th scope="col" class="num">Jumlah murid</th><th scope="col" class="num">Bil resit</th></tr></thead>
           <tbody>${schools.slice().sort((a, b) => a.localeCompare(b, "ms")).map((school) => {
             const row = d.registrationBySchool.find((item) => item.school === school);
-            return `<tr><th scope="row">${esc(school)}</th><td>${row?.registered ?? "—"}</td><td>${row?.notRegistered ?? "—"}</td><td>${row?.receipts ?? 0}</td></tr>`;
+            return `<tr><th scope="row">${esc(school)}</th><td class="num">${row?.registered ?? "—"}</td><td class="num">${row?.notRegistered ?? "—"}</td><td class="num">${row?.total ?? "—"}</td><td class="num">${row?.receipts ?? 0}</td></tr>`;
           }).join("")}</tbody>
+          <tfoot><tr><th scope="row">Jumlah keseluruhan</th><td class="num">${d.registeredStudents ?? "—"}</td><td class="num">${d.notRegisteredStudents ?? "—"}</td><td class="num">${d.activeStudents ?? "—"}</td><td class="num">${receiptTotal}</td></tr></tfoot>
         </table>
       </div>
     </section>`;

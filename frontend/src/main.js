@@ -10,7 +10,7 @@ const NAV = [
   { path: "/", label: "Utama", title: "Utama" },
   { path: "/pendaftaran", label: "Pendaftaran", title: "Pendaftaran murid" },
   { path: "/jana-resit", label: "Koperasi", title: "Jana resit koperasi" },
-  { path: "/laporan-koperasi", label: "Laporan", title: "Laporan koperasi" },
+  { path: "/laporan-koperasi", label: "Laporan Koperasi", title: "Laporan koperasi" },
 ];
 
 // Secondary tools live in one compact menu so daily routes stay easy to scan.
