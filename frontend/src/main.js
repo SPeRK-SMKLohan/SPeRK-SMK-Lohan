@@ -86,6 +86,7 @@ const brand = (href) => `
   </a>`;
 
 function shellHtml(path) {
+  const toolsActive = TOOLS.some((item) => isActive(path, item.path));
   return `
     ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</div>` : ""}
     <a class="skip-link" href="#view">Langkau ke kandungan</a>
@@ -93,15 +94,19 @@ function shellHtml(path) {
     <header class="site-header no-print">
       <div class="site-header-in">
         ${brand("#/")}
+        <p class="rail-caption">Menu utama</p>
         <nav class="nav" aria-label="Navigasi utama">
           ${NAV.map((item) => navLink(path, item)).join("")}
-          <details class="nav-more">
+          <p class="nav-section-label">Alat bantuan</p>
+          <details class="nav-more${toolsActive ? " is-active" : ""}"${toolsActive ? " open" : ""}>
             <summary>Lagi</summary>
-            <ul>${TOOLS.map((item) => menuLink(path, item)).join("")}
-              <li><button class="menu-logout js-logout" type="button">Log Keluar</button></li>
-            </ul>
+            <ul>${TOOLS.map((item) => menuLink(path, item)).join("")}</ul>
           </details>
         </nav>
+        <div class="rail-bottom">
+          <span class="rail-school">SMK Lohan <small>Ranau</small></span>
+          <button class="menu-logout js-logout" type="button">Log Keluar</button>
+        </div>
         <button id="menu-toggle" class="menu-btn" type="button"
                 aria-expanded="false" aria-controls="mobile-menu">
           <span class="menu-btn-icon" aria-hidden="true">☰</span>
@@ -183,6 +188,8 @@ function showPageLoadError(container, err) {
 }
 
 async function renderPublicGuide(sequence) {
+  app.classList.remove("has-school-rail");
+  document.body.classList.remove("has-school-rail");
   app.innerHTML = `
     <a class="skip-link" href="#view">Langkau ke kandungan</a>
     <div class="login-public-bar">
@@ -234,11 +241,15 @@ async function render() {
   }
 
   if (path === "/login") {
+    app.classList.remove("has-school-rail");
+    document.body.classList.remove("has-school-rail");
     document.title = `Log Masuk · ${APP_NAME}`;
     renderLogin(app);
     return;
   }
 
+  app.classList.add("has-school-rail");
+  document.body.classList.add("has-school-rail");
   app.innerHTML = shellHtml(path);
   const body = app.querySelector("#page-body");
   wireMenu(app);

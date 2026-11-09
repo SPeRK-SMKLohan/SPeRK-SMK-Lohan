@@ -41,19 +41,23 @@ function renderDashboard(box, d) {
 export async function renderHome(root) {
   root.innerHTML = `
     <div class="page-head home-hero">
-      <h1>Utama</h1>
+      <p class="eyebrow">SMK Lohan · Ranau</p>
+      <h1>Selamat datang ke SPeRK</h1>
+      <p class="lede">Urus pendaftaran Tingkatan 1 dan bayaran koperasi di satu tempat.</p>
     </div>
 
     <div class="task-grid">
       <a class="task-card" href="#/pendaftaran">
-        <span class="task-title">Pendaftaran Tingkatan 1</span>
-        <span class="task-desc">Cari murid dan tandakan kehadiran.</span>
-        <span class="task-go">Buka →</span>
+        <span class="task-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20M8 7h8M8 10h6"/></svg></span>
+        <span class="task-copy"><span class="task-kicker">MURID TINGKATAN 1</span><span class="task-title">Pendaftaran murid</span>
+        <span class="task-desc">Daftar murid dan semak status dengan pantas.</span></span>
+        <span class="task-go">Buka pendaftaran <span aria-hidden="true">→</span></span>
       </a>
       <a class="task-card" href="#/jana-resit">
-        <span class="task-title">Resit koperasi</span>
-        <span class="task-desc">Pilih murid, barangan dan bayaran.</span>
-        <span class="task-go">Buka →</span>
+        <span class="task-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h12v17l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3v-17Z"/><path d="M9 8h6M9 11h6M9 15h3"/></svg></span>
+        <span class="task-copy"><span class="task-kicker">BAYARAN & RESIT</span><span class="task-title">Koperasi</span>
+        <span class="task-desc">Pilih murid dan rekod bayaran koperasi.</span></span>
+        <span class="task-go">Buka koperasi <span aria-hidden="true">→</span></span>
       </a>
     </div>
 
