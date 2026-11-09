@@ -81,15 +81,11 @@
   --accent-soft: #E5EFF6;
   --accent-soft-ink: #0A3A63;
 
-  /* A small warm accent adds a school character without decorating the work. */
-  --school-gold: #8A641D;
-  --school-gold-soft: #F6EBCF;
-
-  /* Paper-warm page surface, with clean white work areas. */
-  --bg: #F6F3EB;
+  /* Plain white work surface with light gray structure. */
+  --bg: #FFFFFF;
   --surface: #FFFFFF;
-  --surface-2: #FBF9F4;
-  --surface-3: #EEF1F3;
+  --surface-2: #F7F8FA;
+  --surface-3: #EEF1F4;
 
   /* Ink ramp — verified at or above 4.5:1 on --bg and --surface. */
   --ink: #101828;
@@ -98,8 +94,8 @@
   --ink-on-brand: #FFFFFF;
 
   /* Lines. --line-strong is the control boundary: 3.4:1 against --surface. */
-  --line: #E6E1D7;
-  --line-2: #D6D1C7;
+  --line: #E2E6EB;
+  --line-2: #CBD3DC;
   --line-strong: #7A8798;
 
   /* Semantic */
@@ -1147,10 +1143,8 @@ dialog.modal > form {
 
 .home-hero {
   margin-bottom: var(--s5);
-  padding: var(--s2) 0 var(--s2) var(--s5);
-  border-left: 4px solid var(--school-gold);
 }
-.home-hero .eyebrow { color: var(--school-gold); }
+.home-hero .eyebrow { color: var(--ink-3); }
 .home-hero h1 { font-size: 2rem; margin-bottom: var(--s2); }
 
 .task-grid { display: grid; gap: var(--s4); grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: var(--s5); }
@@ -1165,20 +1159,18 @@ dialog.modal > form {
   min-height: 188px;
   padding: var(--s5);
   border: 1px solid var(--line);
-  border-top: 3px solid var(--brand);
   border-radius: var(--r-lg);
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
   box-shadow: var(--shadow-1);
-  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
-.task-card:hover { border-color: var(--brand); box-shadow: var(--shadow-2); text-decoration: none; color: var(--ink); transform: translateY(-1px); }
+.task-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); text-decoration: none; color: var(--ink); }
 .task-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .task-mark { grid-area: mark; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: var(--brand-soft); color: var(--brand); }
 .task-mark svg { width: 30px; height: 30px; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
 .task-copy { grid-area: copy; display: grid; align-content: center; gap: var(--s1); min-width: 0; }
-.task-kicker { color: var(--school-gold); font-size: .6875rem; font-weight: 700; letter-spacing: .075em; }
 .task-card .task-title {
   display: block;
   font-family: var(--font-display);
@@ -1805,7 +1797,6 @@ body.has-trolley .page { padding-bottom: 9rem; }
     min-height: 48px;
     padding: 0 12px;
     border: 0;
-    border-left: 3px solid transparent;
     border-radius: var(--r-sm);
     color: rgba(255,255,255,.84);
     font-size: .9375rem;
@@ -1816,13 +1807,11 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .has-school-rail .nav-more > summary:hover,
   .has-school-rail .nav-more[open] > summary { background: rgba(255,255,255,.09); color: #fff; }
   .has-school-rail .nav-more.is-active > summary {
-    border-left-color: var(--school-gold);
     background: rgba(255,255,255,.14);
     color: #fff;
     font-weight: 700;
   }
   .has-school-rail .nav a[aria-current="page"] {
-    border-left-color: var(--school-gold);
     background: rgba(255,255,255,.14);
     color: #fff;
     font-weight: 700;
