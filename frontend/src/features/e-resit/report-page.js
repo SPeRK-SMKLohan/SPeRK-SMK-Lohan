@@ -1,7 +1,7 @@
 import { getItems, listReceipts } from "./api.js";
 import { paymentLabel } from "./constants.js";
-import { formatRM } from "../../shared/money.js";
-import { esc } from "../../shared/dom.js";
+import { formatRM, formatAmount } from "../../shared/money.js";
+import { esc, formatCount, EMPTY_VALUE } from "../../shared/dom.js";
 import { loadingState, readErrorState, wireReadRetry } from "../../shared/feedback.js";
 import { schools } from "../e-daftar/constants.js";
 
@@ -58,21 +58,22 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       </div>
     </section>
 
-    <p id="report-message" class="list-count" role="status" aria-live="polite"></p>
-
     <section class="report-summary" aria-label="Ringkasan jualan">
-      <div class="report-total-main"><span>Jumlah jualan</span><strong id="report-total">—</strong></div>
-      <div class="report-stat"><span>Tunai</span><strong id="report-cash">—</strong></div>
-      <div class="report-stat"><span>Pindahan bank</span><strong id="report-bank">—</strong></div>
-      <div class="report-stat"><span>Bilangan resit</span><strong id="report-count">—</strong></div>
+      <div class="report-total-main"><span>Jumlah jualan</span><strong id="report-total">${EMPTY_VALUE}</strong></div>
+      <div class="report-stat"><span>Tunai</span><strong id="report-cash">${EMPTY_VALUE}</strong></div>
+      <div class="report-stat"><span>Pindahan bank</span><strong id="report-bank">${EMPTY_VALUE}</strong></div>
+      <div class="report-stat"><span>Bilangan resit</span><strong id="report-count">${EMPTY_VALUE}</strong></div>
     </section>
 
     <div id="report-warning"></div>
 
-    <section class="card" style="margin-top:var(--s4)">
+    <section class="card mt-s4">
       <div class="card-head">
         <h2>Butiran resit</h2>
-        <button id="report-csv" class="btn secondary sm" type="button" disabled>Muat turun CSV</button>
+        <div class="cluster-tight">
+          <span id="report-message" class="muted tiny" role="status" aria-live="polite"></span>
+          <button id="report-csv" class="btn secondary sm" type="button" disabled>Muat turun CSV</button>
+        </div>
       </div>
       <div id="report-rows">${loadingState("Memuatkan laporan…")}</div>
     </section>
@@ -152,9 +153,9 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
             ${rows.map((r) => `
               <tr>
                 <td><a href="#/resit/${esc(r.receiptId)}">${esc(r.receiptNo)}</a></td>
-                <td>${esc(r.student)}</td>
-                <td>${esc(r.school || "—")}</td>
-                <td>${esc(r.teacher || "—")}</td>
+                <td title="${esc(r.student)}">${esc(r.student)}</td>
+                <td title="${esc(r.school || EMPTY_VALUE)}">${esc(r.school || EMPTY_VALUE)}</td>
+                <td title="${esc(r.teacher || EMPTY_VALUE)}">${esc(r.teacher || EMPTY_VALUE)}</td>
                 <td>${esc(paymentLabel(r.paymentMethod))}</td>
                 <td class="num"><strong>${formatRM(r.totalSen)}</strong></td>
               </tr>`).join("")}
@@ -184,10 +185,12 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
     $("#report-total").textContent = formatRM(total);
     $("#report-cash").textContent = formatRM(cash);
     $("#report-bank").textContent = formatRM(bank);
-    $("#report-count").textContent = String(filtered.length);
+    $("#report-count").textContent = formatCount(filtered.length);
+    // The count is already in the summary; this line only earns its place when
+    // the table shows fewer receipts than the period contains.
     $("#report-message").textContent = filtered.length === allReceipts.length
-      ? `${filtered.length} resit dalam tempoh ini`
-      : `${filtered.length} daripada ${allReceipts.length} resit dipaparkan`;
+      ? ""
+      : `${formatCount(filtered.length)} daripada ${formatCount(allReceipts.length)} resit dipaparkan`;
     renderRows(filtered.map((r) => ({
       receiptNo: r.receiptNo,
       receiptId: r.receiptId,
@@ -232,7 +235,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       allReceipts = [];
       reportRows = [];
       for (const id of ["report-total", "report-cash", "report-bank", "report-count"]) {
-        $(`#${id}`).textContent = "—";
+        $(`#${id}`).textContent = EMPTY_VALUE;
       }
       $("#report-csv").disabled = true;
       $("#report-message").textContent = "Laporan gagal dimuatkan. Penapis dikekalkan.";
@@ -259,7 +262,7 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
       row.school,
       row.receiptNo,
       row.teacher,
-      (row.totalSen / 100).toFixed(2),
+      formatAmount(row.totalSen),
       paymentLabel(row.paymentMethod),
     ]);
     const csv = [header, ...lines].map((line) => line.map(csvCell).join(",")).join("\r\n");

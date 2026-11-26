@@ -1,6 +1,6 @@
 import { commit, runQuery } from "../../firestore.js";
 import { invalidateStudentsCache } from "../../shared/students.js";
-import { HttpError } from "../../util.js";
+import { HttpError, readJson } from "../../util.js";
 import { readStudentFields } from "./students.js";
 
 /* ---------- e-Daftar: import murid daripada fail Excel ---------- */
@@ -65,10 +65,7 @@ async function classifyStudentRows(env, rows) {
 }
 
 export async function importStudents(env, user, request) {
-  const text = await request.text();
-  if (text.length > 1_000_000) throw new HttpError(413, "Permintaan terlalu besar.");
-  let body;
-  try { body = JSON.parse(text); } catch { throw new HttpError(400, "Permintaan tidak sah."); }
+  const body = await readJson(request, 1_000_000);
   if (!body || typeof body.dryRun !== "boolean" || !Array.isArray(body.rows)) {
     throw new HttpError(400, "Permintaan tidak sah.");
   }

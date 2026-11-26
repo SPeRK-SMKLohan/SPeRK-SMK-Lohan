@@ -161,7 +161,7 @@ export async function buildReceiptDoc(r) {
   return doc;
 }
 
-// Nama fail PDF resit (sama untuk muat turun dan perkongsian).
+// Nama fail PDF resit.
 export const receiptPdfName = (r) => `Resit-${String(r.receiptNo).replace(/[^A-Za-z0-9_-]/g, "")}.pdf`;
 
 export async function downloadReceiptPdf(r) {
@@ -170,7 +170,3 @@ export async function downloadReceiptPdf(r) {
 }
 
 // PDF sebagai blob — untuk Web Share API (hantar fail terus pada telefon).
-export async function buildReceiptPdfBlob(r) {
-  const doc = await buildReceiptDoc(r);
-  return doc.output("blob");
-}

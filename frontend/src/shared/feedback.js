@@ -28,3 +28,15 @@ export function readErrorState(error, subject = "Maklumat", retryLabel = "Cuba s
 export function wireReadRetry(root, retry) {
   root.querySelector("[data-retry-load]")?.addEventListener("click", retry);
 }
+
+/* Inline error inside a form or dialog. The banner itself is the live region,
+   so callers keep their wrapper as a plain container and an inserted message is
+   announced once. Both strings are escaped here so raw API errors are safe. */
+export function inlineError(title, message = "") {
+  return `<div class="status bad" role="alert">
+    <div class="status-body">
+      <strong class="status-title">${esc(title)}</strong>
+      <span class="status-text">${esc(message)}</span>
+    </div>
+  </div>`;
+}

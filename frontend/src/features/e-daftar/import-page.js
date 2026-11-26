@@ -1,7 +1,7 @@
 import { importStudents } from "./api.js";
 import { parseStudentsFile, downloadStudentTemplate } from "./excel.js";
 import { esc, maskIC } from "../../shared/dom.js";
-import { loadingState } from "../../shared/feedback.js";
+import { loadingState, inlineError } from "../../shared/feedback.js";
 
 /* Import roster.
    Three numbered steps, in the order staff actually do them: get the template,
@@ -25,24 +25,25 @@ export function renderImportData(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Import senarai murid</h1>
+      <p class="lede">Muat naik fail Excel untuk menambah murid Tingkatan 1 sekaligus.</p>
     </div>
 
     <div class="import-grid">
       <section class="card">
-        <h2 style="display:flex;gap:var(--s3);align-items:center">
-          <span class="step-num">1</span> Templat
-        </h2>
+        <h2 class="step-head"><span class="step-num">1</span> Templat</h2>
+        <p class="step-note">Muat turun fail contoh, isi, kemudian bawa kembali.</p>
         <button id="template" class="btn secondary block" type="button">Muat turun templat</button>
       </section>
 
       <section class="card">
-        <h2 style="display:flex;gap:var(--s3);align-items:center">
-          <span class="step-num">2</span> Pilih fail
-        </h2>
-        <div class="file-drop" style="margin-top:var(--s3)">
-          <label class="label" for="file" style="margin-bottom:0">Fail Excel (.xlsx)</label>
-          <input id="file" type="file" accept=".xlsx" aria-describedby="file-help">
-          <p class="hint" id="file-help" style="margin:0">
+        <h2 class="step-head"><span class="step-num">2</span> Pilih fail</h2>
+        <p class="step-note">Fail Excel (.xlsx) yang sudah diisi.</p>
+        <div class="file-drop">
+          <input id="file" class="sr-only" type="file" accept=".xlsx"
+                 aria-label="Pilih fail Excel senarai murid" aria-describedby="file-help">
+          <label class="btn secondary file-drop-btn" for="file">Pilih fail</label>
+          <span class="file-drop-name" id="file-name">Tiada fail dipilih</span>
+          <p class="hint" id="file-help">
             Maksimum 2 MB dan 2,000 baris. Murid yang sudah wujud (No. IC sama)
             akan dilangkau, bukan diganti.
           </p>
@@ -50,15 +51,14 @@ export function renderImportData(root) {
       </section>
     </div>
 
-    <section class="card" style="margin-top:var(--s4)">
-      <h2 style="display:flex;gap:var(--s3);align-items:center">
-        <span class="step-num">3</span> Semak dan import
-      </h2>
+    <section class="card">
+      <h2 class="step-head"><span class="step-num">3</span> Semak dan import</h2>
       <div id="import-box">${EMPTY_BOX}</div>
     </section>`;
 
   const fileInput = root.querySelector("#file");
   const importBox = root.querySelector("#import-box");
+  const fileName = root.querySelector("#file-name");
   let pendingRows = null;
 
   const pill = (cls, count, label) =>
@@ -67,6 +67,7 @@ export function renderImportData(root) {
   function resetImport() {
     pendingRows = null;
     fileInput.value = "";
+    fileName.textContent = "Tiada fail dipilih";
     importBox.innerHTML = EMPTY_BOX;
   }
 
@@ -86,7 +87,7 @@ export function renderImportData(root) {
       </div>
 
       ${shown.length ? `
-        <div class="table-wrap" style="margin-bottom:var(--s4)">
+        <div class="table-wrap mb-s4">
           <table class="table">
             <caption class="sr-only">Baris fail yang memerlukan semakan</caption>
             <thead>
@@ -116,7 +117,7 @@ export function renderImportData(root) {
       ${hidden > 0 ? `<p class="muted tiny">${hidden} lagi tidak dipaparkan.</p>` : ""}
       <p class="muted tiny">Baris tidak sah atau pendua akan dilangkau.</p>
 
-      <div class="cluster" style="margin-top:var(--s4)">
+      <div class="cluster mt-s4">
         <button id="confirm-import" class="btn primary lg" type="button"${s.valid ? "" : " disabled"}>
           Import ${s.valid} murid
         </button>
@@ -137,6 +138,8 @@ export function renderImportData(root) {
         renderDone(done);
         pendingRows = null;
         fileInput.value = "";
+        fileName.textContent = "Tiada fail dipilih";
+        fileName.classList.remove("has-file");
       } catch (err) {
         msg.innerHTML = `<p class="err"></p>`;
         msg.querySelector(".err").textContent = err.message;
@@ -163,6 +166,10 @@ export function renderImportData(root) {
 
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files[0];
+    // The browser's own file control speaks the browser's language, not the
+    // school's, so the chosen name is echoed here instead.
+    fileName.textContent = file ? file.name : "Tiada fail dipilih";
+    fileName.classList.toggle("has-file", Boolean(file));
     pendingRows = null;
     importBox.innerHTML = "";
     if (!file) {
@@ -177,13 +184,7 @@ export function renderImportData(root) {
       pendingRows = rows;
       renderPreview(rows, result);
     } catch (err) {
-      importBox.innerHTML = `<div class="status bad" role="alert">
-        <div class="status-body">
-          <strong class="status-title">Fail tidak dapat dibaca</strong>
-          <span class="status-text"></span>
-        </div>
-      </div>`;
-      importBox.querySelector(".status-text").textContent = err.message;
+      importBox.innerHTML = inlineError("Fail tidak dapat dibaca", err.message);
     }
   });
 

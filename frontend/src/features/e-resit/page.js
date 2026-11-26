@@ -3,7 +3,7 @@ import { searchStudents, getStudent } from "../e-daftar/api.js";
 import { createReceipt, getItems } from "./api.js";
 import { paymentMethods } from "./constants.js";
 import { formatRM, grandTotal } from "../../shared/money.js";
-import { esc, maskIC } from "../../shared/dom.js";
+import { esc, maskIC, EMPTY_VALUE } from "../../shared/dom.js";
 import { makeId } from "../../shared/id.js";
 import { loadingState } from "../../shared/feedback.js";
 import { showStatus } from "../../shared/status.js";
@@ -30,7 +30,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     </div>
 
     <ol class="steps" id="steps" aria-label="Langkah menjana resit">
-      <li class="is-current"><span>Pilih murid</span></li>
+      <li class="is-current" aria-current="step"><span>Pilih murid</span></li>
       <li><span>Pilih barangan</span></li>
       <li><span>Pilih bayaran</span></li>
       <li><span>Semak dan simpan</span></li>
@@ -38,7 +38,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
     <section class="step-block" id="step-1">
       <h2><span class="step-num">1</span> Pilih murid</h2>
-      <p class="step-help">Cari nama atau 2 digit terakhir No. IC.</p>
+      <p class="step-help" id="help-1">Cari nama atau 2 digit terakhir No. IC.</p>
       <div id="student-box"></div>
     </section>
 
@@ -64,7 +64,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
       <div class="trolley-in">
         <div class="trolley-info">
           <span class="trolley-label">Jumlah resit</span>
-          <strong class="trolley-total" id="trolley-total">RM0.00</strong>
+          <strong class="trolley-total" id="trolley-total">${formatRM(0)}</strong>
           <span class="trolley-note" id="trolley-note" role="status" aria-live="polite">Pilih murid.</span>
         </div>
         <button id="save" class="btn primary lg" type="button" disabled>Simpan Resit</button>
@@ -89,9 +89,6 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
   const itemOf = (id) => items.find((i) => i.itemId === id);
   const unitPrice = (item) => item?.priceSen ?? 0;
-  const initials = (name) =>
-    String(name).trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-
   /* ----- progress ----- */
   function syncProgress() {
     const hasStudent = Boolean(student);
@@ -103,9 +100,14 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     step4.hidden = !hasStudent || !hasLines;
 
     const marks = stepList.querySelectorAll("li");
+    const current = hasStudent ? (hasLines ? (confirmed ? 3 : 2) : 1) : 0;
     marks.forEach((li, i) => {
       li.classList.toggle("is-done", i === 0 ? hasStudent : i === 1 ? hasLines : i === 2 ? confirmed : false);
-      li.classList.toggle("is-current", i === (hasStudent ? (hasLines ? (confirmed ? 3 : 2) : 1) : 0));
+      li.classList.toggle("is-current", i === current);
+      // The visual marker alone leaves the progress list silent to a screen
+      // reader; aria-current says which step the teacher is actually on.
+      if (i === current) li.setAttribute("aria-current", "step");
+      else li.removeAttribute("aria-current");
     });
 
     trolleyNote.textContent = !hasStudent
@@ -119,10 +121,12 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
 
   /* ----- 1. student ----- */
   function renderStudentBox({ focusSearch = false } = {}) {
+    // The "how to search" hint is only useful while there is still something
+    // to search for.
+    $("#help-1").hidden = Boolean(student);
     if (student) {
       studentBox.innerHTML = `
         <div class="receipt-picked">
-          <span class="avatar" aria-hidden="true">${esc(initials(student.name))}</span>
           <div class="picked-body">
             <strong>${esc(student.name)}</strong>
             <span class="muted tiny">${esc(student.icMasked)} · ${esc(student.formerPrimarySchool)}</span>
@@ -142,13 +146,12 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     }
 
     studentBox.innerHTML = `
-      <label class="search">
-        <span class="sr-only">Cari murid</span>
+      <div class="search">
+        <label class="sr-only" for="student-search">Cari murid Tingkatan 1 mengikut nama atau nombor IC</label>
         <input id="student-search" class="input" type="search" autocomplete="off"
-               placeholder="Nama atau No. IC murid"
-               aria-label="Cari murid Tingkatan 1 mengikut nama atau nombor IC">
+               placeholder="Nama atau No. IC murid">
         <button id="clear-student-search" class="clear" type="button" hidden>Kosongkan</button>
-      </label>
+      </div>
       <div id="student-results" class="search-results" role="region"
            aria-label="Hasil carian murid" aria-live="polite"></div>`;
 
@@ -240,7 +243,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
         return `<li class="item-row${line ? " in-cart" : ""}" data-item="${esc(i.itemId)}">
           <div>
             <span class="item-name">${esc(i.name)}</span>
-            ${line ? `<span class="pill brand" style="margin-left:var(--s2)">${line.quantity} dalam resit</span>` : ""}
+            ${line ? `<span class="pill brand ms-s2">${line.quantity} dalam resit</span>` : ""}
           </div>
           <span class="item-price">${formatRM(i.priceSen)}</span>
           <div class="item-controls">
@@ -307,7 +310,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
             <span class="choice-body"><span class="choice-title">${esc(p.label)}</span></span>
           </label>`).join("")}
       </div>
-      <div class="field" id="bankref-field" style="margin-top:var(--s4);margin-bottom:0"${paymentMethod === "BANK_TRANSFER" ? "" : " hidden"}>
+      <div class="field mt-s4 mb-0" id="bankref-field"${paymentMethod === "BANK_TRANSFER" ? "" : " hidden"}>
         <label class="label" for="bankref">No. rujukan pindahan</label>
         <input id="bankref" class="input" type="text" autocomplete="off" maxlength="60"
                placeholder="Contoh: MBB2026010112345" value="${esc(bankRef)}">
@@ -341,18 +344,18 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
     const ready = Boolean(student) && lines.length > 0 && confirmed && !saving && !needsRef;
 
     summaryBox.innerHTML = `
-      <div class="card-soft" style="margin-bottom:var(--s4)">
+      <div class="card-soft mb-s4">
         <div class="spread">
           <div>
             <span class="stat-label">Murid</span>
             <strong>${student ? esc(student.name) : "Belum dipilih"}</strong>
-            ${student ? `<span class="muted tiny" style="display:block">${esc(student.icMasked)} · ${esc(student.formerPrimarySchool)}</span>` : ""}
+            ${student ? `<span class="muted tiny display-block">${esc(student.icMasked)} · ${esc(student.formerPrimarySchool)}</span>` : ""}
           </div>
-          <div style="text-align:right">
+          <div class="text-right">
             <span class="stat-label">Bayaran</span>
-            <strong>${esc(paymentMethods.find((p) => p.value === paymentMethod)?.label ?? "—")}</strong>
+            <strong>${esc(paymentMethods.find((p) => p.value === paymentMethod)?.label ?? EMPTY_VALUE)}</strong>
             ${paymentMethod === "BANK_TRANSFER"
-              ? `<span class="muted tiny" style="display:block">${bankRef.trim() ? esc(bankRef.trim()) : "Rujukan belum diisi"}</span>`
+              ? `<span class="muted tiny display-block">${bankRef.trim() ? esc(bankRef.trim()) : "Rujukan belum diisi"}</span>`
               : ""}
           </div>
         </div>
@@ -375,7 +378,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
                         data-key="${esc(l.itemId)}" aria-label="Kuantiti ${esc(item.name)}">`}
                 </td>
                 <td class="num">${formatRM(l.quantity * price)}</td>
-                <td style="text-align:right">
+                <td class="text-right">
                   <button class="summary-remove" type="button" data-key="${esc(l.itemId)}"
                           aria-label="Buang ${esc(item.name)}">✕</button>
                 </td>
@@ -388,7 +391,7 @@ export async function renderNewReceipt(root, params = new URLSearchParams()) {
           <span class="value">${formatRM(total)}</span>
         </div>` : `<p class="muted">Belum ada barangan.</p>`}
 
-      <label class="choice" style="margin-top:var(--s4)">
+      <label class="choice mt-s4">
         <input type="checkbox" id="confirm"${confirmed ? " checked" : ""}>
         <span class="choice-body">
           <span class="choice-title">Pembayaran telah disahkan</span>

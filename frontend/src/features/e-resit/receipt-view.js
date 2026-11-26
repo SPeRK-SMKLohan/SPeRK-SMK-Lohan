@@ -1,6 +1,6 @@
 import { RECEIPT_TITLE } from "./config.js";
 import { KOPERASI_NAME, KOPERASI_ADDRESS, KOPERASI_TEL, LOGO_URL } from "../../shared/koperasi.js";
-import { formatRM, formatAmount } from "../../shared/money.js";
+import { formatAmount } from "../../shared/money.js";
 import { esc, formatDateTime } from "../../shared/dom.js";
 import { paymentLabel } from "./constants.js";
 
@@ -8,11 +8,11 @@ export function receiptHtml(r) {
   const rows = r.items.map((i) => {
     const variant = i.variant ?? i.size; // sokong resit lama yang menggunakan "size"
     return `
-    <tr role="row">
-      <td role="cell" data-label="Barangan">${esc(i.itemNameSnapshot)}${variant ? ` (${esc(variant)})` : ""}</td>
-      <td class="num" role="cell" data-label="Kuantiti">${i.quantity}</td>
-      <td class="num" role="cell" data-label="Harga">${formatAmount(i.unitPriceSen)}</td>
-      <td class="num" role="cell" data-label="Jumlah">${formatAmount(i.subtotalSen)}</td>
+    <tr>
+      <td data-label="Barangan">${esc(i.itemNameSnapshot)}${variant ? ` (${esc(variant)})` : ""}</td>
+      <td class="num" data-label="Kuantiti">${i.quantity}</td>
+      <td class="num" data-label="Harga">${formatAmount(i.unitPriceSen)}</td>
+      <td class="num" data-label="Jumlah">${formatAmount(i.subtotalSen)}</td>
     </tr>`;
   }).join("");
 
@@ -32,18 +32,19 @@ export function receiptHtml(r) {
         <div><span>Tarikh</span><strong>${esc(formatDateTime(r.createdAt))}</strong></div>
         <div><span>Nama Murid</span><strong>${esc(r.studentNameSnapshot)}</strong></div>
       </div>
-      <table class="table receipt-print-items" role="table">
-        <thead role="rowgroup">
-          <tr role="row">
-            <th scope="col" role="columnheader">Item</th>
-            <th scope="col" class="num" role="columnheader"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
-            <th scope="col" class="num" role="columnheader"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
-            <th scope="col" class="num" role="columnheader"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
+      <table class="table receipt-print-items">
+        <caption class="sr-only">Butiran barangan dan jumlah bagi resit ${esc(r.receiptNo)}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Item</th>
+            <th scope="col" class="num"><span class="receipt-heading-full">Kuantiti</span><span class="receipt-heading-short">Bil.</span></th>
+            <th scope="col" class="num"><span class="receipt-heading-full">Harga (RM)</span><span class="receipt-heading-short">Harga</span></th>
+            <th scope="col" class="num"><span class="receipt-heading-full">Jumlah (RM)</span><span class="receipt-heading-short">Jumlah</span></th>
           </tr>
         </thead>
-        <tbody role="rowgroup">${rows}</tbody>
-        <tfoot role="rowgroup">
-          <tr role="row"><th scope="row" role="rowheader" colspan="3">Jumlah Keseluruhan</th><td class="num" role="cell">${formatAmount(r.totalSen)}</td></tr>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr><th scope="row" colspan="3">Jumlah Keseluruhan</th><td class="num">${formatAmount(r.totalSen)}</td></tr>
         </tfoot>
       </table>
       <div class="receipt-meta receipt-pay">
@@ -52,18 +53,4 @@ export function receiptHtml(r) {
       </div>
       <p class="receipt-thanks">Terima kasih.</p>
     </article>`;
-}
-
-// Tiada nombor IC dalam mesej WhatsApp.
-export function whatsappText(r) {
-  const lines = [
-    `${RECEIPT_TITLE} ${KOPERASI_NAME}`,
-    `Nombor Resit: ${r.receiptNo}`,
-    `Nama Murid: ${r.studentNameSnapshot}`,
-    `Jumlah Bayaran: ${formatRM(r.totalSen)}`,
-    `Kaedah Pembayaran: ${paymentLabel(r.paymentMethod)}`,
-  ];
-  if (r.bankRef) lines.push(`No. Rujukan: ${r.bankRef}`);
-  lines.push("Terima kasih.");
-  return lines.join("\n");
 }

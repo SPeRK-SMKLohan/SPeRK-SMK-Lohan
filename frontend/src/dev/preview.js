@@ -10,6 +10,7 @@
    carries `?preview=...`. No real student data is used anywhere. */
 
 import { auth } from "../shared/firebase.js";
+import { maskIC } from "../shared/dom.js";
 
 const SCHOOLS = [
   "SK Bongkud", "SK Kilimu", "SK Kananapon", "SK Kirokot", "SK Langsat", "SK Lohan", "SK Nalapak",
@@ -43,7 +44,6 @@ const ITEMS = [
   { itemId: "item-topi", name: "Topi Sekolah", priceSen: 1500, active: false, fixedQuantity: null, sortOrder: 7, koperasiMembership: false },
 ];
 
-const maskIC = (ic) => String(ic).replace(/\d(?=.*\d{4}$)/g, "*");
 const pad = (n) => String(n).padStart(2, "0");
 
 function makeStudents() {
@@ -134,10 +134,14 @@ export function installPreview() {
     email: "guru@sekolah.edu.my",
     getIdToken: async () => "preview-token",
   };
-  try {
-    Object.defineProperty(auth, "currentUser", { get: () => fakeUser, configurable: true });
-  } catch (err) {
-    console.warn("preview: cannot override currentUser", err);
+  // `loggedout` renders the sign-in screen without touching the session, so the
+  // first screen a new device sees can be reviewed like any other.
+  if (mode !== "loggedout") {
+    try {
+      Object.defineProperty(auth, "currentUser", { get: () => fakeUser, configurable: true });
+    } catch (err) {
+      console.warn("preview: cannot override currentUser", err);
+    }
   }
 
   const empty = mode === "empty";

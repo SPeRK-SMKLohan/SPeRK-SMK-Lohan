@@ -9,12 +9,38 @@ export const ID_RE = /^[A-Za-z0-9_-]{1,100}$/;
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const DAY_MS = 86400000;
 
-// Membaca badan permintaan JSON (had 20 KB untuk borang).
-export async function readJson(request) {
-  const text = await request.text();
-  if (text.length > 20_000) throw new HttpError(413, "Permintaan terlalu besar.");
+// Baca JSON dengan had bait supaya badan terlalu besar tidak ditimbal penuh.
+export async function readJson(request, maxBytes = 20_000) {
+  const declaredLength = Number(request.headers.get("Content-Length"));
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new HttpError(413, "Permintaan terlalu besar.");
+  }
+
+  const reader = request.body?.getReader();
+  if (!reader) throw new HttpError(400, "Permintaan tidak sah.");
+
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxBytes) {
+      await reader.cancel().catch(() => {});
+      throw new HttpError(413, "Permintaan terlalu besar.");
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
   try {
-    return JSON.parse(text);
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     throw new HttpError(400, "Permintaan tidak sah.");
   }

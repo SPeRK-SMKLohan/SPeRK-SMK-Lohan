@@ -8,14 +8,25 @@
 
 let timer = null;
 
-function dock() {
+/* The live region must be in the DOM *before* its content changes: creating it
+   and inserting the banner in the same task is the classic reason a screen
+   reader says nothing at all. main.js calls this once at boot; dock() keeps the
+   lazy fallback for any other entry point. showStatus() switches politeness per
+   message, so failures are assertive and successes polite. */
+export function ensureStatusDock() {
   let el = document.querySelector("#status-dock");
   if (el) return el;
   el = document.createElement("div");
   el.id = "status-dock";
   el.className = "status-dock no-print";
+  el.setAttribute("aria-live", "polite");
+  el.setAttribute("aria-atomic", "true");
   document.body.append(el);
   return el;
+}
+
+function dock() {
+  return ensureStatusDock();
 }
 
 export function clearStatus() {
@@ -45,8 +56,13 @@ export function showStatus({
   const host = dock();
   const heading = title || TITLES[type] || TITLES.info;
 
+  // One live region, one announcement. Errors are assertive; everything else is
+  // polite. Nesting a second role="alert" inside the polite dock used to make
+  // screen readers read the same failure twice.
+  host.setAttribute("aria-live", type === "bad" ? "assertive" : "polite");
+
   host.innerHTML = `
-    <div class="status ${type}" role="${type === "bad" ? "alert" : "status"}">
+    <div class="status ${type}">
       <div class="status-body">
         <strong class="status-title">${heading}</strong>
         <span class="status-text"></span>

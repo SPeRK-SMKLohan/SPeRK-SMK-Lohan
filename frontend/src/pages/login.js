@@ -1,5 +1,6 @@
 import { signIn, loginErrorMessage } from "../shared/auth.js";
 import { APP_NAME } from "../shared/config.js";
+import { inlineError } from "../shared/feedback.js";
 
 /* Sign in with the approved school account. Validation messages stay in Malay. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,54 +17,58 @@ export function renderLogin(root) {
   root.innerHTML = `
     <a class="skip-link" href="#login-form">Langkau ke borang log masuk</a>
 
-    <div class="login-public-bar">
-      <a class="brand" href="#/login">
-        <span class="brand-mark"><img src="/logo-web.svg" alt="" /></span>
-        <span class="brand-text">
-          <span class="brand-name">${APP_NAME}</span>
-          <span class="brand-sub">SMK Lohan, Ranau</span>
-        </span>
-      </a>
-    </div>
-
-    <main class="login-page">
-      <form id="login-form" class="card login-card" novalidate>
-        <h1>Log masuk</h1>
-        <div id="login-alert" role="alert" aria-live="assertive"></div>
-
-        <div class="field">
-          <label class="label" for="email">E-mel sekolah</label>
-          <input id="email" class="input" type="email" autocomplete="username"
-                 inputmode="email" autocapitalize="none" spellcheck="false"
-                 aria-describedby="email-err" required>
-          <span class="err" id="email-err"></span>
-        </div>
-
-        <div class="field">
-          <label class="label" for="password">Kata laluan</label>
-          <div class="login-password">
-            <input id="password" class="input" type="password" autocomplete="current-password"
-                   aria-describedby="password-err" required>
-            <button id="toggle-password" class="btn secondary sm" type="button" aria-pressed="false">
-              Tunjuk
-            </button>
+    <main class="login-shell">
+      <div class="login-column">
+        <div class="login-head">
+          <div class="brand">
+            <span class="brand-mark"><img src="/logo-web.svg" alt="" /></span>
+            <span class="brand-text">
+              <span class="brand-name">${APP_NAME}</span>
+              <span class="brand-sub">SMK Lohan, Ranau</span>
+            </span>
           </div>
-          <span class="err" id="password-err"></span>
         </div>
 
-        <div class="field">
-          <label class="label" for="teacher-name">Nama guru</label>
-          <input id="teacher-name" class="input" type="text" maxlength="100" autocomplete="name" required>
-          <span class="hint">Disimpan pada peranti ini untuk nama pada resit.</span>
-        </div>
+        <form id="login-form" class="card login-card" novalidate>
+          <h1>Log masuk</h1>
+          <div id="login-alert"></div>
 
-        <button class="btn primary lg block" type="submit">Log masuk</button>
+          <div class="field">
+            <label class="label" for="email">E-mel sekolah</label>
+            <input id="email" class="input" type="email" autocomplete="username"
+                   inputmode="email" autocapitalize="none" spellcheck="false"
+                   aria-describedby="email-err" required>
+            <span class="err" id="email-err"></span>
+          </div>
 
-        <div class="login-help">
-          <a href="#/panduan">Panduan</a>
-          <span class="subtle tiny">Lupa kata laluan? Hubungi pentadbir.</span>
-        </div>
-      </form>
+          <div class="field">
+            <label class="label" for="password">Kata laluan</label>
+            <div class="login-password">
+              <input id="password" class="input" type="password" autocomplete="current-password"
+                     aria-describedby="password-err" required>
+              <button id="toggle-password" class="btn secondary sm" type="button" aria-pressed="false">
+                Tunjuk
+              </button>
+            </div>
+            <span class="err" id="password-err"></span>
+          </div>
+
+          <div class="field">
+            <label class="label" for="teacher-name">Nama guru</label>
+            <input id="teacher-name" class="input" type="text" maxlength="100" autocomplete="name"
+                   aria-describedby="teacher-name-hint teacher-name-err" required>
+            <span class="err" id="teacher-name-err"></span>
+            <span class="hint" id="teacher-name-hint">Disimpan pada peranti ini untuk nama pada resit.</span>
+          </div>
+
+          <button class="btn primary lg block" type="submit">Log masuk</button>
+
+          <div class="login-help">
+            <a href="#/panduan">Panduan</a>
+            <span class="subtle tiny">Lupa kata laluan? Hubungi pentadbir.</span>
+          </div>
+        </form>
+      </div>
     </main>`;
 
   const form = root.querySelector("#login-form");
@@ -92,12 +97,17 @@ export function renderLogin(root) {
     }
   }
 
+  // The third field's error key differs from its id ("teacherName" vs
+  // "teacher-name"), so one map keeps validation, messages and focus in step.
+  const FIELD_IDS = ["email", "password", "teacher-name"];
+  const errorKey = (id) => (id === "teacher-name" ? "teacherName" : id);
+
   function clearErrors() {
     alertBox.innerHTML = "";
-    for (const id of ["email", "password"]) setFieldError(id, "");
+    for (const id of FIELD_IDS) setFieldError(id, "");
   }
 
-  for (const id of ["email", "password"]) {
+  for (const id of FIELD_IDS) {
     root.querySelector(`#${id}`).addEventListener("input", () => {
       if (root.querySelector(`#${id}`).getAttribute("aria-invalid") === "true") setFieldError(id, "");
     });
@@ -112,9 +122,9 @@ export function renderLogin(root) {
     const teacherName = teacherInput.value.trim();
     const errors = validate({ email, password });
     if (!teacherName) errors.teacherName = "Masukkan nama guru.";
-    const first = ["email", "password", "teacher-name"].find((id) => errors[id] || (id === "teacher-name" && !teacherName));
+    const first = FIELD_IDS.find((id) => errors[errorKey(id)]);
     if (first) {
-      for (const id of ["email", "password"]) setFieldError(id, errors[id]);
+      for (const id of FIELD_IDS) setFieldError(id, errors[errorKey(id)]);
       root.querySelector(`#${first}`).focus();
       return;
     }
@@ -130,13 +140,7 @@ export function renderLogin(root) {
       location.hash = "/";
     } catch (err) {
       const message = err.code ? loginErrorMessage(err) : err.message;
-      alertBox.innerHTML = `<div class="status bad" role="alert">
-        <div class="status-body">
-          <strong class="status-title">Tidak dapat log masuk</strong>
-          <span class="status-text"></span>
-        </div>
-      </div>`;
-      alertBox.querySelector(".status-text").textContent = message;
+      alertBox.innerHTML = inlineError("Tidak dapat log masuk", message);
       passwordInput.focus();
       passwordInput.select();
     } finally {

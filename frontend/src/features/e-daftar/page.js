@@ -3,9 +3,11 @@ import {
   createStudent, deleteStudents, getStudent, searchStudents,
   setStudentStatus, updateStudent,
 } from "./api.js";
-import { esc, formatTime } from "../../shared/dom.js";
+import { esc, formatTime, formatCount, EMPTY_VALUE } from "../../shared/dom.js";
+import { getDashboard } from "../../shared/api.js";
 import { loginErrorMessage, reauthenticate } from "../../shared/auth.js";
 import { showStatus } from "../../shared/status.js";
+import { inlineError } from "../../shared/feedback.js";
 
 /* Registration counter.
    The screen is built around one repeated action: choose a primary school,
@@ -22,31 +24,46 @@ export function renderRegistration(root) {
   root.innerHTML = `
     <div class="page-head">
       <h1>Pendaftaran murid</h1>
-      <p class="lede">Daftar murid Tingkatan 1.</p>
+      <p class="lede" id="reg-lede">Daftar murid Tingkatan 1. Pilih sekolah rendah asal untuk mula.</p>
     </div>
 
-    <section class="card registration-card">
+    <section class="card" id="school-picker">
+      <div class="card-head">
+        <h2>Pilih sekolah rendah asal</h2>
+        <span class="muted tiny" id="picker-summary">Senarai murid disusun mengikut sekolah asal.</span>
+      </div>
+      <div class="school-grid" id="school-grid">
+        ${schools.map((s) => `<button class="school-tile" type="button" data-school="${esc(s)}">
+          <span class="school-tile-name">${esc(s)}</span>
+          <span class="school-tile-count" data-count-for="${esc(s)}">${EMPTY_VALUE}</span>
+        </button>`).join("")}
+      </div>
+    </section>
+
+    <section class="card registration-card" id="registration-panel" hidden>
+      <div class="school-bar">
+        <div class="school-bar-main">
+          <span class="school-bar-label">Sekolah rendah asal</span>
+          <strong class="school-bar-name" id="school-name"></strong>
+        </div>
+        <button class="btn quiet sm" id="change-school" type="button">Tukar sekolah</button>
+      </div>
+
       <div class="registration-toolbar">
-        <select class="select school-select" id="schools" aria-label="Tapis mengikut sekolah">
-          <option value="">Pilih sekolah</option>
-          ${schools.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("")}
-        </select>
-        <label class="search registration-search">
-          <span class="sr-only">Cari murid</span>
+        <div class="search registration-search">
+          <label class="sr-only" for="q">Cari murid mengikut nama atau nombor IC</label>
           <input id="q" class="input" type="search" autocomplete="off"
-                 placeholder="Nama atau No. IC"
-                 aria-label="Cari nama atau nombor IC murid" disabled>
+                 placeholder="Nama atau No. IC" disabled>
           <button id="clear-search" class="clear" type="button" hidden>Kosongkan</button>
-        </label>
+        </div>
         <select class="select registration-status-filter" id="status-filter" aria-label="Tapis status daftar" disabled>
-          <option value="">Semua</option>
-          <option value="SUDAH">Sudah</option>
-          <option value="BELUM">Belum</option>
+          <option value="">Semua status</option>
+          <option value="SUDAH">Sudah daftar</option>
+          <option value="BELUM">Belum daftar</option>
         </select>
-        <p class="list-count registration-count" id="count" role="status" aria-live="polite"></p>
         <button id="new" class="btn primary registration-new" type="button" disabled><span class="new-label-full">+ Murid baharu</span><span class="new-label-short">Murid baharu</span></button>
-        <details class="list-more registration-more" id="list-more" hidden>
-          <summary>Lagi</summary>
+        <details class="list-more registration-more" id="list-more">
+          <summary>Pilihan lain</summary>
           <div class="list-more-menu">
             <button id="refresh" class="btn secondary" type="button">Muat semula</button>
             <button id="export-csv" class="btn secondary" type="button">Muat turun CSV</button>
@@ -55,7 +72,9 @@ export function renderRegistration(root) {
         </details>
       </div>
 
-      <div id="list-content" hidden>
+      <p class="list-count registration-count" id="count" role="status" aria-live="polite"></p>
+
+      <div id="list-content">
       <div id="bulk-bar" class="bulk-bar" hidden>
         <span id="bulk-count">0 dipilih</span>
         <span class="spacer"></span>
@@ -69,7 +88,7 @@ export function renderRegistration(root) {
           <thead><tr>
             <th class="student-check-cell" scope="col"><span class="sr-only">Pilih</span></th>
             <th scope="col">Nama murid</th>
-            <th class="student-ic-cell" scope="col">No. IC</th>
+            <th class="student-ic-cell num" scope="col">No. IC</th>
             <th scope="col">Status daftar</th>
             <th class="student-actions-cell" scope="col">Tindakan</th>
           </tr></thead>
@@ -149,7 +168,7 @@ export function renderRegistration(root) {
 
           <fieldset>
             <legend>Permohonan pindah</legend>
-            <label class="choice" style="margin-bottom:var(--s3)">
+            <label class="choice mb-s3">
               <input id="f-transfer" type="checkbox">
               <span class="choice-body">
                 <span class="choice-title">Pindah ke sekolah lain</span>
@@ -170,14 +189,14 @@ export function renderRegistration(root) {
                   ${transferReasons.map((r) => `<option value="${esc(r.value)}">${esc(r.value)}</option>`).join("")}
                 </select>
               </div>
-              <div class="field" style="margin-bottom:0">
+              <div class="field mb-0">
                 <label class="label" for="f-transfer-notes">Catatan <span class="optional">(pilihan)</span></label>
                 <textarea id="f-transfer-notes" class="input" maxlength="300" rows="3"></textarea>
               </div>
             </div>
           </fieldset>
 
-          <div id="form-msg" role="alert" aria-live="assertive"></div>
+          <div id="form-msg"></div>
         </div>
         <div class="modal-foot">
           <button id="close" class="btn secondary" type="button">Tutup</button>
@@ -208,12 +227,12 @@ export function renderRegistration(root) {
             nama murid.</p>
         </div>
         <div class="modal-body">
-          <div class="field" style="margin-bottom:0">
+          <div class="field mb-0">
             <label class="label" for="bulk-del-password">Kata laluan</label>
             <input id="bulk-del-password" class="input" type="password" autocomplete="current-password">
             <p class="hint">Diperlukan untuk mengesahkan tindakan ini.</p>
           </div>
-          <div id="bulk-del-msg" role="alert" aria-live="assertive"></p>
+          <div id="bulk-del-msg" role="alert" aria-live="assertive"></div>
         </div>
         <div class="modal-foot">
           <button id="bulk-del-cancel" class="btn secondary" type="button">Batal</button>
@@ -234,10 +253,14 @@ export function renderRegistration(root) {
   const transferReasonEl = $("#f-transfer-reason");
   const transferNotesEl = $("#f-transfer-notes");
 
-  const listContent = $("#list-content");
   const rowsEl = $("#rows");
   const countEl = $("#count");
-  const schoolEl = $("#schools");
+  const pickerEl = $("#school-picker");
+  const panelEl = $("#registration-panel");
+  const schoolGrid = $("#school-grid");
+  const schoolNameEl = $("#school-name");
+  const pickerSummary = $("#picker-summary");
+  const ledeEl = $("#reg-lede");
   const qEl = $("#q");
   const clearSearchBtn = $("#clear-search");
   const statusFilter = $("#status-filter");
@@ -304,33 +327,93 @@ export function renderRegistration(root) {
     });
   }
 
-  /* ----- school choice ----- */
-  schoolEl.addEventListener("change", () => {
-    selectedSchool = schoolEl.value;
+  /* ----- school choice -----
+     Choosing a school is the first task, so it gets the whole screen instead of
+     a dropdown in a toolbar: twelve named tiles, one tap, no scrolling a list.
+     The list itself only appears once a school is chosen. */
+  let globalProgress = "";
+
+  // One line under the title carries the state of the day; the instruction to
+  // pick a school only belongs there while no school is chosen.
+  function renderLede() {
+    const base = globalProgress || "Daftar murid Tingkatan 1.";
+    ledeEl.textContent = selectedSchool ? base : `${base} Pilih sekolah rendah asal untuk mula.`;
+  }
+
+  function applySchoolState() {
+    const has = Boolean(selectedSchool);
+    pickerEl.hidden = has;
+    panelEl.hidden = !has;
+    qEl.disabled = !has;
+    statusFilter.disabled = !has;
+    $("#new").disabled = !has;
+    if (has) schoolNameEl.textContent = selectedSchool;
+    $("#student-caption").textContent = has
+      ? `Murid Tingkatan 1 dari ${selectedSchool}`
+      : "Senarai murid Tingkatan 1";
+    renderLede();
+  }
+
+  function chooseSchool(school) {
+    selectedSchool = school;
     page = 0;
     rows = [];
     qEl.value = "";
     clearSearchBtn.hidden = true;
+    statusFilter.value = "";
+    status = "";
     try {
-      if (selectedSchool) localStorage.setItem("sperk-registration-school", selectedSchool);
+      if (school) localStorage.setItem("sperk-registration-school", school);
       else localStorage.removeItem("sperk-registration-school");
     } catch { /* storage may be blocked; the session still works */ }
 
-    listContent.hidden = !selectedSchool;
-    qEl.disabled = !selectedSchool;
-    statusFilter.disabled = !selectedSchool;
-    $("#new").disabled = !selectedSchool;
-    $("#list-more").hidden = !selectedSchool;
-    $("#student-caption").textContent = selectedSchool
-      ? `Murid Tingkatan 1 dari ${selectedSchool}`
-      : "Senarai murid Tingkatan 1";
-    if (!selectedSchool) {
+    applySchoolState();
+    if (!school) {
       rowsEl.innerHTML = "";
       countEl.textContent = "";
       return;
     }
     load();
+  }
+
+  schoolGrid.addEventListener("click", (e) => {
+    const tile = e.target.closest("[data-school]");
+    if (tile) chooseSchool(tile.dataset.school);
   });
+
+  $("#change-school").addEventListener("click", () => {
+    pickerEl.hidden = false;
+    panelEl.hidden = true;
+    pickerEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    schoolGrid.querySelector("[data-school]")?.focus();
+  });
+
+  // Counts are a nicety: the tiles work before they arrive and keep working if
+  // the read fails, so a slow network never blocks the first task.
+  async function fillPickerCounts() {
+    try {
+      const d = await getDashboard();
+      const bySchool = new Map((d.registrationBySchool || []).map((r) => [r.school, r]));
+      for (const el of schoolGrid.querySelectorAll("[data-count-for]")) {
+        const row = bySchool.get(el.dataset.countFor);
+        if (!row || !row.total) {
+          el.textContent = "Tiada murid";
+          continue;
+        }
+        el.textContent = `${formatCount(row.registered)}/${formatCount(row.total)} didaftar`;
+        el.classList.toggle("is-complete", row.registered === row.total);
+      }
+      const registered = d.registeredStudents ?? 0;
+      const total = d.activeStudents ?? 0;
+      globalProgress = `${formatCount(registered)} daripada ${formatCount(total)} murid sudah daftar.`;
+      renderLede();
+      pickerSummary.textContent = total - registered > 0
+        ? `${formatCount(total - registered)} murid belum daftar`
+        : "Semua murid sudah daftar";
+    } catch {
+      for (const el of schoolGrid.querySelectorAll("[data-count-for]")) el.textContent = "Pilih";
+    }
+  }
 
   /* ----- list rendering ----- */
   function statusCell(s) {
@@ -445,8 +528,8 @@ export function renderRegistration(root) {
       const from = page * PAGE_SIZE + 1;
       const to = page * PAGE_SIZE + rows.length;
       countEl.textContent = data.total > rows.length
-        ? `Menunjukkan ${from}–${to} daripada ${data.total} murid`
-        : `${data.total} murid`;
+        ? `Menunjukkan ${formatCount(from)}–${formatCount(to)} daripada ${formatCount(data.total)} murid`
+        : `${formatCount(data.total)} murid`;
     } catch (err) {
       if (mine !== seq) return;
       loading = false;
@@ -568,7 +651,7 @@ export function renderRegistration(root) {
   function renderBulkBar() {
     const n = selectedIds.size;
     bulkBar.hidden = n === 0;
-    bulkCount.textContent = `${n} murid dipilih`;
+    bulkCount.textContent = `${formatCount(n)} murid dipilih`;
   }
 
   startSelectBtn.addEventListener("click", () => {
@@ -844,10 +927,7 @@ export function renderRegistration(root) {
       });
       await load();
     } catch (err) {
-      formMsg.innerHTML = `<div class="status bad"><div class="status-body">
-        <strong class="status-title">Tidak dapat disimpan</strong>
-        <span class="status-text"></span></div></div>`;
-      formMsg.querySelector(".status-text").textContent = err.message;
+      formMsg.innerHTML = inlineError("Tidak dapat disimpan", err.message);
     } finally {
       saveBtn.disabled = false;
       saveBtn.textContent = "Simpan";
@@ -857,7 +937,7 @@ export function renderRegistration(root) {
   /* ----- bulk delete ----- */
   $("#bulk-del").addEventListener("click", () => {
     if (selectedIds.size === 0) return;
-    bulkDelCount.textContent = selectedIds.size;
+    bulkDelCount.textContent = formatCount(selectedIds.size);
     bulkDelMsg.innerHTML = "";
     bulkDeleteForm.reset();
     bulkDeleteDialog.showModal();
@@ -914,16 +994,7 @@ export function renderRegistration(root) {
     if (schools.includes(saved)) selectedSchool = saved;
   } catch { /* use manual choice */ }
 
-  schoolEl.value = selectedSchool;
-  listContent.hidden = !selectedSchool;
-  qEl.disabled = !selectedSchool;
-  statusFilter.disabled = !selectedSchool;
-  $("#new").disabled = !selectedSchool;
-  $("#list-more").hidden = !selectedSchool;
-  $("#student-caption").textContent = selectedSchool
-    ? `Murid Tingkatan 1 dari ${selectedSchool}`
-    : "Senarai murid Tingkatan 1";
-  if (selectedSchool) {
-    load();
-  }
+  applySchoolState();
+  fillPickerCounts();
+  if (selectedSchool) load();
 }

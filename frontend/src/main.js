@@ -1,27 +1,27 @@
 import "./style.css";
 import { initAuth, isLoggedIn, signOutUser } from "./shared/auth.js";
-import { clearStatus } from "./shared/status.js";
+import { clearStatus, ensureStatusDock } from "./shared/status.js";
 import { APP_NAME, APP_LONG_NAME } from "./shared/config.js";
+import { esc } from "./shared/dom.js";
+import { icon } from "./shared/icons.js";
+import { staffName } from "./shared/staff.js";
 import { renderLogin } from "./pages/login.js";
 
 /* SPeRK: two features share one student database. */
 
+// Every destination is visible in the rail. Nothing hides behind a menu, so a
+// teacher never has to remember where a screen lives.
 const NAV = [
-  { path: "/", label: "Utama", title: "Utama" },
-  { path: "/pendaftaran", label: "Pendaftaran", title: "Pendaftaran murid" },
-  { path: "/jana-resit", label: "Koperasi", title: "Jana resit koperasi" },
-  { path: "/laporan-koperasi", label: "Laporan Koperasi", title: "Laporan koperasi" },
+  { path: "/", label: "Utama", icon: "home", title: "Utama" },
+  { path: "/pendaftaran", label: "Pendaftaran", icon: "students", title: "Pendaftaran murid" },
+  { path: "/jana-resit", label: "Koperasi", icon: "receipt", title: "Jana resit koperasi" },
+  { path: "/laporan-koperasi", label: "Laporan koperasi", icon: "report", title: "Laporan koperasi" },
 ];
 
-// Secondary tools live in one compact menu so daily routes stay easy to scan.
+// Secondary tools sit in their own group, below the daily work.
 const TOOLS = [
-  { path: "/import", label: "Import senarai" },
-  { path: "/panduan", label: "Panduan" },
-];
-
-const MENU_GROUPS = [
-  { title: "Kerja harian", items: NAV },
-  { title: "Lagi", items: TOOLS },
+  { path: "/import", label: "Import senarai", icon: "import", title: "Import senarai murid" },
+  { path: "/panduan", label: "Panduan", icon: "guide", title: "Panduan" },
 ];
 
 const routes = {
@@ -44,6 +44,8 @@ const REDIRECTS = {
 
 const app = document.querySelector("#app");
 document.title = APP_LONG_NAME;
+// Mount the single ARIA live region once, before any page can write into it.
+ensureStatusDock();
 let renderSequence = 0;
 
 // Clear preferences and device-local names used by features that were removed.
@@ -64,15 +66,21 @@ function currentRoute() {
 const isActive = (path, p) =>
   p === path || (p === "/laporan-koperasi" && path.startsWith("/resit/"));
 
-const navLink = (path, item) => {
+/* Keep each destination to one full-width link with a persistent icon and label. */
+const railLink = (path, item) => {
   const active = isActive(path, item.path);
-  return `<a href="#${item.path}"${active ? ' aria-current="page"' : ""}>${item.label}</a>`;
+  return `<a href="#${item.path}"${active ? ' aria-current="page"' : ""}
+             aria-label="${esc(item.label)}">
+    <span class="rail-ico" aria-hidden="true">${icon(item.icon)}</span>
+    <span class="rail-text">${item.label}</span>
+  </a>`;
 };
 
 const menuLink = (path, item) => {
   const active = isActive(path, item.path);
   return `<li><a href="#${item.path}"${active ? ' aria-current="page"' : ""}>
-    <span>${item.label}</span><span aria-hidden="true">›</span>
+    <span class="menu-link-body">${icon(item.icon)}<span>${item.label}</span></span>
+    <span class="menu-chevron" aria-hidden="true">›</span>
   </a></li>`;
 };
 
@@ -85,51 +93,78 @@ const brand = (href) => `
     </span>
   </a>`;
 
+// The bar at the top of the work area repeats the current destination, so the
+// screen still says where you are after a long table has scrolled its heading
+// out of sight.
+function pageLabel(path) {
+  if (path.startsWith("/resit/")) return "Resit koperasi";
+  const item = [...NAV, ...TOOLS].find((n) => isActive(path, n.path));
+  return item ? item.label : APP_NAME;
+}
+
 function shellHtml(path) {
-  const toolsActive = TOOLS.some((item) => isActive(path, item.path));
+  const name = staffName();
+  const who = name || "Guru bertugas";
+  // Without a name the fallback already says what the account is, so the second
+  // line carries the school instead of repeating the first.
+  const role = name ? "Guru" : "SMK Lohan, Ranau";
   return `
-    ${import.meta.env.DEV ? `<div class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</div>` : ""}
     <a class="skip-link" href="#view">Langkau ke kandungan</a>
 
-    <header class="site-header no-print">
-      <div class="site-header-in">
-        ${brand("#/")}
-        <p class="rail-caption">Menu utama</p>
-        <nav class="nav" aria-label="Navigasi utama">
-          ${NAV.map((item) => navLink(path, item)).join("")}
-          <p class="nav-section-label">Alat bantuan</p>
-          <details class="nav-more${toolsActive ? " is-active" : ""}"${toolsActive ? " open" : ""}>
-            <summary>Lagi</summary>
-            <ul>${TOOLS.map((item) => menuLink(path, item)).join("")}</ul>
-          </details>
+    <header class="rail no-print">
+      <div class="rail-in">
+        <div class="rail-head">${brand("#/")}</div>
+
+        <nav id="rail-nav" class="rail-nav" aria-label="Navigasi utama">
+          ${NAV.map((item) => railLink(path, item)).join("")}
+          ${TOOLS.map((item) => railLink(path, item)).join("")}
         </nav>
-        <div class="rail-bottom">
-          <span class="rail-school">SMK Lohan <small>Ranau</small></span>
-          <button class="menu-logout js-logout" type="button">Log Keluar</button>
+
+        <div class="rail-foot">
+          <div class="rail-user">
+            <span class="rail-user-copy">
+              <span class="rail-user-name">${esc(who)}</span>
+              <span class="rail-user-role">${esc(role)}</span>
+            </span>
+          </div>
+          <button class="rail-logout js-logout" type="button" aria-label="Log keluar">
+            ${icon("logout")}<span>Log keluar</span>
+          </button>
         </div>
-        <button id="menu-toggle" class="menu-btn" type="button"
+
+        <button id="menu-toggle" class="rail-menu" type="button"
                 aria-expanded="false" aria-controls="mobile-menu">
-          <span class="menu-btn-icon" aria-hidden="true">☰</span>
-          <span class="menu-btn-text">Menu</span>
+          <span class="rail-menu-icon" aria-hidden="true">${icon("menu")}</span>
+          <span class="rail-menu-text">Menu</span>
         </button>
       </div>
     </header>
 
-    <div id="mobile-menu" class="mobile-menu no-print" hidden>
-      ${MENU_GROUPS.map((group) => `
-        <h2 class="menu-group">${group.title}</h2>
-        <ul>${group.items.map((item) => menuLink(path, item)).join("")}</ul>`).join("")}
-      <h2 class="menu-group">Akaun</h2>
-      <ul><li><button class="menu-logout js-logout" type="button">
-        <span>Log Keluar</span><span aria-hidden="true">›</span>
-      </button></li></ul>
+    <div class="app-main">
+      <div class="topbar no-print">
+        <div class="topbar-head">
+          <p class="topbar-title">${esc(pageLabel(path))}</p>
+          ${import.meta.env.DEV ? `<span class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</span>` : ""}
+        </div>
+      </div>
+
+      <main id="view" class="page" tabindex="-1">
+        <div id="page-body"></div>
+      </main>
     </div>
 
-    <main id="view" class="page" tabindex="-1">
-      <div id="status-region" class="status-region" role="status" aria-live="polite"></div>
-      <div id="page-body"></div>
-    </main>
-
+    <div id="mobile-menu" class="mobile-menu no-print" hidden>
+      <div class="menu-user">
+        <span class="rail-user-copy">
+          <span class="rail-user-name">${esc(who)}</span>
+          <span class="rail-user-role">SMK Lohan, Ranau</span>
+        </span>
+      </div>
+      <ul>${[...NAV, ...TOOLS].map((item) => menuLink(path, item)).join("")}</ul>
+      <ul><li><button class="menu-logout js-logout" type="button">
+        <span class="menu-link-body">${icon("logout")}<span>Log keluar</span></span>
+      </button></li></ul>
+    </div>
     `;
 }
 
@@ -140,11 +175,19 @@ function wireMenu(scope) {
   const menu = scope.querySelector("#mobile-menu");
   if (!toggle || !menu) return;
 
+  // The header is sticky, so the menu has to start below whatever actually sits
+  // at the top of the page — the header alone, or the development banner too.
+  const rail = scope.querySelector(".rail");
+  if (rail) menu.style.top = `${Math.round(rail.getBoundingClientRect().bottom)}px`;
+
+  const iconSlot = toggle.querySelector(".rail-menu-icon");
+  const textSlot = toggle.querySelector(".rail-menu-text");
+
   const setOpen = (open) => {
     menu.hidden = !open;
     toggle.setAttribute("aria-expanded", String(open));
-    toggle.querySelector(".menu-btn-icon").textContent = open ? "✕" : "☰";
-    toggle.querySelector(".menu-btn-text").textContent = open ? "Tutup" : "Menu";
+    if (iconSlot) iconSlot.innerHTML = icon(open ? "close" : "menu");
+    if (textSlot) textSlot.textContent = open ? "Tutup" : "Menu";
     document.body.style.overflow = open ? "hidden" : "";
     if (open) menu.querySelector("a, button")?.focus();
   };
@@ -197,7 +240,6 @@ async function renderPublicGuide(sequence) {
       <a class="btn secondary sm" href="#/login">Log Masuk</a>
     </div>
     <main id="view" class="page" tabindex="-1">
-      <div id="status-region" class="status-region" role="status" aria-live="polite"></div>
       <div id="page-body"></div>
     </main>
     `;
@@ -220,6 +262,8 @@ async function render() {
   // A result banner belongs to the screen that produced it, never to the next one.
   clearStatus();
   document.body.classList.remove("has-trolley");
+  // Never leave a locked page behind if a route changed while the menu was open.
+  document.body.style.overflow = "";
 
   // The guide is readable before signing in, including from the login page.
   if (path === "/panduan" && !isLoggedIn()) {

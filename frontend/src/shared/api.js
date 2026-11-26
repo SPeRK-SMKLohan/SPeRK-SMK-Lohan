@@ -11,6 +11,10 @@ const readRequests = new Map();
 const retryableStatus = (status) => [408, 425, 429, 500, 502, 503, 504].includes(status);
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/* One dashboard read serves several screens. apiFetch already dedupes
+   concurrent GETs, so two screens mounting together still cost one request. */
+export const getDashboard = () => apiFetch("/api/dashboard");
+
 export async function apiFetch(path, options = {}) {
   const token = await getIdToken();
   const method = (options.method || "GET").toUpperCase();

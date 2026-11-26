@@ -116,11 +116,12 @@ export default {
 
     // Semua laluan /api/ lain dilindungi secara lalai.
     if (url.pathname.startsWith("/api/")) {
-      // Ambil token Google lebih awal (selari dengan pengesahan token pengguna).
-      prefetchAccessToken(env);
-
       const auth = await authenticate(request, env);
       if (!auth.ok) return json({ error: auth.error }, auth.status);
+
+      // Hanya permintaan yang disahkan boleh memulakan akses Firestore.
+      // Token berjalan selari dengan kerja penghalaan sebelum handler membuat bacaan.
+      prefetchAccessToken(env);
 
       const { pathname } = url;
       const method = request.method;

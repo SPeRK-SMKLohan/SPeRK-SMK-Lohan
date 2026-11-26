@@ -108,8 +108,11 @@ export function renderGuide(root) {
   const sections = SECTIONS.map((s) => root.querySelector(`#${s.id}`)).filter(Boolean);
 
   const setActive = (id) => {
+    // aria-current belongs only on the active item; "false" is still an
+    // aria-current value and makes every jump button look current to AT.
     for (const btn of navButtons) {
-      btn.setAttribute("aria-current", String(btn.dataset.target === id));
+      if (btn.dataset.target === id) btn.setAttribute("aria-current", "true");
+      else btn.removeAttribute("aria-current");
     }
   };
 
