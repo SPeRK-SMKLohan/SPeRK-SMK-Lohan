@@ -79,7 +79,6 @@
   --surface: #FFFFFF;
   --surface-2: #F5FAFA;
   --surface-3: #ECF5F5;
-  --topbar-bg: #FFFFFF;
 
   /* Ink ramp. #75819B is the brief's secondary swatch; it is used for icons
      and decoration. Text uses the darker ramp so 12 px labels still pass AA. */
@@ -157,7 +156,6 @@
   --shadow-3: 0 16px 40px -20px rgba(25, 36, 61, .26);
 
   --header-h: 60px;
-  --topbar-h: 60px;
   --rail-w: 188px;
   --page-max: 1360px;
   --gutter: clamp(16px, 2.5vw, 28px);
@@ -444,7 +442,6 @@ small { font-size: var(--fs-small); }
 .rail-menu:hover { background: rgba(255, 255, 255, .14); }
 
 .app-main { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; background: var(--bg); }
-.topbar { display: none; }
 
 /* One icon size for the whole shell; every glyph is a 24×24 stroke path. */
 .ico { width: 20px; height: 20px; flex: none; }
@@ -505,18 +502,6 @@ small { font-size: var(--fs-small); }
 /* The shared account block uses dark text in the white mobile drawer. */
 .menu-user .rail-user-name { font-size: 1rem; color: var(--ink); }
 .menu-user .rail-user-role { color: var(--ink-3); }
-
-.devbar {
-  display: inline-flex;
-  align-items: center;
-  background: var(--warn-soft);
-  color: var(--warn);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.3;
-  padding: 6px 10px;
-  border-radius: var(--r-sm);
-}
 
 .page {
   flex: 1 0 auto;
@@ -863,7 +848,7 @@ legend { font-size: var(--fs-body); font-weight: 600; padding: 0; margin-bottom:
    sticky header inside it — so it is only pinned where it can work. */
 @media (min-width: 1081px) {
   .student-table-wrap { overflow: visible; }
-  .student-table thead th { position: sticky; top: var(--topbar-h); z-index: 2; }
+  .student-table thead th { position: sticky; top: 0; z-index: 2; }
 }
 
 .table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); background: var(--surface); }
@@ -2016,7 +2001,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
     overflow: clip;
     box-shadow: none;
   }
-  /* Inside the canvas the top bar and the content share one left edge. */
+  /* The page content starts at the top of the work area. */
   .has-school-rail .page {
     max-width: none;
     margin: 0;
@@ -2066,33 +2051,12 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .has-school-rail .rail-head .brand-name { font-size: .9375rem; }
   .has-school-rail .rail-head .brand-sub { max-width: 136px; font-size: var(--fs-small); }
 
-  /* The page title stays in a compact top bar beside the account date. */
-  .topbar-head {
-    display: flex;
-    align-items: center;
-    gap: var(--s3);
-    min-width: 0;
-  }
   .has-school-rail .rail-nav { display: grid; }
   .has-school-rail .rail-foot { display: grid; padding-inline: 12px; }
   .has-school-rail .rail-menu { display: none; }
 
-  .has-school-rail .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s4);
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    min-height: var(--topbar-h);
-    padding: 0 clamp(18px, 2.2vw, 32px);
-    background: var(--topbar-bg);
-    border-bottom: 1px solid var(--line);
-  }
-
   body.has-school-rail.has-trolley .trolley { left: var(--rail-w); right: 0; }
-  .has-school-rail .guide-nav { top: calc(var(--topbar-h) + var(--s4)); }
+  .has-school-rail .guide-nav { top: var(--s4); }
   body.has-school-rail .status-dock {
     left: calc(var(--rail-w) + (100vw - var(--rail-w)) / 2);
   }
@@ -2105,28 +2069,6 @@ body.has-trolley .page { padding-bottom: 9rem; }
 }
 @media (min-width: 1081px) and (max-height: 480px) {
   .has-school-rail .rail-user { display: none; }
-}
-
-@media (min-width: 1081px) {
-  /* The current destination is a compact label in the top bar. */
-  .topbar-title {
-    display: inline-flex;
-    align-items: center;
-    min-height: 34px;
-    margin: 0;
-    padding: 0 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    background: var(--surface-2);
-    font-family: var(--font-display);
-    color: var(--ink-2);
-    font-size: .8125rem;
-    font-weight: 700;
-    letter-spacing: .01em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 @media (max-width: 1080px) {
@@ -2634,7 +2576,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
 
 @media print {
   @page { margin: 14mm; }
-  .rail, .topbar, .no-print, .trolley, .skip-link { display: none !important; }
+  .rail, .no-print, .trolley, .skip-link { display: none !important; }
   /* The work area is a rounded canvas offset by the fixed sidebar. With the
      sidebar hidden, neither the offset nor the rounding belongs on paper. This
      block sits last in the file so it also beats the ≥1081 px rule. */

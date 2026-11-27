@@ -93,15 +93,6 @@ const brand = (href) => `
     </span>
   </a>`;
 
-// The bar at the top of the work area repeats the current destination, so the
-// screen still says where you are after a long table has scrolled its heading
-// out of sight.
-function pageLabel(path) {
-  if (path.startsWith("/resit/")) return "Resit koperasi";
-  const item = [...NAV, ...TOOLS].find((n) => isActive(path, n.path));
-  return item ? item.label : APP_NAME;
-}
-
 function shellHtml(path) {
   const name = staffName();
   const who = name || "Guru bertugas";
@@ -141,13 +132,6 @@ function shellHtml(path) {
     </header>
 
     <div class="app-main">
-      <div class="topbar no-print">
-        <div class="topbar-head">
-          <p class="topbar-title">${esc(pageLabel(path))}</p>
-          ${import.meta.env.DEV ? `<span class="devbar no-print">Mod pembangunan: disambung ke pangkalan data sebenar</span>` : ""}
-        </div>
-      </div>
-
       <main id="view" class="page" tabindex="-1">
         <div id="page-body"></div>
       </main>
