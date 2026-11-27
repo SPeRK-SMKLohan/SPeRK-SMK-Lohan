@@ -1,4 +1,4 @@
-import { getItems, listReceipts } from "./api.js";
+import { listReceipts } from "./api.js";
 import { paymentLabel } from "./constants.js";
 import { formatRM, formatAmount } from "../../shared/money.js";
 import { esc, formatCount, EMPTY_VALUE } from "../../shared/dom.js";
@@ -80,7 +80,46 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
 
     <details class="card report-items" id="report-items">
       <summary>Senarai harga barangan</summary>
-      <div id="report-items-box">${loadingState("Memuatkan senarai barangan…")}</div>
+      <div>
+        <ul class="record-list">
+          <li class="record">
+            <div class="record-main"><p class="record-name">Lencana Sekolah + Tanda Nama (3 Set)</p><div class="record-meta"><span>Kuantiti tetap: 1</span></div></div>
+            <strong class="num">RM12.00</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Baju PJK (Lengan Pendek)</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM40.00</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Baju PJK (Lengan Panjang)</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM43.00</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Tali Leher Sekolah</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM15.50</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Fail murid</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM3.50</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Buku PAJSK (Kegunaan T1-T5)</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM7.00</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Buku Peraturan Sekolah</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM5.50</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Keahlian Koperasi (sekali sepanjang tempoh persekolahan)</p><div class="record-meta"><span>Kuantiti tetap: 1</span></div></div>
+            <strong class="num">RM5.00</strong>
+          </li>
+          <li class="record">
+            <div class="record-main"><p class="record-name">Buku Tulis SMK Lohan (4 buku panjang + 8 buku pendek)</p><div class="record-meta"><span>Kuantiti boleh dipilih</span></div></div>
+            <strong class="num">RM24.00</strong>
+          </li>
+        </ul>
+      </div>
     </details>`;
 
   const $ = (sel) => root.querySelector(sel);
@@ -90,33 +129,6 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
   const qInput = $("#report-q");
   const schoolInput = $("#report-school");
   const itemsSection = $("#report-items");
-  let itemsLoaded = false;
-
-  async function loadItems() {
-    const box = $("#report-items-box");
-    try {
-      const { items } = await getItems();
-      itemsLoaded = true;
-      box.innerHTML = items.length ? `
-        <ul class="record-list">
-          ${items.map((item) => `
-            <li class="record${item.active ? "" : " is-inactive"}">
-              <div class="record-main">
-                <p class="record-name">${esc(item.name)}</p>
-                <div class="record-meta">
-                  <span>${item.fixedQuantity ? `Kuantiti tetap: ${item.fixedQuantity}` : "Kuantiti boleh dipilih"}</span>
-                  ${item.active ? "" : '<span class="pill warn">Tidak aktif</span>'}
-                </div>
-              </div>
-              <strong class="num">${formatRM(item.priceSen)}</strong>
-            </li>`).join("")}
-        </ul>` : `<div class="record-empty"><p>Tiada barangan dalam senarai.</p></div>`;
-    } catch (error) {
-      box.innerHTML = readErrorState(error, "Senarai barangan");
-      wireReadRetry(box, loadItems);
-    }
-  }
-
   fromInput.value = `${todayKey().slice(0, 4)}-01-01`;
   toInput.value = todayKey();
 
@@ -274,9 +286,6 @@ export function renderCoopReport(root, params = new URLSearchParams()) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
-  itemsSection.addEventListener("toggle", () => {
-    if (itemsSection.open && !itemsLoaded) loadItems();
-  });
   load();
   if (params.get("items") === "1") {
     itemsSection.open = true;
