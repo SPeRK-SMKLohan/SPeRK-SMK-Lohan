@@ -13,13 +13,8 @@
    22 Responsive  23 Accessibility
    ========================================================================== */
 
-/* SPeRK 2.0 type. Both faces are self-hosted variable woff2 under the SIL
-   Open Font License (see /fonts/OFL-Inter.txt and /fonts/OFL-Urbanist.txt).
-   Urbanist carries headings and the wordmark; Inter carries interface text,
-   tables and numbers. Variable files mean one request per face instead of one
-   per weight, and the whole 100-900 range is available without synthetic
-   bolding. Latin and Latin-Ext cover Bahasa Melayu plus the punctuation used
-   in receipts (·, —, “ ”). */
+/* School identity type: locally hosted Poppins headings with Inter interface
+   text. Both are served from this app to avoid a third-party font request. */
 @font-face {
   font-family: "Inter";
   src: url("/fonts/inter-var-latin.woff2") format("woff2");
@@ -37,17 +32,33 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: "Urbanist";
-  src: url("/fonts/urbanist-var-latin.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "Poppins";
+  src: url("/fonts/poppins-600-latin.woff2") format("woff2");
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Urbanist";
-  src: url("/fonts/urbanist-var-latin-ext.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "Poppins";
+  src: url("/fonts/poppins-600-latin-ext.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/poppins-700-latin.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/poppins-700-latin-ext.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -56,70 +67,63 @@
 /* 01 Tokens ---------------------------------------------------------------- */
 
 :root {
-  /* Lohan Desk: an aqua frame, white workspace, teal actions, and restrained
-     semantic accents. Text-bearing colours stay on the darker ink ramp. */
-  --brand: #0F766E;          /* teal primary with AA white text */
-  --brand-interactive: #0F766E;
-  --brand-deep: #115E59;
-  --brand-soft: #E8F5F3;
-  --brand-soft-2: #B9E3DF;
-  --brand-soft-ink: #115E59;
+  /* SMK Lohan identity: school green for progress, forest green for controls,
+     yellow for highlights, red for critical states, and a near-white canvas. */
+  --brand: #409448;
+  --brand-interactive: #24632D;
+  --brand-deep: #1C4D23;
+  --brand-soft: #EAF3E9;
+  --brand-soft-2: #B9D5BA;
+  --brand-soft-ink: #24632D;
 
-  --accent: #0F766E;
-  --accent-deep: #115E59;
-  --accent-soft: #E8F5F3;
-  --accent-soft-ink: #115E59;
+  --accent: #24632D;
+  --accent-deep: #1C4D23;
+  --accent-soft: #FFF9D8;
+  --accent-soft-ink: #413B08;
 
-  /* The aqua is confined to the outer frame. The sidebar and primary actions
-     use deep teal so labels remain clear on every screen size. */
-  --shell: #DFF5F7;
-  --highlight: #FFFFFF;
+  --shell: #FBFBFC;
+  --highlight: #F6E10D;
 
-  --bg: #FFFFFF;             /* plain white application canvas */
+  --bg: #FBFBFC;
   --surface: #FFFFFF;
-  --surface-2: #F5FAFA;
-  --surface-3: #ECF5F5;
+  --surface-2: #F6F8F5;
+  --surface-3: #EEF3ED;
 
-  /* Ink ramp. #75819B is the brief's secondary swatch; it is used for icons
-     and decoration. Text uses the darker ramp so 12 px labels still pass AA. */
-  --ink: #19243D;            /* 15.43:1 on white */
-  --ink-2: #47536C;          /* 7.5:1 on white */
-  --ink-3: #5A6580;          /* 5.82:1 on white, 5.39:1 on --bg */
-  --ink-muted: #75819B;      /* brief swatch — decoration only */
+  --ink: #0B0706;
+  --ink-2: #433D3A;
+  --ink-3: #625C59;
+  --ink-muted: #766F6C;
   --ink-on-brand: #FFFFFF;
 
-  --line: #DFE9E8;
-  --line-2: #C9DAD8;
-  --line-strong: #A6BFBC;
+  --line: #E5EAE3;
+  --line-2: #CDD8CB;
+  --line-strong: #AABCA8;
 
-  /* Semantic: the *-ink step is the AA-safe text/fill colour; the *-soft step
-     is its tinted background. Success/warning/error/info come from the brief. */
-  --ok: #1F6B53;
-  --ok-base: #278568;
-  --ok-soft: #E7F3ED;
-  --ok-hover: #175640;
-  --ok-line: #A9D2BF;
-  --warn: #8A5D0F;
-  --warn-base: #D49A37;
-  --warn-soft: #FBF2DE;
-  --warn-line: #E8D3A6;
-  --bad: #B03A40;
-  --bad-base: #C94C52;
-  --bad-soft: #FBEAEC;
-  --bad-hover: #8E2E34;
-  --bad-line: #EBC0C3;
-  --info: #2F5FA5;
-  --info-base: #5282CA;
-  --info-soft: #E9EEFC;
-  --info-line: #BFCEEA;
+  --ok: #24632D;
+  --ok-base: #409448;
+  --ok-soft: #EAF3E9;
+  --ok-hover: #1C4D23;
+  --ok-line: #B9D5BA;
+  --warn: #51490A;
+  --warn-base: #F6E10D;
+  --warn-soft: #FFF9D8;
+  --warn-line: #E8DB72;
+  --bad: #D9201E;
+  --bad-base: #D9201E;
+  --bad-soft: #FCEAE9;
+  --bad-hover: #AD1917;
+  --bad-line: #EAB8B6;
+  --info: #24632D;
+  --info-base: #409448;
+  --info-soft: #EAF3E9;
+  --info-line: #B9D5BA;
   --invalid-bg: #FEF7F7;
 
-  --focus: #344D9B;
+  --focus: #24632D;
 
-  /* One type system: Urbanist for headings, Inter for interface and data.
-     Root is 16 px, so the brief's scale maps to exact rem values. */
+  /* Poppins carries headings; Inter keeps interface text and data easy to scan. */
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Urbanist", "Inter", system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", system-ui, sans-serif;
   --font-mono: "Inter", ui-monospace, Consolas, monospace;
 
   --fs-h1: 1.75rem;    /* 28px page heading */
@@ -226,8 +230,7 @@ h1, h2, h3, h4 {
   text-wrap: balance;
 }
 
-/* One deliberate scale, restrained weights. Urbanist reads clearly at 600;
-   nothing needs 700 to be understood. */
+/* Poppins headings use the brief's semibold weight for a clear hierarchy. */
 h1 { font-size: var(--fs-h1); font-weight: 600; letter-spacing: -0.025em; }
 h2 { font-size: var(--fs-h2); font-weight: 600; letter-spacing: -0.015em; }
 h3 { font-size: var(--fs-h3); font-weight: 600; }
@@ -265,7 +268,7 @@ small { font-size: var(--fs-small); }
   transform: translateY(-200%);
   padding: var(--s3) var(--s4);
   border-radius: var(--r-sm);
-  background: var(--brand);
+  background: var(--brand-interactive);
   color: #fff;
   font-weight: 650;
   text-decoration: none;
@@ -481,7 +484,7 @@ small { font-size: var(--fs-small); }
 .mobile-menu .menu-chevron { color: var(--ink-3); }
 .mobile-menu a[aria-current="page"] {
   border-color: var(--brand);
-  background: var(--brand-soft);
+  background: var(--highlight);
   color: var(--brand-deep);
 }
 .mobile-menu a[aria-current="page"] .ico,
@@ -536,7 +539,7 @@ small { font-size: var(--fs-small); }
   text-decoration: none;
 }
 .back-link::before { content: "‹"; font-size: 1.2em; line-height: 1; }
-.back-link:hover { color: var(--brand); text-decoration: underline; }
+.back-link:hover { color: var(--accent); text-decoration: underline; }
 
 /* 05 Utilities ------------------------------------------------------------- */
 
@@ -599,7 +602,7 @@ small { font-size: var(--fs-small); }
 .btn:hover { text-decoration: none; }
 .btn:disabled, .btn[aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
 
-.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary { background: var(--brand-interactive); border-color: var(--brand-interactive); color: #fff; }
 .btn.primary:hover:not(:disabled) { background: var(--brand-deep); border-color: var(--brand-deep); }
 
 .btn.secondary { background: var(--surface); border-color: var(--line-2); color: var(--ink); }
@@ -968,7 +971,7 @@ legend { font-size: var(--fs-body); font-weight: 600; padding: 0; margin-bottom:
   font-variant-numeric: tabular-nums;
 }
 .steps li.is-current { color: var(--ink); }
-.steps li.is-current::before { background: var(--brand); color: #fff; }
+.steps li.is-current::before { background: var(--brand-interactive); color: #fff; }
 .steps li.is-done::before { background: var(--ok); color: #fff; content: "✓"; }
 
 @media (min-width: 641px) {
@@ -1008,7 +1011,7 @@ legend { font-size: var(--fs-body); font-weight: 600; padding: 0; margin-bottom:
   height: 28px;
   flex: none;
   border-radius: var(--r-sm);
-  background: var(--brand);
+  background: var(--brand-interactive);
   color: #fff;
   font-size: var(--fs-body);
   font-weight: 600;
@@ -2017,7 +2020,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
     height: auto;
     min-height: 0;
     border-radius: 0;
-    background: var(--brand);
+    background: var(--brand-interactive);
   }
   .has-school-rail .rail-in {
     position: relative;
@@ -2424,7 +2427,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
   }
   .mobile-menu a[aria-current="page"] {
     border-radius: var(--r-pill);
-    background: var(--brand-soft);
+    background: var(--highlight);
     color: var(--brand-deep);
     animation: rail-highlight-enter .22s cubic-bezier(.2, .8, .2, 1) both;
   }
@@ -2473,7 +2476,7 @@ body.has-trolley .page { padding-bottom: 9rem; }
   .mobile-menu a[aria-current="page"] {
     border: 0;
     border-radius: var(--r-pill);
-    background: var(--brand-soft);
+    background: var(--highlight);
     color: var(--brand-deep);
     animation: rail-highlight-enter .22s cubic-bezier(.2, .8, .2, 1) both;
   }
