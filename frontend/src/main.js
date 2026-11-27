@@ -182,16 +182,15 @@ function wireMenu(scope) {
   });
 
   const onKey = (e) => {
-    if (!scope.isConnected) {
-      document.removeEventListener("keydown", onKey);
-      return;
-    }
     if (e.key === "Escape" && !menu.hidden) {
       setOpen(false);
       toggle.focus();
     }
   };
-  document.addEventListener("keydown", onKey);
+  // Keep the listener on the menu that owns it. The whole menu is replaced on
+  // navigation, so its listener is collected with the old DOM instead of
+  // accumulating on `document` between routes.
+  menu.addEventListener("keydown", onKey);
 }
 
 function wireLogout() {

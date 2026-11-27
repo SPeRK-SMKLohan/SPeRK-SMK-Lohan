@@ -30,7 +30,7 @@ Fail konfigurasi setempat tidak boleh dimasukkan ke Git:
 
 ## Jalankan secara setempat
 
-Prasyarat: Node.js LTS, konfigurasi setempat di atas, dan akses akaun Cloudflare serta Firebase yang dibenarkan.
+Prasyarat: Node.js 24.12 atau lebih baharu untuk frontend (diperlukan oleh Firebase SDK), konfigurasi setempat di atas, dan akses akaun Cloudflare serta Firebase yang dibenarkan.
 
 Terminal API:
 

@@ -11,7 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "wrangler": "^4.151.1"
+    "wrangler": "^4.168.0"
   },
   "dependencies": {
     "jose": "^6.2.12"

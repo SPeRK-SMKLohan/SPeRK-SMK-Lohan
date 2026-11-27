@@ -22,8 +22,9 @@ peranti bersama.
 
 ## Jalankan untuk pembangunan
 
-Gunakan Node.js LTS. Pastikan fail konfigurasi setempat disediakan sebelum
-menjalankan aplikasi; jangan kongsi atau commit fail rahsia.
+Gunakan Node.js 24.12 atau lebih baharu untuk frontend (diperlukan oleh Firebase
+SDK). Pastikan fail konfigurasi setempat disediakan sebelum menjalankan
+aplikasi; jangan kongsi atau commit fail rahsia.
 
 Terminal pertama — API:
 

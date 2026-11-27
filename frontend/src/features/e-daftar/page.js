@@ -774,7 +774,6 @@ export function renderRegistration(root) {
 
   // "/" jumps to search when the user is not already typing.
   const onKey = (e) => {
-    if (!root.isConnected) { document.removeEventListener("keydown", onKey); return; }
     if (e.key !== "/" || e.ctrlKey || e.metaKey) return;
     const tag = document.activeElement?.tagName;
     if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || dialog.open) return;
@@ -782,7 +781,9 @@ export function renderRegistration(root) {
     e.preventDefault();
     qEl.focus();
   };
-  document.addEventListener("keydown", onKey);
+  // #view is discarded when the route changes, so the shortcut listener goes
+  // with its page instead of remaining on `document` until another keypress.
+  (root.closest("#view") || root).addEventListener("keydown", onKey);
 
   /* ----- quiet refresh ----- */
   function scheduleAutoRefresh(delay) {

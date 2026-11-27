@@ -1,4 +1,4 @@
-import { EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, signInWithEmailAndPassword, signOut } from "@firebase/auth";
 import { auth } from "./firebase.js";
 
 // Tunggu Firebase memulihkan sesi sebelum memaparkan halaman. Pemulihan sesi
